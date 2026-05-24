@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Models\Product;
 
 class AdminController extends Controller
 {
@@ -54,7 +55,8 @@ class AdminController extends Controller
                 ->with('error', 'Anda harus login terlebih dahulu untuk mengakses halaman ini.');
         }
 
-        return view('admin.dashboard');
+        $products = Product::all();
+        return view('admin.dashboard', compact('products'));
     }
 
     public function logout()
@@ -64,5 +66,11 @@ class AdminController extends Controller
 
         return redirect()->route('admin.login')
             ->with('success', 'Anda berhasil logout. Sampai jumpa!');
+    }
+    
+    public function index()
+    {
+        $products = Product::all(); // Sekarang baris ini tidak akan error lagi
+        return view('admin.produk.index', compact('products'));
     }
 }

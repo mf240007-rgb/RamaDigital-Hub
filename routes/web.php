@@ -2,29 +2,16 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\Admin\ProductController;
 
-/*
-|--------------------------------------------------------------------------
-| RamaDigital Hub — Web Routes
-|--------------------------------------------------------------------------
-| Di sinilah semua "alamat URL" website kita didaftarkan.
-| Setiap route menghubungkan URL dengan Controller atau View yang sesuai.
-*/
 
-// -----------------------------------------------------------------------
 // ROUTE HALAMAN UTAMA (Pelanggan Umum)
-// Akses: http://localhost:8000/
-// -----------------------------------------------------------------------
 Route::get('/', function () {
     return view('home'); // Memanggil file: resources/views/home.blade.php
 });
 
-
-// -----------------------------------------------------------------------
 // ROUTE GRUP ADMIN
 // Semua route admin diawali dengan prefix '/admin'
-// -----------------------------------------------------------------------
-
 // Halaman Login Admin (GET = tampilkan form)
 // Akses: http://localhost:8000/admin/login
 Route::get('/admin/login', [AdminController::class, 'showLoginForm'])
@@ -43,3 +30,6 @@ Route::get('/admin/dashboard', [AdminController::class, 'dashboard'])
 // Proses Logout Admin
 Route::get('/admin/logout', [AdminController::class, 'logout'])
     ->name('admin.logout');
+
+// Rute untuk mengelola ATK di sisi Admin
+Route::get('/admin/produk', [ProductController::class, 'index'])->name('admin.produk.index');
