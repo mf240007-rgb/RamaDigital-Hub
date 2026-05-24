@@ -4,7 +4,7 @@
 <div class="container-fluid pt-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2>Kelola Produk ATK</h2>
-        <a href="#" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Tambah Produk</a>
+        <a href="{{ route('admin.produk.create') }}" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Tambah Produk</a>
     </div>
 
     <div class="card shadow-sm">
@@ -22,23 +22,30 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @forelse($products as $key => $product)
-                        <tr>
-                            <td>{{ $key + 1 }}</td>
-                            <td>{{ $product->name_produk }}</td>
-                            <td>Rp {{ number_format($product->harga, 0, ',', '.') }}</td>
-                            <td>{{ $product->stok }} Pcs</td>
-                            <td><span class="badge bg-info text-dark">{{ ucfirst($product->item_type) }}</span></td>
+                        @foreach($products as $p)
+                            <tr>
+                            <td>{{ $loop->iteration }}</td>
+                            <td>{{ $p->name_produk }}</td>
+                            <td>Rp {{ number_format($p->harga, 0, ',', '.') }}</td>
+                            <td>{{ $p->stok }} Pcs</td>
                             <td>
-                                <a href="#" class="btn btn-warning btn-sm"><i class="bi bi-pencil-square"></i></a>
-                                <button class="btn btn-danger btn-sm"><i class="bi bi-trash"></i></button>
+                                <span class="badge bg-primary">{{ $p->item_type }}</span>
                             </td>
-                        </tr>
-                        @empty
-                        <tr>
-                            <td colspan="6" class="text-center py-4">Belum ada data produk ATK.</td>
-                        </tr>
-                        @endforelse
+                            <td class="text-center">
+                                <a href="{{ route('admin.produk.edit', $p->id) }}" class="btn btn-warning btn-sm me-2">
+                                <i class="fas fa-edit"></i> Edit
+                            </a>
+
+                            <form action="{{ route('admin.produk.destroy', $p->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Yakin ingin menghapus produk ini?')">
+                        @csrf
+                        @method('DELETE')
+                            <button type="submit" class="btn btn-danger btn-sm">
+                            <i class="fas fa-trash"></i> Hapus
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                @endforeach
                     </tbody>
                 </table>
             </div>

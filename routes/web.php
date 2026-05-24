@@ -2,13 +2,12 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\HomeController;
 use App\Http\Controllers\Admin\ProductController;
 
 
 // ROUTE HALAMAN UTAMA (Pelanggan Umum)
-Route::get('/', function () {
-    return view('home'); // Memanggil file: resources/views/home.blade.php
-});
+Route::get('/', [HomeController::class, 'index'])->name('home');
 
 // ROUTE GRUP ADMIN
 // Semua route admin diawali dengan prefix '/admin'
@@ -33,3 +32,8 @@ Route::get('/admin/logout', [AdminController::class, 'logout'])
 
 // Rute untuk mengelola ATK di sisi Admin
 Route::get('/admin/produk', [ProductController::class, 'index'])->name('admin.produk.index');
+Route::get('/admin/produk/create', [ProductController::class, 'create'])->name('admin.produk.create');
+Route::post('/admin/produk/store', [ProductController::class, 'store'])->name('admin.produk.store');
+Route::delete('/admin/produk/{id}', [App\Http\Controllers\Admin\ProductController::class, 'destroy'])->name('admin.produk.destroy');
+Route::get('/admin/produk/{id}/edit', [App\Http\Controllers\Admin\ProductController::class, 'edit'])->name('admin.produk.edit');
+Route::put('/admin/produk/{id}', [App\Http\Controllers\Admin\ProductController::class, 'update'])->name('admin.produk.update');

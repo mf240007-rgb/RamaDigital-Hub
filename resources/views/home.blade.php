@@ -206,158 +206,57 @@
         <!-- ================================================
              SEKSI KATALOG PRODUK ATK (STATIS)
              ================================================ -->
-        <section id="katalog" class="mb-5">
+       <section id="katalog" class="mb-5">
 
             <h2 class="section-title">
                 <i class="bi bi-grid-fill me-2" style="color: var(--warna-utama);"></i>
                 Katalog Produk ATK
             </h2>
 
-            {{-- Baris 1: 4 Produk --}}
-            <div class="row g-4 mb-4">
-
-                {{-- Produk 1 --}}
-                <div class="col-sm-6 col-md-4 col-lg-3">
-                    <div class="card product-card h-100">
-                        <div class="card-img-top-placeholder bg-warning-subtle">📝</div>
-                        <div class="card-body">
-                            <h6 class="card-title fw-bold">Ballpoint Pilot G2</h6>
-                            <p class="harga mb-1">Rp 8.500</p>
-                            <span class="badge bg-success stock-badge">Stok: 150 pcs</span>
-                        </div>
-                        <div class="card-footer bg-transparent border-0 pb-3">
-                            <button class="btn btn-primary btn-sm w-100">
-                                <i class="bi bi-cart-plus me-1"></i> Tambah ke Keranjang
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                {{-- Produk 2 --}}
-                <div class="col-sm-6 col-md-4 col-lg-3">
-                    <div class="card product-card h-100">
-                        <div class="card-img-top-placeholder bg-primary-subtle">📓</div>
-                        <div class="card-body">
-                            <h6 class="card-title fw-bold">Buku Tulis Sidu 58 lbr</h6>
-                            <p class="harga mb-1">Rp 4.000</p>
-                            <span class="badge bg-success stock-badge">Stok: 300 pcs</span>
-                        </div>
-                        <div class="card-footer bg-transparent border-0 pb-3">
-                            <button class="btn btn-primary btn-sm w-100">
-                                <i class="bi bi-cart-plus me-1"></i> Tambah ke Keranjang
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                {{-- Produk 3 --}}
-                <div class="col-sm-6 col-md-4 col-lg-3">
-                    <div class="card product-card h-100">
-                        <div class="card-img-top-placeholder bg-danger-subtle">✏️</div>
-                        <div class="card-body">
-                            <h6 class="card-title fw-bold">Penggaris 30cm Joyko</h6>
-                            <p class="harga mb-1">Rp 5.500</p>
-                            <span class="badge bg-warning text-dark stock-badge">Stok: 45 pcs</span>
-                        </div>
-                        <div class="card-footer bg-transparent border-0 pb-3">
-                            <button class="btn btn-primary btn-sm w-100">
-                                <i class="bi bi-cart-plus me-1"></i> Tambah ke Keranjang
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                {{-- Produk 4 --}}
-                <div class="col-sm-6 col-md-4 col-lg-3">
-                    <div class="card product-card h-100">
-                        <div class="card-img-top-placeholder bg-success-subtle">📌</div>
-                        <div class="card-body">
-                            <h6 class="card-title fw-bold">Stapler Max HD-10</h6>
-                            <p class="harga mb-1">Rp 32.000</p>
-                            <span class="badge bg-success stock-badge">Stok: 80 pcs</span>
-                        </div>
-                        <div class="card-footer bg-transparent border-0 pb-3">
-                            <button class="btn btn-primary btn-sm w-100">
-                                <i class="bi bi-cart-plus me-1"></i> Tambah ke Keranjang
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-            </div>{{-- Akhir row 1 --}}
-
-            {{-- Baris 2: 4 Produk Lagi --}}
+            {{-- Menggunakan bootstrap grid row bawaan template kamu --}}
             <div class="row g-4">
 
-                {{-- Produk 5 --}}
-                <div class="col-sm-6 col-md-4 col-lg-3">
-                    <div class="card product-card h-100">
-                        <div class="card-img-top-placeholder bg-info-subtle">🖊️</div>
-                        <div class="card-body">
-                            <h6 class="card-title fw-bold">Spidol Snowman F-50</h6>
-                            <p class="harga mb-1">Rp 6.000</p>
-                            <span class="badge bg-success stock-badge">Stok: 200 pcs</span>
-                        </div>
-                        <div class="card-footer bg-transparent border-0 pb-3">
-                            <button class="btn btn-primary btn-sm w-100">
-                                <i class="bi bi-cart-plus me-1"></i> Tambah ke Keranjang
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                {{-- Produk 6 --}}
-                <div class="col-sm-6 col-md-4 col-lg-3">
-                    <div class="card product-card h-100">
-                        <div class="card-img-top-placeholder bg-secondary-subtle">📎</div>
-                        <div class="card-body">
-                            <h6 class="card-title fw-bold">Klip Kertas Joyko No.2</h6>
-                            <p class="harga mb-1">Rp 3.500</p>
-                            <span class="badge bg-success stock-badge">Stok: 500 box</span>
-                        </div>
-                        <div class="card-footer bg-transparent border-0 pb-3">
-                            <button class="btn btn-primary btn-sm w-100">
-                                <i class="bi bi-cart-plus me-1"></i> Tambah ke Keranjang
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                {{-- Produk 7 --}}
-                <div class="col-sm-6 col-md-4 col-lg-3">
-                    <div class="card product-card h-100">
-                        <div class="card-img-top-placeholder bg-warning-subtle">🗂️</div>
-                        <div class="card-body">
-                            <h6 class="card-title fw-bold">Map Plastik Kancing A4</h6>
-                            <p class="harga mb-1">Rp 7.000</p>
-                            <span class="badge bg-danger stock-badge">Stok: 12 pcs</span>
-                        </div>
-                        <div class="card-footer bg-transparent border-0 pb-3">
-                            <button class="btn btn-primary btn-sm w-100">
-                                <i class="bi bi-cart-plus me-1"></i> Tambah ke Keranjang
-                            </button>
+                @forelse($products as $product)
+                    {{-- Responsif grid: 1 kolom di HP, 2 di tablet, 3 di laptop, 4 di layar besar --}}
+                    <div class="col-sm-6 col-md-4 col-lg-3">
+                        <div class="card product-card h-100">
+                            
+                            @if($product->gambar)
+                                <img src="{{ asset('images/produk/' . $product->gambar) }}" class="card-img-top" alt="{{ $product->name_produk }}" style="height: 160px; object-fit: cover;">
+                            @else
+                                <div class="card-img-top-placeholder bg-secondary-subtle">📦</div>
+                            @endif
+                            
+                            <div class="card-body">
+                                <h6 class="card-title fw-bold">{{ $product->name_produk }}</h6>
+                                <p class="harga mb-1">Rp {{ number_format($product->harga, 0, ',', '.') }}</p>
+                                
+                                @if($product->stok > 10)
+                                    <span class="badge bg-success stock-badge">Stok: {{ $product->stok }} pcs</span>
+                                @elseif($product->stok > 0)
+                                    <span class="badge bg-warning text-dark stock-badge">Stok Menipis: {{ $product->stok }} pcs</span>
+                                @else
+                                    <span class="badge bg-danger stock-badge">Stok Habis</span>
+                                @endif
+                            </div>
+                            
+                            <div class="card-footer bg-transparent border-0 pb-3">
+                                <button class="btn btn-primary btn-sm w-100" {{ $product->stok == 0 ? 'disabled' : '' }}>
+                                    <i class="bi bi-cart-plus me-1"></i> Tambah ke Keranjang
+                                </button>
+                            </div>
                         </div>
                     </div>
-                </div>
-
-                {{-- Produk 8 --}}
-                <div class="col-sm-6 col-md-4 col-lg-3">
-                    <div class="card product-card h-100">
-                        <div class="card-img-top-placeholder bg-primary-subtle">🖍️</div>
-                        <div class="card-body">
-                            <h6 class="card-title fw-bold">Crayon Faber-Castell 12 warna</h6>
-                            <p class="harga mb-1">Rp 28.000</p>
-                            <span class="badge bg-success stock-badge">Stok: 60 box</span>
-                        </div>
-                        <div class="card-footer bg-transparent border-0 pb-3">
-                            <button class="btn btn-primary btn-sm w-100">
-                                <i class="bi bi-cart-plus me-1"></i> Tambah ke Keranjang
-                            </button>
-                        </div>
+                @empty
+                    {{-- Ditampilkan jika di database admin belum ada produk sama sekali --}}
+                    <div class="col-12 text-center py-5">
+                        <div class="display-1 text-muted mb-3">📭</div>
+                        <h4 class="text-muted">Belum Ada Produk ATK Tersedia</h4>
+                        <p class="text-muted small">Silakan tambahkan data produk baru terlebih dahulu melalui Dashboard Admin.</p>
                     </div>
-                </div>
+                @endforelse
 
-            </div>{{-- Akhir row 2 --}}
+            </div>{{-- Akhir row --}}
 
         </section>{{-- Akhir Katalog --}}
 
@@ -575,9 +474,9 @@
                 🖨️ <strong style="color: white;">RamaDigital Hub</strong> — Toko ATK & Jasa Cetak
             </p>
             <p class="mb-0" style="font-size: 0.85rem;">
-                📍 Jl. Contoh No. 123, Kota Kamu &nbsp;|&nbsp;
-                📱 WA: 0812-3456-7890 &nbsp;|&nbsp;
-                © 2024 RamaDigital Hub
+                📍 Jl. Mayor Iskandar No.771, Baturaja Timur &nbsp;|&nbsp;
+                📱 WA: 0852-7330-0045 &nbsp;|&nbsp;
+                © 2026 RamaDigital Hub
             </p>
         </div>
     </footer>
