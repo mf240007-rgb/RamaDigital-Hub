@@ -253,14 +253,6 @@
                 {{-- Divider --}}
                 <hr class="my-4">
 
-                {{-- Info hint (bisa dihapus di produksi) --}}
-                <div class="text-center">
-                    <small class="text-muted">
-                        <i class="bi bi-info-circle me-1"></i>
-                        Demo: user <code>admin</code> / pass <code>admin123</code>
-                    </small>
-                </div>
-
             </div>{{-- Akhir login-card-body --}}
 
         </div>{{-- Akhir .login-card --}}

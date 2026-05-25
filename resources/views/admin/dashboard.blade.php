@@ -17,7 +17,7 @@
     <div class="alert alert-success alert-dismissible fade show d-flex align-items-center mb-4 shadow-sm" role="alert" style="border-radius: 12px; border: none; border-left: 5px solid #198754;">
         <i class="bi bi-check-circle-fill flex-shrink-0 me-3 fs-3 text-success"></i>
         <div>
-            <h5 class="alert-heading mb-1">🎉 Selamat Datang Admin!</h5>
+            <h5 class="alert-heading mb-1">Selamat Datang Admin!</h5>
             <p class="mb-0">Kamu berhasil masuk ke Panel Admin <strong>RamaDigital Hub</strong>. Gunakan menu di sebelah kiri untuk mengelola toko.</p>
         </div>
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>

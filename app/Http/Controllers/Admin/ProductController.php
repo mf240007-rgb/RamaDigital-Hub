@@ -8,11 +8,6 @@ use App\Models\Product;
 
 class ProductController extends Controller
 {
-    public function index()
-    {
-        $products = Product::all(); // Mengambil semua data produk dari database
-        return view('admin.produk.index', compact('products'));
-    }
 
     public function create()
 {
@@ -116,4 +111,19 @@ public function update(Request $request, $id)
 
     return redirect()->route('admin.produk.index')->with('success', 'Produk berhasil diperbarui!');
 }
+
+public function index(Request $request)
+{
+    // 1. Ambil kata kunci pencarian dari input bernama 'search'
+    $keyword = $request->get('search');
+
+    // 2. Query ke database - UBAH 'nama_produk' MENJADI 'name_produk'
+    $products = \App\Models\Product::when($keyword, function ($query) use ($keyword) {
+        return $query->where('name_produk', 'LIKE', '%' . $keyword . '%');
+    })->paginate(10); 
+
+    // 3. Kirim data produk beserta keyword lama ke view
+    return view('admin.produk.index', compact('products', 'keyword'));
+}
+
 }

@@ -471,7 +471,7 @@
     <footer class="py-4 mt-3">
         <div class="container text-center">
             <p class="mb-1">
-                🖨️ <strong style="color: white;">RamaDigital Hub</strong> — Toko ATK & Jasa Cetak
+                <strong style="color: white;">RamaDigital Hub</strong>
             </p>
             <p class="mb-0" style="font-size: 0.85rem;">
                 📍 Jl. Mayor Iskandar No.771, Baturaja Timur &nbsp;|&nbsp;
