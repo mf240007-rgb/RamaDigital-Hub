@@ -176,6 +176,27 @@
                     <li class="nav-item">
                         <a class="nav-link" href="#cek-status">Cek Status</a>
                     </li>
+                        @auth
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="bi bi-person-circle me-2"></i>{{ Auth::user()->full_name }}
+                                </a>
+                                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                                    <li><span class="dropdown-item disabled">+62{{ Auth::user()->whatsapp }}</span></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li>
+                                        <a class="dropdown-item" href="{{ route('user.logout') }}">
+                                            <i class="bi bi-box-arrow-right me-2"></i>Logout
+                                        </a>
+                                    </li>
+                                </ul>
+                            </li>
+                        @endauth
+                    <li class="nav-item">
+                        <a class="nav-link btn btn-outline-light text-dark px-3 ms-lg-3" href="{{ route('user.login') }}" style="border-radius: 8px;">
+                            <i class="bi bi-box-arrow-in-right me-1"></i>Login User
+                        </a>
+                    </li>
                 </ul>
             </div>
 
@@ -195,9 +216,10 @@
             <a href="#katalog" class="btn btn-warning btn-lg fw-bold me-2 px-4">
                 Lihat Katalog
             </a>
-            <a href="#jasa-cetak" class="btn btn-outline-light btn-lg px-4">
+            <a href="#jasa-cetak" class="btn btn-outline-light btn-lg me-2 px-4">
                 Jasa Cetak
             </a>
+
         </div>
     </section>
 
@@ -276,49 +298,31 @@
                 <div class="col-lg-8">
                     <div class="form-cetak-wrapper">
 
-                        <p class="text-muted mb-4">
-                            <i class="bi bi-info-circle me-1"></i>
-                            Isi formulir di bawah ini, tim kami akan segera menghubungi kamu via WhatsApp.
-                        </p>
-
-                        {{--
-                            CATATAN PENTING:
-                            Form ini STATIS — tombol "Pesan Sekarang" belum terhubung ke backend.
-                            Untuk proyek lanjutan, action="" bisa diisi dengan route yang memproses data.
-                        --}}
-                        <form action="#" method="POST">
-                            @csrf
-
-                            {{-- Baris 1: Nama & Nomor WA --}}
-                            <div class="row g-3 mb-3">
-                                <div class="col-md-6">
-                                    <label for="namaPemesan" class="form-label fw-semibold">
-                                        <i class="bi bi-person me-1"></i> Nama Lengkap
-                                    </label>
-                                    <input type="text"
-                                           class="form-control"
-                                           id="namaPemesan"
-                                           name="nama"
-                                           placeholder="Contoh: Budi Santoso"
-                                           required>
-                                </div>
-                                <div class="col-md-6">
-                                    <label for="nomorWA" class="form-label fw-semibold">
-                                        <i class="bi bi-whatsapp me-1"></i> Nomor WhatsApp
-                                    </label>
-                                    <div class="input-group">
-                                        <span class="input-group-text">+62</span>
-                                        <input type="tel"
-                                               class="form-control"
-                                               id="nomorWA"
-                                               name="nomor_wa"
-                                               placeholder="812-3456-7890"
-                                               required>
-                                    </div>
+                        @auth
+                            <p class="text-muted mb-4">
+                                <i class="bi bi-info-circle me-1"></i>
+                                Isi formulir di bawah ini, tim kami akan segera menghubungi kamu via WhatsApp.
+                            </p>
+                        @else
+                            <div class="alert alert-warning d-flex align-items-center" role="alert">
+                                <i class="bi bi-exclamation-triangle-fill flex-shrink-0 me-3"></i>
+                                <div>
+                                    <strong>Anda harus login terlebih dahulu!</strong><br>
+                                    <small>Silakan <a href="{{ route('user.login') }}" class="alert-link">login</a> atau <a href="{{ route('user.register') }}" class="alert-link">daftar</a> untuk menggunakan layanan jasa cetak.</small>
                                 </div>
                             </div>
+                        @endauth
 
-                            {{-- Baris 2: Jenis Kertas & Jumlah Lembar --}}
+                        @auth
+                            {{--
+                                CATATAN PENTING:
+                                Form ini STATIS — tombol "Pesan Sekarang" belum terhubung ke backend.
+                                Untuk proyek lanjutan, action="" bisa diisi dengan route yang memproses data.
+                            --}}
+                            <form action="#" method="POST">
+                                @csrf
+
+                                {{-- Baris 2: Jenis Kertas & Jumlah Lembar --}}
                             <div class="row g-3 mb-3">
                                 <div class="col-md-6">
                                     <label for="jenisKertas" class="form-label fw-semibold">
@@ -397,15 +401,16 @@
                                           placeholder="Contoh: Bolak-balik, jilid spiral, dst."></textarea>
                             </div>
 
-                            {{-- TOMBOL SUBMIT --}}
-                            <div class="d-grid">
-                                <button type="submit" class="btn btn-lg fw-bold" style="background-color: var(--warna-utama); color: white;">
-                                    <i class="bi bi-send-fill me-2"></i>
-                                    Pesan Jasa Cetak Sekarang
-                                </button>
-                            </div>
+                                {{-- TOMBOL SUBMIT --}}
+                                <div class="d-grid">
+                                    <button type="submit" class="btn btn-lg fw-bold" style="background-color: var(--warna-utama); color: white;">
+                                        <i class="bi bi-send-fill me-2"></i>
+                                        Pesan Jasa Cetak Sekarang
+                                    </button>
+                                </div>
 
-                        </form>
+                            </form>
+                        @endauth
 
                     </div>
                 </div>
@@ -445,6 +450,8 @@
                                 <i class="bi bi-search me-1"></i> Cek Sekarang
                             </button>
                         </div>
+
+                       
 
                         {{-- Contoh tampilan hasil status (statis) --}}
                         <div class="mt-4" id="hasilStatus" style="display: none;">

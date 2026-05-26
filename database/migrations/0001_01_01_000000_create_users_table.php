@@ -12,6 +12,8 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->string('email')->unique();
+            $table->string('full_name')->nullable();
+            $table->string('whatsapp')->nullable();
             $table->timestamp('phone')->nullable();
             $table->enum('role', ['admin', 'pelanggan'])->default('pelanggan');
             $table->string('password');

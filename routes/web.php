@@ -3,11 +3,24 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\UserController;
 use App\Http\Controllers\Admin\ProductController;
 
 
 // ROUTE HALAMAN UTAMA (Pelanggan Umum)
 Route::get('/', [HomeController::class, 'index'])->name('home');
+
+// ROUTE GRUP USER (Pelanggan)
+// Halaman Login User
+Route::get('/login', [UserController::class, 'showLoginForm'])->name('user.login');
+Route::post('/login', [UserController::class, 'login'])->name('user.login.submit');
+
+// Halaman Register User
+Route::get('/register', [UserController::class, 'showRegisterForm'])->name('user.register');
+Route::post('/register', [UserController::class, 'register'])->name('user.register.submit');
+
+// Logout User
+Route::get('/logout', [UserController::class, 'logout'])->name('user.logout');
 
 // ROUTE GRUP ADMIN
 // Semua route admin diawali dengan prefix '/admin'
