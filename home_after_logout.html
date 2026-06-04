@@ -5,13 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>RamaDigital Hub — Toko ATK & Jasa Cetak</title>
 
-    {{-- Bootstrap CSS via CDN --}}
+    
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
           rel="stylesheet"
           integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
           crossorigin="anonymous">
 
-    {{-- Bootstrap Icons (opsional, untuk ikon-ikon kecil) --}}
+    
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
     <style>
@@ -158,13 +158,13 @@
     <nav class="navbar navbar-expand-lg navbar-dark" style="background-color: var(--warna-gelap);">
         <div class="container">
 
-            {{-- Logo / Brand --}}
+            
             <a class="navbar-brand navbar-brand-custom" href="/">
                 <i class="bi bi-printer-fill me-2" style="color: var(--warna-aksen);"></i>
                 Rama<span>Digital</span> Hub
             </a>
 
-            {{-- Tombol Hamburger untuk Mobile --}}
+            
             <button class="navbar-toggler" type="button"
                     data-bs-toggle="collapse"
                     data-bs-target="#navbarMenu"
@@ -174,7 +174,7 @@
                 <span class="navbar-toggler-icon"></span>
             </button>
 
-            {{-- Menu Navigasi --}}
+            
             <div class="collapse navbar-collapse" id="navbarMenu">
                 <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
                     <li class="nav-item">
@@ -189,30 +189,8 @@
                     <li class="nav-item">
                         <a class="nav-link" href="#cek-status">Cek Status</a>
                     </li>
-                        @auth
-                            <li class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                    <i class="bi bi-person-circle me-2"></i>{{ Auth::user()->full_name }}
-                                </a>
-                                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
-                                    <li><span class="dropdown-item disabled">+62{{ Auth::user()->whatsapp }}</span></li>
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li>
-                                        <a class="dropdown-item" href="{{ route('user.logout') }}"
-                                            onclick="event.preventDefault(); document.getElementById('user-logout-form').submit();">
-                                        <i class="bi bi-box-arrow-right me-2"></i>Logout
-                                        </a>
-
-                                    {{-- Form Tersembunyi untuk Proses POST Logout --}}
-                                        <form id="user-logout-form" action="{{ route('user.logout') }}" method="POST" class="d-none">
-                                        @csrf
-                                    </form>
-                                    </li>
-                                </ul>
-                            </li>
-                        @endauth
-                    <li class="nav-item">
-                <a class="nav-link btn btn-login-custom px-3 ms-lg-3" href="{{ route('user.login') }}" style="border-radius: 8px;">
+                                            <li class="nav-item">
+                <a class="nav-link btn btn-login-custom px-3 ms-lg-3" href="http://127.0.0.1:8000/login" style="border-radius: 8px;">
                 <i class="bi bi-box-arrow-in-right me-1"></i>Login User
                 </a>
                     </li>
@@ -254,52 +232,93 @@
                 Katalog Produk ATK
             </h2>
 
-            {{-- Menggunakan bootstrap grid row bawaan template kamu --}}
+            
             <div class="row g-4">
 
-                @forelse($products as $product)
-                    {{-- Responsif grid: 1 kolom di HP, 2 di tablet, 3 di laptop, 4 di layar besar --}}
+                                    
                     <div class="col-sm-6 col-md-4 col-lg-3">
                         <div class="card product-card h-100">
                             
-                            @if($product->gambar)
-                                <img src="{{ asset('images/produk/' . $product->gambar) }}" class="card-img-top" alt="{{ $product->name_produk }}" style="height: 160px; object-fit: cover;">
-                            @else
-                                <div class="card-img-top-placeholder bg-secondary-subtle">📦</div>
-                            @endif
-                            
+                                                            <img src="http://127.0.0.1:8000/images/produk/1779673054.jpg" class="card-img-top" alt="Pulpen Pilot Hitam 0.5" style="height: 160px; object-fit: cover;">
+                                                        
                             <div class="card-body">
-                                <h6 class="card-title fw-bold">{{ $product->name_produk }}</h6>
-                                <p class="harga mb-1">Rp {{ number_format($product->harga, 0, ',', '.') }}</p>
+                                <h6 class="card-title fw-bold">Pulpen Pilot Hitam 0.5</h6>
+                                <p class="harga mb-1">Rp 3.500</p>
                                 
-                                @if($product->stok > 10)
-                                    <span class="badge bg-success stock-badge">Stok: {{ $product->stok }} pcs</span>
-                                @elseif($product->stok > 0)
-                                    <span class="badge bg-warning text-dark stock-badge">Stok Menipis: {{ $product->stok }} pcs</span>
-                                @else
-                                    <span class="badge bg-danger stock-badge">Stok Habis</span>
-                                @endif
-                            </div>
+                                                                    <span class="badge bg-success stock-badge">Stok: 100 pcs</span>
+                                                            </div>
                             
                             <div class="card-footer bg-transparent border-0 pb-3">
-                                <button class="btn btn-primary btn-sm w-100" {{ $product->stok == 0 ? 'disabled' : '' }}>
+                                <button class="btn btn-primary btn-sm w-100" >
                                     <i class="bi bi-cart-plus me-1"></i> Tambah ke Keranjang
                                 </button>
                             </div>
                         </div>
                     </div>
-                @empty
-                    {{-- Ditampilkan jika di database admin belum ada produk sama sekali --}}
-                    <div class="col-12 text-center py-5">
-                        <div class="display-1 text-muted mb-3">📭</div>
-                        <h4 class="text-muted">Belum Ada Produk ATK Tersedia</h4>
-                        <p class="text-muted small">Silakan tambahkan data produk baru terlebih dahulu melalui Dashboard Admin.</p>
+                                    
+                    <div class="col-sm-6 col-md-4 col-lg-3">
+                        <div class="card product-card h-100">
+                            
+                                                            <img src="http://127.0.0.1:8000/images/produk/1779672896.jpg" class="card-img-top" alt="Penggaris Besi 30cm" style="height: 160px; object-fit: cover;">
+                                                        
+                            <div class="card-body">
+                                <h6 class="card-title fw-bold">Penggaris Besi 30cm</h6>
+                                <p class="harga mb-1">Rp 7.000</p>
+                                
+                                                                    <span class="badge bg-success stock-badge">Stok: 25 pcs</span>
+                                                            </div>
+                            
+                            <div class="card-footer bg-transparent border-0 pb-3">
+                                <button class="btn btn-primary btn-sm w-100" >
+                                    <i class="bi bi-cart-plus me-1"></i> Tambah ke Keranjang
+                                </button>
+                            </div>
+                        </div>
                     </div>
-                @endforelse
+                                    
+                    <div class="col-sm-6 col-md-4 col-lg-3">
+                        <div class="card product-card h-100">
+                            
+                                                            <img src="http://127.0.0.1:8000/images/produk/1779631946.jpg" class="card-img-top" alt="Sidu 38" style="height: 160px; object-fit: cover;">
+                                                        
+                            <div class="card-body">
+                                <h6 class="card-title fw-bold">Sidu 38</h6>
+                                <p class="harga mb-1">Rp 5.000</p>
+                                
+                                                                    <span class="badge bg-success stock-badge">Stok: 20 pcs</span>
+                                                            </div>
+                            
+                            <div class="card-footer bg-transparent border-0 pb-3">
+                                <button class="btn btn-primary btn-sm w-100" >
+                                    <i class="bi bi-cart-plus me-1"></i> Tambah ke Keranjang
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                                    
+                    <div class="col-sm-6 col-md-4 col-lg-3">
+                        <div class="card product-card h-100">
+                            
+                                                            <img src="http://127.0.0.1:8000/images/produk/1779676280.jpeg" class="card-img-top" alt="Sidu A4 Paper" style="height: 160px; object-fit: cover;">
+                                                        
+                            <div class="card-body">
+                                <h6 class="card-title fw-bold">Sidu A4 Paper</h6>
+                                <p class="harga mb-1">Rp 50.000</p>
+                                
+                                                                    <span class="badge bg-warning text-dark stock-badge">Stok Menipis: 8 pcs</span>
+                                                            </div>
+                            
+                            <div class="card-footer bg-transparent border-0 pb-3">
+                                <button class="btn btn-primary btn-sm w-100" >
+                                    <i class="bi bi-cart-plus me-1"></i> Tambah ke Keranjang
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                
+            </div>
 
-            </div>{{-- Akhir row --}}
-
-        </section>{{-- Akhir Katalog --}}
+        </section>
 
         <hr class="my-5">
 
@@ -317,125 +336,20 @@
                 <div class="col-lg-8">
                     <div class="form-cetak-wrapper">
 
-                        @auth
-                            <p class="text-muted mb-4">
-                                <i class="bi bi-info-circle me-1"></i>
-                                Isi formulir di bawah ini, tim kami akan segera menghubungi kamu via WhatsApp.
-                            </p>
-                        @else
-                            <div class="alert alert-warning d-flex align-items-center" role="alert">
+                                                    <div class="alert alert-warning d-flex align-items-center" role="alert">
                                 <i class="bi bi-exclamation-triangle-fill flex-shrink-0 me-3"></i>
                                 <div>
                                     <strong>Anda harus login terlebih dahulu!</strong><br>
-                                    <small>Silakan <a href="{{ route('user.login') }}" class="alert-link">login</a> atau <a href="{{ route('user.register') }}" class="alert-link">daftar</a> untuk menggunakan layanan jasa cetak.</small>
+                                    <small>Silakan <a href="http://127.0.0.1:8000/login" class="alert-link">login</a> atau <a href="http://127.0.0.1:8000/register" class="alert-link">daftar</a> untuk menggunakan layanan jasa cetak.</small>
                                 </div>
                             </div>
-                        @endauth
-
-                        @auth
-                            {{--
-                                CATATAN PENTING:
-                                Form ini STATIS — tombol "Pesan Sekarang" belum terhubung ke backend.
-                                Untuk proyek lanjutan, action="" bisa diisi dengan route yang memproses data.
-                            --}}
-                            <form action="#" method="POST">
-                                @csrf
-
-                                {{-- Baris 2: Jenis Kertas & Jumlah Lembar --}}
-                            <div class="row g-3 mb-3">
-                                <div class="col-md-6">
-                                    <label for="jenisKertas" class="form-label fw-semibold">
-                                        <i class="bi bi-file-earmark me-1"></i> Jenis Kertas
-                                    </label>
-                                    {{-- DROPDOWN PILIHAN KERTAS --}}
-                                    <select class="form-select" id="jenisKertas" name="jenis_kertas" required>
-                                        <option value="" disabled selected>-- Pilih Jenis Kertas --</option>
-                                        <optgroup label="Kertas Biasa">
-                                            <option value="hvs_a4">HVS A4</option>
-                                            <option value="hvs_f4">HVS F4/Folio</option>
-                                        </optgroup>
-                                        <optgroup label="Kertas Foto">
-                                            <option value="foto_glossy">Foto Glossy (Foto)</option>
-                                            <option value="foto_matte">Foto Matte (Stiker)</option>
-                                        </optgroup>
-                                    </select>
-                                </div>
-                                <div class="col-md-6">
-                                    <label for="jumlahLembar" class="form-label fw-semibold">
-                                        <i class="bi bi-stack me-1"></i> Jumlah Lembar / Eksemplar
-                                    </label>
-                                    <input type="number"
-                                           class="form-control"
-                                           id="jumlahLembar"
-                                           name="jumlah"
-                                           min="1"
-                                           placeholder="Contoh: 10"
-                                           required>
-                                </div>
-                            </div>
-
-                            {{-- Baris 3: Pilihan Warna Cetak --}}
-                            <div class="mb-3">
-                                <label class="form-label fw-semibold">
-                                    <i class="bi bi-palette me-1"></i> Mode Cetak
-                                </label>
-                                <div class="d-flex gap-4">
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="radio"
-                                               name="mode_cetak" id="cetakBW" value="hitam_putih" checked>
-                                        <label class="form-check-label" for="cetakBW">
-                                            Hitam & Putih
-                                        </label>
-                                    </div>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="radio"
-                                               name="mode_cetak" id="cetakWarna" value="full_color">
-                                        <label class="form-check-label" for="cetakWarna">
-                                            Full Color
-                                        </label>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {{-- Baris 4: Upload File --}}
-                            <div class="mb-3">
-                                <label for="fileUpload" class="form-label fw-semibold">
-                                    <i class="bi bi-cloud-upload me-1"></i> Upload File Dokumen
-                                </label>
-                                {{-- TOMBOL UPLOAD FILE TIRUAN --}}
-                                <input class="form-control" type="file" id="fileUpload" name="file_dokumen"
-                                       accept=".pdf,.doc,.docx,.jpg,.jpeg,.png">
-                                <div class="form-text">
-                                    Format yang diterima: PDF, Word (.doc/.docx), atau Gambar (JPG/PNG). Maks. 10 MB.
-                                </div>
-                            </div>
-
-                            {{-- Baris 5: Catatan Tambahan --}}
-                            <div class="mb-4">
-                                <label for="catatanTambahan" class="form-label fw-semibold">
-                                    <i class="bi bi-chat-left-text me-1"></i> Catatan Tambahan (Opsional)
-                                </label>
-                                <textarea class="form-control" id="catatanTambahan"
-                                          name="catatan" rows="3"
-                                          placeholder="Contoh: Bolak-balik, jilid spiral, dst."></textarea>
-                            </div>
-
-                                {{-- TOMBOL SUBMIT --}}
-                                <div class="d-grid">
-                                    <button type="submit" class="btn btn-lg fw-bold" style="background-color: var(--warna-utama); color: white;">
-                                        <i class="bi bi-send-fill me-2"></i>
-                                        Pesan Jasa Cetak Sekarang
-                                    </button>
-                                </div>
-
-                            </form>
-                        @endauth
-
+                        
+                        
                     </div>
                 </div>
             </div>
 
-        </section>{{-- Akhir Jasa Cetak --}}
+        </section>
 
         <hr class="my-5">
 
@@ -472,7 +386,7 @@
 
                        
 
-                        {{-- Contoh tampilan hasil status (statis) --}}
+                        
                         <div class="mt-4" id="hasilStatus" style="display: none;">
                             <div class="alert alert-info d-flex align-items-center" role="alert">
                                 <i class="bi bi-info-circle-fill flex-shrink-0 me-3 fs-4"></i>
@@ -489,7 +403,7 @@
 
         </section>
 
-    </div>{{-- Akhir .container --}}
+    </div>
 
     <!-- ================================================
          FOOTER

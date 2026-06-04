@@ -20,7 +20,7 @@ Route::get('/register', [UserController::class, 'showRegisterForm'])->name('user
 Route::post('/register', [UserController::class, 'register'])->name('user.register.submit');
 
 // Logout User
-Route::get('/logout', [UserController::class, 'logout'])->name('user.logout');
+Route::post('/logout', [UserController::class, 'logout'])->name('user.logout');
 
 // ROUTE GRUP ADMIN
 // Semua route admin diawali dengan prefix '/admin'
