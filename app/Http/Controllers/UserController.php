@@ -14,6 +14,10 @@ class UserController extends Controller
      */
     public function showLoginForm()
     {
+        if (Auth::check()) {
+            return redirect()->route('home')->with('info', 'Anda sudah login.');
+        }
+
         return view('auth.login');
     }
 
@@ -22,6 +26,10 @@ class UserController extends Controller
      */
     public function login(Request $request)
     {
+        if (Auth::check()) {
+            return redirect()->route('home')->with('info', 'Anda sudah login.');
+        }
+
         $credentials = $request->validate([
             'full_name' => 'required|string|max:255',
             'whatsapp' => 'required|string|max:20',
@@ -87,6 +95,6 @@ class UserController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect()->route('home')->with('success', 'Anda telah logout.');
+        return redirect()->route('user.login')->with('success', 'Anda telah logout. Silakan login kembali.');
     }
 }

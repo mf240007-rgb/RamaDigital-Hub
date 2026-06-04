@@ -166,6 +166,21 @@
             <p>Masuk untuk memesan jasa cetak dokumen</p>
         </div>
 
+        {{-- Success / Info Messages --}}
+        @if (session('success'))
+            <div class="alert alert-success" role="alert">
+                <i class="bi bi-check-circle-fill me-2"></i>
+                {{ session('success') }}
+            </div>
+        @endif
+
+        @if (session('info'))
+            <div class="alert alert-info" role="alert">
+                <i class="bi bi-info-circle-fill me-2"></i>
+                {{ session('info') }}
+            </div>
+        @endif
+
         {{-- Error Messages --}}
         @if ($errors->any())
             <div class="alert alert-danger" role="alert">
@@ -236,6 +251,12 @@
                 <i class="bi bi-box-arrow-in-right me-2"></i>Masuk
             </button>
         </form>
+
+        <div class="d-flex justify-content-between align-items-center mt-3">
+            <a href="{{ route('password.forgot') }}" class="text-decoration-none text-muted">
+                <i class="bi bi-question-circle me-1"></i> Lupa Kata Sandi?
+            </a>
+        </div>
 
         {{-- Register Link --}}
         <div class="auth-link">

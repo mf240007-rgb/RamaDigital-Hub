@@ -2,6 +2,8 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\Admin\ProductController;
@@ -18,6 +20,11 @@ Route::post('/login', [UserController::class, 'login'])->name('user.login.submit
 // Halaman Register User
 Route::get('/register', [UserController::class, 'showRegisterForm'])->name('user.register');
 Route::post('/register', [UserController::class, 'register'])->name('user.register.submit');
+
+// Lupa kata sandi / reset password pelanggan
+Route::get('/forgot-password', [AuthController::class, 'showForgotPasswordForm'])->name('password.forgot');
+Route::get('/reset-password', [AuthController::class, 'showChangePasswordForm'])->name('password.reset');
+Route::post('/reset-password', [AuthController::class, 'updatePassword'])->name('password.update');
 
 // Logout User
 Route::get('/logout', [UserController::class, 'logout'])->name('user.logout');
@@ -50,3 +57,8 @@ Route::post('/admin/produk/store', [ProductController::class, 'store'])->name('a
 Route::delete('/admin/produk/{id}', [App\Http\Controllers\Admin\ProductController::class, 'destroy'])->name('admin.produk.destroy');
 Route::get('/admin/produk/{id}/edit', [App\Http\Controllers\Admin\ProductController::class, 'edit'])->name('admin.produk.edit');
 Route::put('/admin/produk/{id}', [App\Http\Controllers\Admin\ProductController::class, 'update'])->name('admin.produk.update');
+
+// Admin panel - Data Pelanggan
+Route::get('/admin/customers', [CustomerController::class, 'index'])->name('admin.customers.index');
+Route::get('/admin/customers/{id}/history', [CustomerController::class, 'history'])->name('admin.customers.history');
+Route::post('/admin/customers/{id}/reset-password', [CustomerController::class, 'resetPassword'])->name('admin.customers.reset');

@@ -176,29 +176,21 @@
                     <li class="nav-item">
                         <a class="nav-link" href="#cek-status">Cek Status</a>
                     </li>
-                        @auth
-                            <li class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                    <i class="bi bi-person-circle me-2"></i>{{ Auth::user()->full_name }}
-                                </a>
-                                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
-                                    <li><span class="dropdown-item disabled">+62{{ Auth::user()->whatsapp }}</span></li>
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li>
-                                        <a class="dropdown-item" href="{{ route('user.logout') }}">
-                                            <i class="bi bi-box-arrow-right me-2"></i>Logout
-                                        </a>
-                                    </li>
-                                </ul>
+                    @auth
+                        <li class="nav-item">
+                            <a class="nav-link btn btn-warning text-dark px-3 ms-lg-3" href="{{ route('user.logout') }}" style="border-radius: 8px;">
+                                <i class="bi bi-box-arrow-right me-1"></i>Logout
+                            </a>
+                        </li>
+                    @else
+                        <li class="nav-item">
+                            <a class="nav-link btn btn-warning text-dark px-3 ms-lg-3" href="{{ route('user.login') }}" style="border-radius: 8px;">
+                                <i class="bi bi-box-arrow-in-right me-1"></i>Login User
+                            </a>
                             </li>
                         @endauth
-                    <li class="nav-item">
-                        <a class="nav-link btn btn-outline-light text-dark px-3 ms-lg-3" href="{{ route('user.login') }}" style="border-radius: 8px;">
-                            <i class="bi bi-box-arrow-in-right me-1"></i>Login User
-                        </a>
-                    </li>
-                </ul>
-            </div>
+                    </ul>
+                </div>
 
         </div>
     </nav>
