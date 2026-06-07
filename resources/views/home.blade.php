@@ -176,9 +176,9 @@
 
             {{-- Menu Navigasi --}}
             <div class="collapse navbar-collapse" id="navbarMenu">
-                <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+                <ul class="navbar-nav ms-auto mb-2 mb-lg-0 align-items-lg-center">
                     <li class="nav-item">
-                        <a class="nav-link active" href="#">Beranda</a>
+                        <a class="nav-link active" aria-current="page" href="#">Beranda</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="#katalog">Katalog ATK</a>
@@ -189,53 +189,35 @@
                     <li class="nav-item">
                         <a class="nav-link" href="#cek-status">Cek Status</a>
                     </li>
-<<<<<<< HEAD
-                    @auth
-                        <li class="nav-item">
-                            <a class="nav-link btn btn-warning text-dark px-3 ms-lg-3" href="{{ route('user.logout') }}" style="border-radius: 8px;">
-                                <i class="bi bi-box-arrow-right me-1"></i>Logout
-                            </a>
-                        </li>
-                    @else
-                        <li class="nav-item">
-                            <a class="nav-link btn btn-warning text-dark px-3 ms-lg-3" href="{{ route('user.login') }}" style="border-radius: 8px;">
-                                <i class="bi bi-box-arrow-in-right me-1"></i>Login User
-                            </a>
-                            </li>
-                        @endauth
-                    </ul>
-                </div>
-=======
-                        @auth
-                            <li class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                    <i class="bi bi-person-circle me-2"></i>{{ Auth::user()->full_name }}
-                                </a>
-                                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
-                                    <li><span class="dropdown-item disabled">+62{{ Auth::user()->whatsapp }}</span></li>
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li>
-                                        <a class="dropdown-item" href="{{ route('user.logout') }}"
-                                            onclick="event.preventDefault(); document.getElementById('user-logout-form').submit();">
-                                        <i class="bi bi-box-arrow-right me-2"></i>Logout
-                                        </a>
 
-                                    {{-- Form Tersembunyi untuk Proses POST Logout --}}
-                                        <form id="user-logout-form" action="{{ route('user.logout') }}" method="POST" class="d-none">
+                    {{-- Auth: tampilkan dropdown jika login, tombol login jika belum --}}
+                    @auth
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle text-white px-3" href="#" id="navbarDropdownUser" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="bi bi-person-circle me-1"></i> {{ Auth::user()->name }}
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="navbarDropdownUser">
+                                <li>
+                                    <a class="dropdown-item text-danger" href="{{ route('user.logout') }}"
+                                       onclick="event.preventDefault(); document.getElementById('user-logout-form').submit();">
+                                        <i class="bi bi-box-arrow-right me-2"></i>Logout
+                                    </a>
+                                    <form id="user-logout-form" action="{{ route('user.logout') }}" method="POST" class="d-none">
                                         @csrf
                                     </form>
-                                    </li>
-                                </ul>
-                            </li>
-                        @endauth
-                    <li class="nav-item">
-                <a class="nav-link btn btn-login-custom px-3 ms-lg-3" href="{{ route('user.login') }}" style="border-radius: 8px;">
-                <i class="bi bi-box-arrow-in-right me-1"></i>Login User
-                </a>
-                    </li>
+                                </li>
+                            </ul>
+                        </li>
+                    @else
+                        <li class="nav-item ms-lg-3">
+                            <a class="nav-link btn btn-login-custom px-3" href="{{ route('user.login') }}" style="border-radius: 8px;">
+                                <i class="bi bi-box-arrow-in-right me-1"></i>Login User
+                            </a>
+                        </li>
+                    @endauth
+
                 </ul>
             </div>
->>>>>>> 8fdcc3365d7096351f7f6fd804106b561fdb9fb4
 
         </div>
     </nav>
@@ -581,6 +563,9 @@
         });
 
     </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
 
 </body>
 </html>

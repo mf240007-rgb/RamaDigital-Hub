@@ -26,8 +26,8 @@ Route::get('/forgot-password', [AuthController::class, 'showForgotPasswordForm']
 Route::get('/reset-password', [AuthController::class, 'showChangePasswordForm'])->name('password.reset');
 Route::post('/reset-password', [AuthController::class, 'updatePassword'])->name('password.update');
 
-// Logout User
-Route::post('/logout', [UserController::class, 'logout'])->name('user.logout');
+// Logout User (menerima POST dan GET untuk kompatibilitas tombol/tautan)
+Route::match(['get', 'post'], '/logout', [UserController::class, 'logout'])->name('user.logout');
 
 // ROUTE GRUP ADMIN
 // Semua route admin diawali dengan prefix '/admin'
