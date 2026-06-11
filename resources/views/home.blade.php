@@ -189,6 +189,14 @@
                     <li class="nav-item">
                         <a class="nav-link" href="#cek-status">Cek Status</a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link position-relative" href="{{ route('cart.view') }}">
+                            <i class="bi bi-cart3 me-1"></i> Keranjang
+                            @if(!empty($cartCount) && $cartCount > 0)
+                                <span class="badge bg-danger rounded-pill position-absolute top-0 start-100 translate-middle">{{ $cartCount }}</span>
+                            @endif
+                        </a>
+                    </li>
 
                     {{-- Auth: tampilkan dropdown jika login, tombol login jika belum --}}
                     @auth
@@ -221,6 +229,23 @@
 
         </div>
     </nav>
+
+    @if(session('success'))
+        <div class="container mt-3">
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                {{ session('success') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        </div>
+    @endif
+    @if(session('error'))
+        <div class="container mt-3">
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                {{ session('error') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        </div>
+    @endif
 
     <!-- ================================================
          HERO SECTION
@@ -282,9 +307,13 @@
                             </div>
                             
                             <div class="card-footer bg-transparent border-0 pb-3">
-                                <button class="btn btn-primary btn-sm w-100" {{ $product->stok == 0 ? 'disabled' : '' }}>
-                                    <i class="bi bi-cart-plus me-1"></i> Tambah ke Keranjang
-                                </button>
+                                <form action="{{ route('cart.add') }}" method="POST">
+                                    @csrf
+                                    <input type="hidden" name="product_id" value="{{ $product->id }}">
+                                    <button class="btn btn-primary btn-sm w-100" {{ $product->stok == 0 ? 'disabled' : '' }}>
+                                        <i class="bi bi-cart-plus me-1"></i> Tambah ke Keranjang
+                                    </button>
+                                </form>
                             </div>
                         </div>
                     </div>
