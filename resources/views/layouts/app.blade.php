@@ -31,7 +31,7 @@
     </style>
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark" style="background-color: var(--warna-gelap);">
+    <nav class="navbar navbar-expand-lg navbar-dark" style="background-color: var(--warna-gelap); position: fixed; top: 0; width: 100%; z-index: 1030;">
         <div class="container">
             <a class="navbar-brand navbar-brand-custom" href="{{ route('home') }}">
                 <i class="bi bi-printer-fill me-2" style="color: var(--warna-aksen);"></i>
@@ -44,7 +44,11 @@
             <div class="collapse navbar-collapse" id="navbarMenu">
                 <ul class="navbar-nav ms-auto mb-2 mb-lg-0 align-items-lg-center">
                     <li class="nav-item"><a class="nav-link" href="{{ route('home') }}">Beranda</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ route('home') }}#katalog">Katalog ATK</a></li>
+                    
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->routeIs('katalog.index') ? 'active fw-bold text-info' : '' }}" href="{{ route('katalog.index') }}">Katalog ATK</a>
+                    </li>
+                    
                     <li class="nav-item"><a class="nav-link" href="{{ route('home') }}#jasa-cetak">Jasa Cetak</a></li>
                     <li class="nav-item"><a class="nav-link" href="{{ route('home') }}#cek-status">Cek Status</a></li>
                     <li class="nav-item">
@@ -85,27 +89,29 @@
         </div>
     </nav>
 
-    @if(session('success'))
-        <div class="container mt-3">
-            <div class="alert alert-success alert-dismissible fade show" role="alert">
-                {{ session('success') }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    <div style="padding-top: 70px;">
+        @if(session('success'))
+            <div class="container mt-3">
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    {{ session('success') }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
             </div>
-        </div>
-    @endif
-    @if(session('error'))
-        <div class="container mt-3">
-            <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                {{ session('error') }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        @endif
+        @if(session('error'))
+            <div class="container mt-3">
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    {{ session('error') }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
             </div>
-        </div>
-    @endif
+        @endif
 
-    @yield('content')
+        @yield('content')
+    </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
-            integrity="sha384-YvpcrYf0tY3lHB60NNkmXc4s9bIOgUxi8T/jyor3NBAIsDfCxnXHcpkEPRiNqaEB"
+            integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
             crossorigin="anonymous"></script>
 </body>
 </html>

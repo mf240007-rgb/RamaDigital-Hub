@@ -18,6 +18,9 @@ Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/login', [UserController::class, 'showLoginForm'])->name('user.login');
 Route::post('/login', [UserController::class, 'login'])->name('user.login.submit');
 
+//Halaman Produk
+Route::get('/katalog', [HomeController::class, 'katalog'])->name('katalog.index');
+
 // Halaman Register User
 Route::get('/register', [UserController::class, 'showRegisterForm'])->name('user.register');
 Route::post('/register', [UserController::class, 'register'])->name('user.register.submit');
@@ -55,6 +58,8 @@ Route::get('/admin/logout', [AdminController::class, 'logout'])
 Route::get('/admin/produk', [ProductController::class, 'index'])->name('admin.produk.index');
 Route::get('/admin/produk/create', [ProductController::class, 'create'])->name('admin.produk.create');
 Route::post('/admin/produk/store', [ProductController::class, 'store'])->name('admin.produk.store');
+Route::post('/admin/kategori/store', [ProductController::class, 'storeCategory'])->name('admin.kategori.store');
+Route::delete('/admin/kategori/{id}', [ProductController::class, 'destroyCategory'])->name('admin.kategori.destroy');
 Route::delete('/admin/produk/{id}', [App\Http\Controllers\Admin\ProductController::class, 'destroy'])->name('admin.produk.destroy');
 Route::get('/admin/produk/{id}/edit', [App\Http\Controllers\Admin\ProductController::class, 'edit'])->name('admin.produk.edit');
 Route::put('/admin/produk/{id}', [App\Http\Controllers\Admin\ProductController::class, 'update'])->name('admin.produk.update');

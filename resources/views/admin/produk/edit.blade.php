@@ -27,6 +27,18 @@
                             >
                         </div>
 
+                        <div class="mb-3">
+                            <label class="form-label">Kategori</label>
+                            <select name="category_id" class="form-select">
+                                <option value="">Pilih kategori</option>
+                                @foreach($categories as $category)
+                                    <option value="{{ $category->id }}" @selected(old('category_id', $produk->category_id) == $category->id)>
+                                        {{ $category->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label class="form-label">Harga (Rp)</label>

@@ -15,6 +15,12 @@ class Product extends Model
         'harga',
         'stok',
         'item_type',
-        'gambar'
+        'gambar',
+        'category_id'
     ];
+
+    public function category()
+    {
+        return $this->belongsTo(Category::class);
+    }
 }

@@ -272,63 +272,85 @@
         <!-- ================================================
              SEKSI KATALOG PRODUK ATK (STATIS)
              ================================================ -->
-       <section id="katalog" class="mb-5">
+<section id="katalog" class="mb-5">
 
-            <h2 class="section-title">
-                <i class="bi bi-grid-fill me-2" style="color: var(--warna-utama);"></i>
-                Katalog Produk ATK
-            </h2>
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="section-title mb-0" style="border-left: 5px solid var(--warna-utama); padding-left: 15px;">
+                    <i class="bi bi-grid-fill me-2" style="color: var(--warna-utama);"></i>
+                    Katalog Produk ATK
+                </h2>
+                <a href="{{ route('katalog.index') }}" class="btn btn-outline-primary rounded-pill px-4 fw-bold shadow-sm btn-sm">
+                    Lihat Semua Produk <i class="bi bi-arrow-right ms-1"></i>
+                </a>
+            </div>
 
-            {{-- Menggunakan bootstrap grid row bawaan template kamu --}}
-            <div class="row g-4">
-
-                @forelse($products as $product)
-                    {{-- Responsif grid: 1 kolom di HP, 2 di tablet, 3 di laptop, 4 di layar besar --}}
-                    <div class="col-sm-6 col-md-4 col-lg-3">
-                        <div class="card product-card h-100">
-                            
-                            @if($product->gambar)
-                                <img src="{{ asset('images/produk/' . $product->gambar) }}" class="card-img-top" alt="{{ $product->name_produk }}" style="height: 160px; object-fit: cover;">
-                            @else
-                                <div class="card-img-top-placeholder bg-secondary-subtle">📦</div>
-                            @endif
-                            
-                            <div class="card-body">
-                                <h6 class="card-title fw-bold">{{ $product->name_produk }}</h6>
-                                <p class="harga mb-1">Rp {{ number_format($product->harga, 0, ',', '.') }}</p>
-                                
-                                @if($product->stok > 10)
-                                    <span class="badge bg-success stock-badge">Stok: {{ $product->stok }} pcs</span>
-                                @elseif($product->stok > 0)
-                                    <span class="badge bg-warning text-dark stock-badge">Stok Menipis: {{ $product->stok }} pcs</span>
-                                @else
-                                    <span class="badge bg-danger stock-badge">Stok Habis</span>
-                                @endif
-                            </div>
-                            
-                            <div class="card-footer bg-transparent border-0 pb-3">
-                                <form action="{{ route('cart.add') }}" method="POST">
-                                    @csrf
-                                    <input type="hidden" name="product_id" value="{{ $product->id }}">
-                                    <button class="btn btn-primary btn-sm w-100" {{ $product->stok == 0 ? 'disabled' : '' }}>
-                                        <i class="bi bi-cart-plus me-1"></i> Tambah ke Keranjang
-                                    </button>
-                                </form>
+            <div id="productCarousel" class="carousel slide">
+                <div class="carousel-inner">
+                    @php $chunks = $products->chunk(4); @endphp
+                    @forelse($chunks as $index => $productChunk)
+                        <div class="carousel-item {{ $index == 0 ? 'active' : '' }}">
+                            <div class="row g-4 px-2">
+                                @foreach($productChunk as $product)
+                                    <div class="col-sm-6 col-md-4 col-lg-3">
+                                        <div class="card product-card h-100 bg-white">
+                                            
+                                            @if($product->gambar)
+                                                <img src="{{ asset('images/produk/' . $product->gambar) }}" class="card-img-top" alt="{{ $product->name_produk }}" style="height: 160px; object-fit: contain; background: #f8f9fa; padding: 10px;">
+                                            @else
+                                                <div class="card-img-top-placeholder bg-secondary-subtle" style="height: 160px; display: flex; align-items: center; justify-content: center; font-size: 3.5rem;">📦</div>
+                                            @endif
+                                            
+                                            <div class="card-body">
+                                                <h6 class="card-title fw-bold text-truncate" title="{{ $product->name_produk }}">{{ $product->name_produk }}</h6>
+                                                <p class="harga mb-1">Rp {{ number_format($product->harga, 0, ',', '.') }}</p>
+                                                
+                                                @if($product->stok > 10)
+                                                    <span class="badge bg-success stock-badge">Stok: {{ $product->stok }} pcs</span>
+                                                @elseif($product->stok > 0)
+                                                    <span class="badge bg-warning text-dark stock-badge">Stok Menipis: {{ $product->stok }} pcs</span>
+                                                @else
+                                                    <span class="badge bg-danger stock-badge">Stok Habis</span>
+                                                @endif
+                                            </div>
+                                            
+                                            <div class="card-footer bg-transparent border-0 pb-3">
+                                                <form action="{{ route('cart.add') }}" method="POST">
+                                                    @csrf
+                                                    <input type="hidden" name="product_id" value="{{ $product->id }}">
+                                                    <button class="btn btn-primary btn-sm w-100" {{ $product->stok == 0 ? 'disabled' : '' }}>
+                                                        <i class="bi bi-cart-plus me-1"></i> Tambah ke Keranjang
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                @endforeach
                             </div>
                         </div>
-                    </div>
-                @empty
-                    {{-- Ditampilkan jika di database admin belum ada produk sama sekali --}}
-                    <div class="col-12 text-center py-5">
-                        <div class="display-1 text-muted mb-3">📭</div>
-                        <h4 class="text-muted">Belum Ada Produk ATK Tersedia</h4>
-                        <p class="text-muted small">Silakan tambahkan data produk baru terlebih dahulu melalui Dashboard Admin.</p>
-                    </div>
-                @endforelse
+                    @empty
+                        <div class="col-12 text-center py-5">
+                            <div class="display-1 text-muted mb-3">📭</div>
+                            <h4 class="text-muted">Belum Ada Produk ATK Tersedia</h4>
+                            <p class="text-muted small">Silakan tambahkan data produk baru melalui Dashboard Admin.</p>
+                        </div>
+                    @endforelse
+                </div>
 
-            </div>{{-- Akhir row --}}
+                @if($products->count() > 4)
+                    <button class="carousel-control-prev" type="button" data-bs-target="#productCarousel" data-bs-slide="prev" style="width: 5%; left: -50px;">
+                        <span class="bg-dark rounded-circle d-flex align-items-center justify-content-center shadow" style="width: 40px; height: 40px; opacity: 0.8;">
+                            <i class="bi bi-chevron-left text-white fs-5"></i>
+                        </span>
+                    </button>
+                    <button class="carousel-control-next" type="button" data-bs-target="#productCarousel" data-bs-slide="next" style="width: 5%; right: -50px;">
+                        <span class="bg-dark rounded-circle d-flex align-items-center justify-content-center shadow" style="width: 40px; height: 40px; opacity: 0.8;">
+                            <i class="bi bi-chevron-right text-white fs-5"></i>
+                        </span>
+                    </button>
+                @endif
+            </div>
 
-        </section>{{-- Akhir Katalog --}}
+        </section>{{-- Akhir Katalog Slider --}}
 
         <hr class="my-5">
 
@@ -540,7 +562,7 @@
          Bootstrap JS via CDN (wajib ada di bagian bawah)
          ================================================ -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
-            integrity="sha384-YvpcrYf0tY3lHB60NNkmXc4s9bIOgUxi8T/jyor3NBAIsDfCxnXHcpkEPRiNqaEB"
+            integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
             crossorigin="anonymous"></script>
 
     <!-- ================================================
@@ -592,9 +614,5 @@
         });
 
     </script>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-
 </body>
 </html>
