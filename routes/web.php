@@ -74,3 +74,6 @@ Route::post('/cart/remove', [CartController::class, 'remove'])->name('cart.remov
 Route::get('/admin/customers', [CustomerController::class, 'index'])->name('admin.customers.index');
 Route::get('/admin/customers/{id}/history', [CustomerController::class, 'history'])->name('admin.customers.history');
 Route::post('/admin/customers/{id}/reset-password', [CustomerController::class, 'resetPassword'])->name('admin.customers.reset');
+
+// Route untuk menghapus pelanggan
+Route::delete('/admin/customers/{id}', [AdminController::class, 'destroyCustomer'])->name('admin.customers.destroy');

@@ -4,7 +4,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Product;
-use App\Models\Category; // PERLU DITAMBAHKAN
+use App\Models\Category;
+use Illuminate\Support\Facades\Auth;
 
 class HomeController extends Controller
 {
@@ -18,8 +19,9 @@ class HomeController extends Controller
         $products = Product::with('category')->latest()->take(8)->get();
 
         // LOGIKA ASLI KERANJANG KAMU (Tetap dipertahankan agar tidak rusak)
-        $cart = session('cart', []);
-        $cartCount = array_sum($cart);
+        $cartKey   = Auth::check() ? 'cart_user_' . Auth::id() : 'cart_guest';
+        $cart      = session($cartKey, []);
+        $cartCount = count($cart);
         $cartItems = [];
         $cartTotal = 0;
 
@@ -75,8 +77,9 @@ class HomeController extends Controller
             ->paginate(12);
 
         // LOGIKA KERANJANG (Diperlukan juga di halaman katalog agar tombol beli berfungsi)
-        $cart = session('cart', []);
-        $cartCount = array_sum($cart);
+        $cartKey   = Auth::check() ? 'cart_user_' . Auth::id() : 'cart_guest';
+        $cart      = session($cartKey, []);
+        $cartCount = count($cart); // Jumlah jenis produk, bukan total qty
         $cartItems = [];
         $cartTotal = 0;
 

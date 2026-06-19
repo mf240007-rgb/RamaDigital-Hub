@@ -3,21 +3,32 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use App\Models\Product;
 
 class CartController extends Controller
 {
+    /**
+     * Key session cart unik per user.
+     * User login  → "cart_user_5"
+     * Guest       → "cart_guest"
+     */
+    private function cartKey(): string
+    {
+        return Auth::check() ? 'cart_user_' . Auth::id() : 'cart_guest';
+    }
+
     public function view()
     {
-        $cart = session('cart', []);
+        $cart     = session($this->cartKey(), []);
         $products = [];
-        $total = 0;
+        $total    = 0;
 
         foreach ($cart as $productId => $quantity) {
             $product = Product::find($productId);
             if ($product) {
                 $products[] = [
-                    'product' => $product,
+                    'product'  => $product,
                     'quantity' => $quantity,
                     'subtotal' => $product->harga * $quantity,
                 ];
@@ -26,8 +37,8 @@ class CartController extends Controller
         }
 
         return view('cart.index', [
-            'products' => $products,
-            'total' => $total,
+            'products'  => $products,
+            'total'     => $total,
             'cartCount' => count($cart),
         ]);
     }
@@ -44,7 +55,8 @@ class CartController extends Controller
             return back()->with('error', 'Produk tidak tersedia atau stok habis.');
         }
 
-        $cart = session('cart', []);
+        $key      = $this->cartKey();
+        $cart     = session($key, []);
         $quantity = isset($cart[$product->id]) ? $cart[$product->id] + 1 : 1;
 
         if ($quantity > $product->stok) {
@@ -52,7 +64,7 @@ class CartController extends Controller
         }
 
         $cart[$product->id] = $quantity;
-        session(['cart' => $cart]);
+        session([$key => $cart]);
 
         return back()->with('success', 'Produk berhasil ditambahkan ke keranjang.');
     }
@@ -61,7 +73,7 @@ class CartController extends Controller
     {
         $validated = $request->validate([
             'product_id' => 'required|integer|exists:products,id',
-            'quantity' => 'required|integer|min:1',
+            'quantity'   => 'required|integer|min:1',
         ]);
 
         $product = Product::find($validated['product_id']);
@@ -74,9 +86,10 @@ class CartController extends Controller
             return back()->with('error', 'Jumlah produk melebihi stok yang tersedia.');
         }
 
-        $cart = session('cart', []);
+        $key          = $this->cartKey();
+        $cart         = session($key, []);
         $cart[$product->id] = $validated['quantity'];
-        session(['cart' => $cart]);
+        session([$key => $cart]);
 
         return back()->with('success', 'Kuantitas keranjang berhasil diperbarui.');
     }
@@ -87,11 +100,12 @@ class CartController extends Controller
             'product_id' => 'required|integer|exists:products,id',
         ]);
 
-        $cart = session('cart', []);
+        $key  = $this->cartKey();
+        $cart = session($key, []);
 
         if (isset($cart[$validated['product_id']])) {
             unset($cart[$validated['product_id']]);
-            session(['cart' => $cart]);
+            session([$key => $cart]);
         }
 
         return back()->with('success', 'Produk berhasil dihapus dari keranjang.');

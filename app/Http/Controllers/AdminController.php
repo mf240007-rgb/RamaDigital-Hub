@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Product;
+use App\Models\User;
 
 class AdminController extends Controller
 {
@@ -72,5 +73,25 @@ class AdminController extends Controller
     {
         $products = Product::all(); // Sekarang baris ini tidak akan error lagi
         return view('admin.produk.index', compact('products'));
+    }
+
+    public function destroyCustomer($id)
+    {
+        // Pastikan yang mengakses adalah admin
+        if (!session('is_admin_logged_in')) {
+            return redirect()->route('admin.login')
+                ->with('error', 'Anda harus login sebagai admin terlebih dahulu.');
+        }
+
+        // Cari data user/pelanggan, jika tidak ada akan otomatis error 404
+        $customer = User::findOrFail($id);
+
+        // Pastikan yang dihapus memiliki role pelanggan (bukan admin)
+        if (in_array($customer->role, ['pelanggan', 'customer'])) {
+            $customer->delete();
+            return redirect()->back()->with('success', 'Data pelanggan bernama ' . $customer->full_name . ' berhasil dihapus!');
+        }
+
+        return redirect()->back()->with('error', 'Tidak dapat menghapus akun administrator.');
     }
 }

@@ -196,17 +196,17 @@
         <form action="{{ route('user.login.submit') }}" method="POST">
             @csrf
 
-            {{-- Nama Lengkap --}}
+            {{-- Username --}}
             <div class="form-group">
                 <label for="full_name" class="form-label">
-                    <i class="bi bi-person me-2"></i>Nama Lengkap
+                    <i class="bi bi-person me-2"></i>Username
                 </label>
                 <input type="text"
                        class="form-control @error('full_name') is-invalid @enderror"
                        id="full_name"
                        name="full_name"
                        value="{{ old('full_name') }}"
-                       placeholder="Nama lengkap"
+                       placeholder="Username"
                        required>
                 @error('full_name')
                     <small class="text-danger">{{ $message }}</small>
@@ -223,7 +223,7 @@
                        id="whatsapp"
                        name="whatsapp"
                        value="{{ old('whatsapp') }}"
-                       placeholder="08xxxxxxxxxx"
+                       placeholder="08xx-xxxx-xxxx"
                        required>
                 @error('whatsapp')
                     <small class="text-danger">{{ $message }}</small>
@@ -235,12 +235,18 @@
                 <label for="password" class="form-label">
                     <i class="bi bi-lock me-2"></i>Password
                 </label>
-                <input type="password"
-                       class="form-control @error('password') is-invalid @enderror"
-                       id="password"
-                       name="password"
-                       placeholder="Masukkan password"
-                       required>
+                <div class="input-group">
+                    <input type="password"
+                           class="form-control @error('password') is-invalid @enderror"
+                           id="password"
+                           name="password"
+                           placeholder="Masukkan password"
+                           required>
+                    <button class="btn btn-outline-secondary" type="button" id="togglePassword" tabindex="-1"
+                            style="border: 2px solid #e9ecef; border-left: none; border-radius: 0 8px 8px 0;">
+                        <i class="bi bi-eye" id="togglePasswordIcon"></i>
+                    </button>
+                </div>
                 @error('password')
                     <small class="text-danger">{{ $message }}</small>
                 @enderror
@@ -269,6 +275,20 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
             integrity="sha384-YvpcrYf0tY3lHB60NNkmXc4s9bIOgUxi8T/jyor3NBAIsDfCxnXHcpkEPRiNqaEB"
             crossorigin="anonymous"></script>
+
+    <script>
+        // Toggle show/hide password
+        const toggleBtn = document.getElementById('togglePassword');
+        const passwordInput = document.getElementById('password');
+        const toggleIcon = document.getElementById('togglePasswordIcon');
+
+        toggleBtn.addEventListener('click', function () {
+            const isHidden = passwordInput.type === 'password';
+            passwordInput.type = isHidden ? 'text' : 'password';
+            toggleIcon.classList.toggle('bi-eye', !isHidden);
+            toggleIcon.classList.toggle('bi-eye-slash', isHidden);
+        });
+    </script>
 
 </body>
 </html>

@@ -91,18 +91,53 @@
 
     <div style="padding-top: 70px;">
         @if(session('success'))
-            <div class="container mt-3">
-                <div class="alert alert-success alert-dismissible fade show" role="alert">
-                    {{ session('success') }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            <div class="container mt-3 alert-wrapper">
+                <div class="alert alert-success alert-dismissible fade show d-flex align-items-center gap-3 shadow-sm"
+                     role="alert"
+                     style="border-radius: 12px; border: none; border-left: 5px solid #198754; background: #f0fdf4;">
+                    <div class="d-flex align-items-center justify-content-center rounded-circle flex-shrink-0"
+                         style="width: 40px; height: 40px; background: #dcfce7;">
+                        <i class="bi bi-check-circle-fill text-success fs-5"></i>
+                    </div>
+                    <div>
+                        <div class="fw-semibold text-success" style="font-size: 0.95rem;">Berhasil!</div>
+                        <div class="text-dark" style="font-size: 0.9rem;">{{ session('success') }}</div>
+                    </div>
+                    <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
                 </div>
             </div>
         @endif
         @if(session('error'))
-            <div class="container mt-3">
-                <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                    {{ session('error') }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            <div class="container mt-3 alert-wrapper">
+                <div class="alert alert-danger alert-dismissible fade show d-flex align-items-center gap-3 shadow-sm"
+                     role="alert"
+                     style="border-radius: 12px; border: none; border-left: 5px solid #dc3545; background: #fff5f5;">
+                    <div class="d-flex align-items-center justify-content-center rounded-circle flex-shrink-0"
+                         style="width: 40px; height: 40px; background: #fee2e2;">
+                        <i class="bi bi-exclamation-circle-fill text-danger fs-5"></i>
+                    </div>
+                    <div>
+                        <div class="fw-semibold text-danger" style="font-size: 0.95rem;">Terjadi Kesalahan</div>
+                        <div class="text-dark" style="font-size: 0.9rem;">{{ session('error') }}</div>
+                    </div>
+                    <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            </div>
+        @endif
+        @if(session('info'))
+            <div class="container mt-3 alert-wrapper">
+                <div class="alert alert-info alert-dismissible fade show d-flex align-items-center gap-3 shadow-sm"
+                     role="alert"
+                     style="border-radius: 12px; border: none; border-left: 5px solid #0ea5e9; background: #f0f9ff;">
+                    <div class="d-flex align-items-center justify-content-center rounded-circle flex-shrink-0"
+                         style="width: 40px; height: 40px; background: #e0f2fe;">
+                        <i class="bi bi-info-circle-fill text-info fs-5"></i>
+                    </div>
+                    <div>
+                        <div class="fw-semibold text-info" style="font-size: 0.95rem;">Informasi</div>
+                        <div class="text-dark" style="font-size: 0.9rem;">{{ session('info') }}</div>
+                    </div>
+                    <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
                 </div>
             </div>
         @endif
@@ -113,5 +148,22 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
             integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
             crossorigin="anonymous"></script>
-</body>
+
+    {{-- Auto-dismiss alert dan hapus wrapper-nya agar tidak ada sisa ruang putih --}}
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            document.querySelectorAll('.alert.alert-dismissible').forEach(function (alertEl) {
+                // Auto-dismiss setelah 4 detik
+                setTimeout(function () {
+                    bootstrap.Alert.getOrCreateInstance(alertEl).close();
+                }, 4000);
+
+                // Hapus container wrapper setelah animasi dismiss selesai
+                alertEl.addEventListener('closed.bs.alert', function () {
+                    const wrapper = alertEl.closest('.alert-wrapper');
+                    if (wrapper) wrapper.remove();
+                });
+            });
+        });
+    </script>
 </html>

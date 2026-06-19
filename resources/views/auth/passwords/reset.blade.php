@@ -61,6 +61,24 @@
             font-size: 0.95rem;
         }
 
+        .input-group .form-control {
+            border-radius: 12px 0 0 12px;
+        }
+
+        .input-group .btn-toggle-pw {
+            border-radius: 0 12px 12px 0;
+            border: 1px solid #dee2e6;
+            border-left: none;
+            background: white;
+            color: #6c757d;
+            padding: 0 14px;
+        }
+
+        .input-group .btn-toggle-pw:hover {
+            background: #f8f9fa;
+            color: #1a73e8;
+        }
+
         .btn-login {
             width: 100%;
             border-radius: 12px;
@@ -114,23 +132,38 @@
 
                 <div class="mb-3">
                     <label for="old_password" class="form-label fw-semibold">Password Lama</label>
-                    <input type="password" id="old_password" name="old_password" class="form-control @error('old_password') is-invalid @enderror" placeholder="password123" required>
+                    <div class="input-group">
+                        <input type="password" id="old_password" name="old_password" class="form-control @error('old_password') is-invalid @enderror" placeholder="password123" required>
+                        <button class="btn-toggle-pw" type="button" onclick="togglePw('old_password', 'icon_old')" tabindex="-1">
+                            <i class="bi bi-eye" id="icon_old"></i>
+                        </button>
+                    </div>
                     @error('old_password')
-                        <div class="invalid-feedback">{{ $message }}</div>
+                        <div class="invalid-feedback d-block">{{ $message }}</div>
                     @enderror
                 </div>
 
                 <div class="mb-3">
                     <label for="new_password" class="form-label fw-semibold">Password Baru</label>
-                    <input type="password" id="new_password" name="new_password" class="form-control @error('new_password') is-invalid @enderror" placeholder="Masukkan password baru" required>
+                    <div class="input-group">
+                        <input type="password" id="new_password" name="new_password" class="form-control @error('new_password') is-invalid @enderror" placeholder="Masukkan password baru" required>
+                        <button class="btn-toggle-pw" type="button" onclick="togglePw('new_password', 'icon_new')" tabindex="-1">
+                            <i class="bi bi-eye" id="icon_new"></i>
+                        </button>
+                    </div>
                     @error('new_password')
-                        <div class="invalid-feedback">{{ $message }}</div>
+                        <div class="invalid-feedback d-block">{{ $message }}</div>
                     @enderror
                 </div>
 
                 <div class="mb-4">
                     <label for="new_password_confirmation" class="form-label fw-semibold">Konfirmasi Password Baru</label>
-                    <input type="password" id="new_password_confirmation" name="new_password_confirmation" class="form-control" placeholder="Ulangi password baru" required>
+                    <div class="input-group">
+                        <input type="password" id="new_password_confirmation" name="new_password_confirmation" class="form-control" placeholder="Ulangi password baru" required>
+                        <button class="btn-toggle-pw" type="button" onclick="togglePw('new_password_confirmation', 'icon_confirm')" tabindex="-1">
+                            <i class="bi bi-eye" id="icon_confirm"></i>
+                        </button>
+                    </div>
                 </div>
 
                 <button type="submit" class="btn btn-warning btn-login text-dark">
@@ -139,5 +172,18 @@
             </form>
         </div>
     </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+            integrity="sha384-YvpcrYf0tY3lHB60NNkmXc4s9bIOgUxi8T/jyor3NBAIsDfCxnXHcpkEPRiNqaEB"
+            crossorigin="anonymous"></script>
+    <script>
+        function togglePw(inputId, iconId) {
+            const input = document.getElementById(inputId);
+            const icon  = document.getElementById(iconId);
+            const isHidden = input.type === 'password';
+            input.type = isHidden ? 'text' : 'password';
+            icon.classList.toggle('bi-eye', !isHidden);
+            icon.classList.toggle('bi-eye-slash', isHidden);
+        }
+    </script>
 </body>
 </html>

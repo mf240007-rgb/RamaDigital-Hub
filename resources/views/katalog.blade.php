@@ -46,11 +46,14 @@
                         {{ $p->category?->name ?? 'Umum' }}
                     </span>
 
-                    <div class="text-center p-3" style="background: #f8f9fa; border-radius: 8px;">
+                    <div class="text-center p-3" style="background: #f8f9fa; border-radius: 8px; height: 180px; display: flex; align-items: center; justify-content: center;">
                         @if($p->gambar && file_exists(public_path('images/produk/' . $p->gambar)))
                             <img src="{{ asset('images/produk/' . $p->gambar) }}" alt="{{ $p->name_produk }}" class="img-fluid" style="height: 160px; object-fit: contain; width: 100%;">
                         @else
-                            <img src="{{ asset('images/no-image.png') }}" alt="No Image" class="img-fluid" style="height: 160px; object-fit: contain; width: 100%;">
+                            <div class="d-flex flex-column align-items-center justify-content-center text-muted" style="height: 160px;">
+                                <i class="bi bi-image" style="font-size: 3rem; opacity: 0.3;"></i>
+                                <small class="mt-1 opacity-50">Tidak ada gambar</small>
+                            </div>
                         @endif
                     </div>
 

@@ -136,7 +136,7 @@
 
         .form-row {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: 1fr; /* Diubah menjadi 1fr agar input Nama Lengkap memanjang penuh dan proporsional */
             gap: 15px;
         }
 
@@ -145,8 +145,12 @@
             background-color: white;
         }
 
+        /* Perbaikan CSS agar border kiri input tetap rapi walau error */
         .input-group .form-control {
             border-left: none;
+        }
+        .input-group .form-control.is-invalid {
+            border-left: 2px solid #dc3545;
         }
 
         @media (max-width: 576px) {
@@ -175,14 +179,12 @@
             <p>Daftar akun untuk memesan jasa cetak dokumen</p>
         </div>
 
-        {{-- Error Messages --}}
+        {{-- Error Messages Global --}}
         @if ($errors->any())
-            <div class="alert alert-danger" role="alert">
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
                 <i class="bi bi-exclamation-circle-fill me-2"></i>
-                <strong>Gagal Daftar!</strong>
-                @foreach ($errors->all() as $error)
-                    <div>{{ $error }}</div>
-                @endforeach
+                <strong>Gagal Daftar!</strong> Mohon periksa kembali data Anda.
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
         @endif
 
@@ -190,26 +192,24 @@
         <form action="{{ route('user.register.submit') }}" method="POST">
             @csrf
 
-            {{-- Nama Lengkap (2 kolom) --}}
+            {{-- Username --}}
             <div class="form-row">
-                
                 <div class="form-group">
                     <label for="full_name" class="form-label">
-                        <i class="bi bi-person-check me-2"></i>Nama Lengkap
+                        <i class="bi bi-person-check me-2"></i>Username
                     </label>
                     <input type="text"
                            class="form-control @error('full_name') is-invalid @enderror"
                            id="full_name"
                            name="full_name"
                            value="{{ old('full_name') }}"
-                           placeholder="Budi Santoso"
+                           placeholder="Username"
                            required>
                     @error('full_name')
-                        <small class="text-danger">{{ $message }}</small>
+                        <div class="invalid-feedback d-block fw-bold mt-1">{{ $message }}</div>
                     @enderror
                 </div>
             </div>
-
 
             {{-- WhatsApp Number --}}
             <div class="form-group">
@@ -217,19 +217,19 @@
                     <i class="bi bi-whatsapp me-2"></i>Nomor WhatsApp
                 </label>
                 <div class="input-group">
-                    <span class="input-group-text">+62</span>
+                    <span class="input-group-text @error('whatsapp') border-danger text-danger @enderror">+62</span>
                     <input type="tel"
                            class="form-control @error('whatsapp') is-invalid @enderror"
                            id="whatsapp"
                            name="whatsapp"
                            value="{{ old('whatsapp') }}"
-                           placeholder="0812-3456-7890"
+                           placeholder="812-3456-7890"
                            required>
                 </div>
                 @error('whatsapp')
-                    <small class="text-danger">{{ $message }}</small>
+                    <div class="invalid-feedback d-block fw-bold mt-1">{{ $message }}</div>
                 @enderror
-                <small class="text-muted">Nomor tanpa +62, contoh: 0812-3456-7890</small>
+                <small class="text-muted d-block mt-1">Nomor tanpa +62, contoh: 812-3456-7890</small>
             </div>
 
             {{-- Password Field --}}
@@ -237,16 +237,23 @@
                 <label for="password" class="form-label">
                     <i class="bi bi-lock me-2"></i>Password
                 </label>
-                <input type="password"
-                       class="form-control @error('password') is-invalid @enderror"
-                       id="password"
-                       name="password"
-                       placeholder="Minimal 8 karakter"
-                       required>
+                <div class="input-group">
+                    <input type="password"
+                           class="form-control @error('password') is-invalid @enderror"
+                           id="password"
+                           name="password"
+                           placeholder="Minimal 8 karakter"
+                           required>
+                    <button class="btn btn-outline-secondary" type="button" id="togglePassword" tabindex="-1"
+                            style="border: 2px solid #e9ecef; border-left: none; border-radius: 0 8px 8px 0;">
+                        <i class="bi bi-eye" id="togglePasswordIcon"></i>
+                    </button>
+                </div>
                 @error('password')
-                    <small class="text-danger">{{ $message }}</small>
+                    <div class="invalid-feedback d-block fw-bold mt-1">{{ $message }}</div>
+                @else
+                    <small class="text-muted d-block mt-1">Minimal 8 karakter, gunakan kombinasi huruf, angka, dan simbol</small>
                 @enderror
-                <small class="text-muted">Minimal 8 karakter, gunakan kombinasi huruf, angka, dan simbol</small>
             </div>
 
             {{-- Password Confirmation --}}
@@ -254,14 +261,20 @@
                 <label for="password_confirmation" class="form-label">
                     <i class="bi bi-lock-fill me-2"></i>Konfirmasi Password
                 </label>
-                <input type="password"
-                       class="form-control @error('password_confirmation') is-invalid @enderror"
-                       id="password_confirmation"
-                       name="password_confirmation"
-                       placeholder="Ulangi password"
-                       required>
+                <div class="input-group">
+                    <input type="password"
+                           class="form-control @error('password_confirmation') is-invalid @enderror"
+                           id="password_confirmation"
+                           name="password_confirmation"
+                           placeholder="Ulangi password"
+                           required>
+                    <button class="btn btn-outline-secondary" type="button" id="togglePasswordConfirm" tabindex="-1"
+                            style="border: 2px solid #e9ecef; border-left: none; border-radius: 0 8px 8px 0;">
+                        <i class="bi bi-eye" id="togglePasswordConfirmIcon"></i>
+                    </button>
+                </div>
                 @error('password_confirmation')
-                    <small class="text-danger">{{ $message }}</small>
+                    <div class="invalid-feedback d-block fw-bold mt-1">{{ $message }}</div>
                 @enderror
             </div>
 
@@ -282,6 +295,23 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
             integrity="sha384-YvpcrYf0tY3lHB60NNkmXc4s9bIOgUxi8T/jyor3NBAIsDfCxnXHcpkEPRiNqaEB"
             crossorigin="anonymous"></script>
+
+    <script>
+        // Toggle show/hide password
+        function toggleVisibility(btnId, inputId, iconId) {
+            document.getElementById(btnId).addEventListener('click', function () {
+                const input = document.getElementById(inputId);
+                const icon  = document.getElementById(iconId);
+                const isHidden = input.type === 'password';
+                input.type = isHidden ? 'text' : 'password';
+                icon.classList.toggle('bi-eye', !isHidden);
+                icon.classList.toggle('bi-eye-slash', isHidden);
+            });
+        }
+
+        toggleVisibility('togglePassword',        'password',              'togglePasswordIcon');
+        toggleVisibility('togglePasswordConfirm', 'password_confirmation', 'togglePasswordConfirmIcon');
+    </script>
 
 </body>
 </html>
