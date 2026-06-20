@@ -5,7 +5,9 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Product;
 use App\Models\Category;
+use App\Models\Order;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 
 class HomeController extends Controller
 {
@@ -99,5 +101,64 @@ class HomeController extends Controller
         }
 
         return view('katalog', compact('products', 'categories', 'selectedCategory', 'search', 'cartItems', 'cartTotal', 'cartCount'));
+    }
+
+    /**
+     * Proses submit formulir Jasa Cetak Dokumen
+     */
+    public function submitCetak(Request $request)
+    {
+        if (!Auth::check()) {
+            return redirect()->route('user.login')
+                ->with('error', 'Silakan login terlebih dahulu untuk memesan jasa cetak.');
+        }
+
+        $validated = $request->validate([
+            'jenis_kertas'  => 'required|string|max:50',
+            'jumlah'        => 'required|integer|min:1',
+            'mode_cetak'    => 'required|in:hitam_putih,full_color',
+            'file_dokumen'  => 'required|file|mimes:pdf,doc,docx,jpg,jpeg,png|max:10240',
+            'catatan'       => 'nullable|string|max:500',
+        ], [
+            'jenis_kertas.required' => 'Pilih jenis kertas terlebih dahulu.',
+            'jumlah.required'       => 'Jumlah lembar wajib diisi.',
+            'jumlah.min'            => 'Jumlah lembar minimal 1.',
+            'mode_cetak.required'   => 'Pilih mode cetak.',
+            'file_dokumen.required' => 'File dokumen wajib diunggah.',
+            'file_dokumen.mimes'    => 'Format file harus PDF, Word, JPG, atau PNG.',
+            'file_dokumen.max'      => 'Ukuran file maksimal 10 MB.',
+        ]);
+
+        // Simpan file dokumen ke storage/app/private/dokumen_cetak (disk local Laravel 11)
+        $file      = $request->file('file_dokumen');
+        $fileName  = time() . '_' . Auth::id() . '_' . preg_replace('/\s+/', '_', $file->getClientOriginalName());
+        $file->storeAs('private/dokumen_cetak', $fileName, 'local');
+
+        // Buat detail pesanan yang mudah dibaca
+        $labelKertas = [
+            'hvs_a4'      => 'HVS A4',
+            'hvs_f4'      => 'HVS F4/Folio',
+            'foto_glossy' => 'Foto Glossy',
+            'foto_matte'  => 'Foto Matte (Stiker)',
+        ];
+        $namaKertas    = $labelKertas[$validated['jenis_kertas']] ?? $validated['jenis_kertas'];
+        $namaCetak     = $validated['mode_cetak'] === 'hitam_putih' ? 'Hitam & Putih' : 'Full Color';
+        $detailPesanan = "{$namaKertas}, {$validated['jumlah']} lembar, {$namaCetak}";
+
+        Order::create([
+            'user_id'       => Auth::id(),
+            'item_type'     => 'jasa',
+            'file_dokumen'  => $fileName,
+            'detail_pesanan'=> $detailPesanan,
+            'total_harga'   => 0, // Admin akan konfirmasi harga via WhatsApp
+            'status'        => 'Menunggu Antrean',
+            'jenis_kertas'  => $validated['jenis_kertas'],
+            'jumlah_lembar' => $validated['jumlah'],
+            'mode_cetak'    => $validated['mode_cetak'],
+            'catatan'       => $validated['catatan'] ?? null,
+        ]);
+
+        return redirect()->route('home')
+            ->with('success', 'Pesanan cetak berhasil dikirim! Tim kami akan segera menghubungi kamu via WhatsApp untuk konfirmasi harga dan estimasi pengerjaan.');
     }
 }

@@ -371,25 +371,22 @@
                         @auth
                             <p class="text-muted mb-4">
                                 <i class="bi bi-info-circle me-1"></i>
-                                Isi formulir di bawah ini, tim kami akan segera menghubungi kamu via WhatsApp.
+                                Isi formulir di bawah ini, tim kami akan segera menghubungi kamu via WhatsApp untuk konfirmasi harga dan estimasi.
                             </p>
-                        @else
-                            <div class="alert alert-warning d-flex align-items-center" role="alert">
-                                <i class="bi bi-exclamation-triangle-fill flex-shrink-0 me-3"></i>
-                                <div>
-                                    <strong>Anda harus login terlebih dahulu!</strong><br>
-                                    <small>Silakan <a href="{{ route('user.login') }}" class="alert-link">login</a> atau <a href="{{ route('user.register') }}" class="alert-link">daftar</a> untuk menggunakan layanan jasa cetak.</small>
-                                </div>
-                            </div>
-                        @endauth
 
-                        @auth
-                            {{--
-                                CATATAN PENTING:
-                                Form ini STATIS — tombol "Pesan Sekarang" belum terhubung ke backend.
-                                Untuk proyek lanjutan, action="" bisa diisi dengan route yang memproses data.
-                            --}}
-                            <form action="#" method="POST">
+                            @if($errors->any())
+                                <div class="alert alert-danger mb-3">
+                                    <i class="bi bi-exclamation-circle me-2"></i>
+                                    <strong>Mohon periksa isian formulir:</strong>
+                                    <ul class="mb-0 mt-1">
+                                        @foreach($errors->all() as $error)
+                                            <li>{{ $error }}</li>
+                                        @endforeach
+                                    </ul>
+                                </div>
+                            @endif
+
+                            <form action="{{ route('cetak.submit') }}" method="POST" enctype="multipart/form-data">
                                 @csrf
 
                                 {{-- Baris 2: Jenis Kertas & Jumlah Lembar --}}
@@ -480,6 +477,14 @@
                                 </div>
 
                             </form>
+                        @else
+                            <div class="alert alert-warning d-flex align-items-center" role="alert">
+                                <i class="bi bi-exclamation-triangle-fill flex-shrink-0 me-3"></i>
+                                <div>
+                                    <strong>Anda harus login terlebih dahulu!</strong><br>
+                                    <small>Silakan <a href="{{ route('user.login') }}" class="alert-link">login</a> atau <a href="{{ route('user.register') }}" class="alert-link">daftar</a> untuk menggunakan layanan jasa cetak.</small>
+                                </div>
+                            </div>
                         @endauth
 
                     </div>

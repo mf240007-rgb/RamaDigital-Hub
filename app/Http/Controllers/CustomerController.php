@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Order;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class CustomerController extends Controller
 {
@@ -69,5 +70,33 @@ class CustomerController extends Controller
 
         return redirect()->route('admin.customers.index')
             ->with('success', "Password pelanggan '{$customer->full_name}' berhasil di-reset ke default.");
+    }
+
+    /**
+     * Download dokumen yang diunggah pelanggan
+     */
+    public function downloadDokumen($orderId)
+    {
+        if ($redirect = $this->guardAdmin()) {
+            return $redirect;
+        }
+
+        $order = Order::find($orderId);
+
+        if (! $order || ! $order->file_dokumen) {
+            return redirect()->back()->with('error', 'Dokumen tidak ditemukan.');
+        }
+
+        $path = storage_path('app/private/dokumen_cetak/' . $order->file_dokumen);
+
+        if (!file_exists($path)) {
+            $path = storage_path('app/dokumen_cetak/' . $order->file_dokumen);
+        }
+
+        if (! file_exists($path)) {
+            return redirect()->back()->with('error', 'File dokumen tidak ditemukan di server.');
+        }
+
+        return response()->download($path, $order->file_dokumen);
     }
 }

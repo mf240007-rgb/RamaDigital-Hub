@@ -77,3 +77,14 @@ Route::post('/admin/customers/{id}/reset-password', [CustomerController::class, 
 
 // Route untuk menghapus pelanggan
 Route::delete('/admin/customers/{id}', [AdminController::class, 'destroyCustomer'])->name('admin.customers.destroy');
+
+// Route submit jasa cetak (user)
+Route::post('/jasa-cetak', [HomeController::class, 'submitCetak'])->name('cetak.submit');
+
+// Route download dokumen (admin) — dari halaman riwayat pelanggan
+Route::get('/admin/orders/{orderId}/download', [CustomerController::class, 'downloadDokumen'])->name('admin.orders.download');
+
+// Halaman Pesanan Cetak (admin)
+Route::get('/admin/pesanan-cetak', [\App\Http\Controllers\Admin\PrintOrderController::class, 'index'])->name('admin.print-orders.index');
+Route::post('/admin/pesanan-cetak/{id}/status', [\App\Http\Controllers\Admin\PrintOrderController::class, 'updateStatus'])->name('admin.print-orders.status');
+Route::get('/admin/pesanan-cetak/{id}/download', [\App\Http\Controllers\Admin\PrintOrderController::class, 'download'])->name('admin.print-orders.download');
