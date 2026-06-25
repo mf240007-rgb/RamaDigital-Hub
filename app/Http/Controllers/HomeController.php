@@ -132,7 +132,7 @@ class HomeController extends Controller
         // Simpan file dokumen ke storage/app/private/dokumen_cetak (disk local Laravel 11)
         $file      = $request->file('file_dokumen');
         $fileName  = time() . '_' . Auth::id() . '_' . preg_replace('/\s+/', '_', $file->getClientOriginalName());
-        $file->storeAs('private/dokumen_cetak', $fileName, 'local');
+        $file->storeAs('dokumen_cetak', $fileName, 'local');
 
         // Buat detail pesanan yang mudah dibaca
         $labelKertas = [
