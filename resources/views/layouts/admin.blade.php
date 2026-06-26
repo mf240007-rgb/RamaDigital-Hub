@@ -38,7 +38,8 @@
                     <li class="nav-item"><a class="nav-link @if(request()->routeIs('admin.print-orders.*')) active @endif" href="{{ route('admin.print-orders.index') }}"><i class="bi bi-printer me-2"></i> Pesanan Cetak</a></li>
                     <li class="nav-item"><a class="nav-link @if(request()->routeIs('admin.customers.*')) active @endif" href="{{ route('admin.customers.index') }}"><i class="bi bi-people me-2"></i> Data Pelanggan</a></li>
                     <li class="nav-item"><a class="nav-link" href="#"><i class="bi bi-bar-chart me-2"></i> Laporan</a></li>
-                    <li class="nav-item mt-4"><a class="nav-link text-danger" href="{{ route('admin.logout') }}"><i class="bi bi-box-arrow-left me-2"></i> Keluar (Logout)</a></li>
+                    <li class="nav-item mt-3 border-top border-secondary pt-3"><a class="nav-link @if(request()->routeIs('admin.settings')) active @endif" href="{{ route('admin.settings') }}"><i class="bi bi-gear me-2"></i> Pengaturan</a></li>
+                    <li class="nav-item"><a class="nav-link text-danger" href="{{ route('admin.logout') }}"><i class="bi bi-box-arrow-left me-2"></i> Keluar (Logout)</a></li>
                 </ul>
             </div>
 

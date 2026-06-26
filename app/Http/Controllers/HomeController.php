@@ -104,6 +104,111 @@ class HomeController extends Controller
     }
 
     /**
+     * Cek status pesanan berdasarkan nomor pesanan (tanpa login)
+     */
+    public function cekStatus(Request $request)
+    {
+        $request->validate([
+            'order_number' => 'required|string|max:30',
+        ], [
+            'order_number.required' => 'Nomor pesanan wajib diisi.',
+        ]);
+
+        $orderNumber = strtoupper(trim($request->order_number));
+
+        $order = Order::where('order_number', $orderNumber)
+            ->where('item_type', 'jasa')
+            ->first();
+
+        if (!$order) {
+            return redirect()->to(route('home') . '#cek-status')
+                ->with('cek_error', "Nomor pesanan <strong>{$orderNumber}</strong> tidak ditemukan. Pastikan nomor yang kamu masukkan sudah benar.")
+                ->with('cek_query', $orderNumber);
+        }
+
+        // Simpan sebagai array agar tidak ada masalah serialisasi Eloquent di session
+        return redirect()->to(route('home') . '#cek-status')
+            ->with('cek_result', [
+                'order_number'      => $order->order_number,
+                'detail_pesanan'    => $order->detail_pesanan,
+                'catatan'           => $order->catatan,
+                'status'            => $order->status,
+                'alasan_pembatalan' => $order->alasan_pembatalan,
+                'dibatalkan_oleh'   => $order->dibatalkan_oleh,
+                'cancelled_at'      => $order->cancelled_at?->toIso8601String(),
+                'created_at'        => $order->created_at->toIso8601String(),
+                'updated_at'        => $order->updated_at->toIso8601String(),
+            ])
+            ->with('cek_query', $orderNumber);
+    }
+
+    /**
+     * Batalkan pesanan oleh pelanggan (via nomor pesanan, tanpa login)
+     * Hanya boleh saat status masih "Menunggu Antrean"
+     */
+    public function cancelOrder(Request $request)
+    {
+        $request->validate([
+            'order_number'      => 'required|string|max:30',
+            'alasan_pembatalan' => 'required|string|max:500',
+        ], [
+            'order_number.required'      => 'Nomor pesanan wajib diisi.',
+            'alasan_pembatalan.required' => 'Alasan pembatalan wajib diisi.',
+        ]);
+
+        $orderNumber = strtoupper(trim($request->order_number));
+
+        $order = Order::where('order_number', $orderNumber)
+            ->where('item_type', 'jasa')
+            ->first();
+
+        if (!$order) {
+            return redirect()->to(route('home') . '#cek-status')
+                ->with('cek_error', "Nomor pesanan <strong>{$orderNumber}</strong> tidak ditemukan.")
+                ->with('cek_query', $orderNumber);
+        }
+
+        if ($order->status !== 'Menunggu Antrean') {
+            return redirect()->to(route('home') . '#cek-status')
+                ->with('cek_query', $orderNumber)
+                ->with('cek_result', [
+                    'order_number'      => $order->order_number,
+                    'detail_pesanan'    => $order->detail_pesanan,
+                    'catatan'           => $order->catatan,
+                    'status'            => $order->status,
+                    'alasan_pembatalan' => $order->alasan_pembatalan,
+                    'dibatalkan_oleh'   => $order->dibatalkan_oleh,
+                    'cancelled_at'      => $order->cancelled_at?->toIso8601String(),
+                    'created_at'        => $order->created_at->toIso8601String(),
+                    'updated_at'        => $order->updated_at->toIso8601String(),
+                ])
+                ->with('cek_error_cancel', 'Pesanan hanya dapat dibatalkan saat masih berstatus <strong>Menunggu Antrean</strong>. Status pesanan kamu saat ini: <strong>' . $order->status . '</strong>.');
+        }
+
+        $order->update([
+            'status'            => 'dibatalkan',
+            'alasan_pembatalan' => $request->alasan_pembatalan,
+            'dibatalkan_oleh'   => 'pelanggan',
+            'cancelled_at'      => now(),
+        ]);
+
+        return redirect()->to(route('home') . '#cek-status')
+            ->with('cek_query', $orderNumber)
+            ->with('cek_result', [
+                'order_number'      => $order->order_number,
+                'detail_pesanan'    => $order->detail_pesanan,
+                'catatan'           => $order->catatan,
+                'status'            => 'dibatalkan',
+                'alasan_pembatalan' => $request->alasan_pembatalan,
+                'dibatalkan_oleh'   => 'pelanggan',
+                'cancelled_at'      => now()->toIso8601String(),
+                'created_at'        => $order->created_at->toIso8601String(),
+                'updated_at'        => now()->toIso8601String(),
+            ])
+            ->with('success_cancel', 'Pesanan <strong>' . $orderNumber . '</strong> berhasil dibatalkan.');
+    }
+
+    /**
      * Proses submit formulir Jasa Cetak Dokumen
      */
     public function submitCetak(Request $request)
@@ -145,7 +250,10 @@ class HomeController extends Controller
         $namaCetak     = $validated['mode_cetak'] === 'hitam_putih' ? 'Hitam & Putih' : 'Full Color';
         $detailPesanan = "{$namaKertas}, {$validated['jumlah']} lembar, {$namaCetak}";
 
+        $orderNumber = Order::generateOrderNumber();
+
         Order::create([
+            'order_number'  => $orderNumber,
             'user_id'       => Auth::id(),
             'item_type'     => 'jasa',
             'file_dokumen'  => $fileName,
@@ -159,6 +267,6 @@ class HomeController extends Controller
         ]);
 
         return redirect()->route('home')
-            ->with('success', 'Pesanan cetak berhasil dikirim! Tim kami akan segera menghubungi kamu via WhatsApp untuk konfirmasi harga dan estimasi pengerjaan.');
+            ->with('new_order_number', $orderNumber);
     }
 }

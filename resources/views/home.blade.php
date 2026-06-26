@@ -247,6 +247,78 @@
         </div>
     @endif
 
+    {{-- ================================================
+         MODAL POP-UP: Nomor Pesanan Berhasil Dibuat
+         ================================================ --}}
+    @if(session('new_order_number'))
+    <div class="modal fade" id="modalNomorPesanan" tabindex="-1" aria-labelledby="modalNomorPesananLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0" style="border-radius: 20px; overflow: hidden;">
+
+                {{-- Header dengan gradient --}}
+                <div class="modal-header border-0 pb-0 pt-4 px-4"
+                     style="background: linear-gradient(135deg, #1a73e8, #4a9eff);">
+                    <div class="w-100 text-center pb-3">
+                        <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3"
+                             style="width: 64px; height: 64px; background: rgba(255,255,255,0.2);">
+                            <i class="bi bi-check-circle-fill text-white" style="font-size: 2rem;"></i>
+                        </div>
+                        <h5 class="modal-title text-white fw-bold mb-1" id="modalNomorPesananLabel">
+                            Pesanan Berhasil Dikirim!
+                        </h5>
+                        <p class="text-white mb-0" style="opacity: 0.85; font-size: 0.88rem;">
+                            Simpan nomor pesanan berikut untuk mengecek status cetak kamu
+                        </p>
+                    </div>
+                </div>
+
+                {{-- Body --}}
+                <div class="modal-body px-4 pt-4 pb-3 text-center">
+
+                    <p class="text-muted mb-2" style="font-size: 0.85rem;">Nomor Pesanan Kamu</p>
+
+                    {{-- Kotak nomor pesanan --}}
+                    <div class="d-flex align-items-center justify-content-center gap-2 mx-auto mb-3"
+                         style="background: #f0f4ff; border: 2px dashed #1a73e8; border-radius: 12px; padding: 14px 20px; max-width: 320px;">
+                        <span id="nomorPesananText"
+                              style="font-family: monospace; font-size: 1.4rem; font-weight: 700; color: #1a73e8; letter-spacing: 1px;">
+                            {{ session('new_order_number') }}
+                        </span>
+                        <button type="button"
+                                id="btnSalinNomor"
+                                class="btn btn-sm btn-outline-primary rounded-pill ms-1"
+                                title="Salin nomor pesanan"
+                                style="font-size: 0.75rem; padding: 3px 10px;"
+                                onclick="salinNomorPesanan()">
+                            <i class="bi bi-clipboard me-1"></i>Salin
+                        </button>
+                    </div>
+
+                    <p class="text-muted mb-0" style="font-size: 0.82rem;">
+                        <i class="bi bi-telephone me-1"></i>
+                        Butuh bantuan? Hubungi kami di <strong>0852-7330-0045</strong>
+                    </p>
+                </div>
+
+                {{-- Footer --}}
+                <div class="modal-footer border-0 px-4 pb-4 pt-0 d-flex gap-2">
+                    <button type="button"
+                            class="btn btn-outline-secondary rounded-pill flex-fill"
+                            data-bs-dismiss="modal">
+                        Tutup
+                    </button>
+                    <button type="button"
+                            class="btn btn-primary rounded-pill flex-fill fw-semibold"
+                            onclick="tutupModalLaluCekStatus('{{ session('new_order_number') }}')">
+                        <i class="bi bi-search me-1"></i>Cek Status Sekarang
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+    @endif
+
     <!-- ================================================
          HERO SECTION
          ================================================ -->
@@ -510,34 +582,199 @@
                     <div class="status-wrapper">
 
                         <p class="mb-4 text-muted">
-                            Masukkan <strong>Nomor Pesanan</strong> yang kamu terima via WhatsApp untuk melihat status terakhir pesananmu.
+                            Masukkan <strong>Nomor Pesanan</strong> yang kamu terima setelah memesan untuk melihat status terakhir pesananmu.
                         </p>
 
-                        <div class="input-group input-group-lg">
-                            <span class="input-group-text bg-white">
-                                <i class="bi bi-upc-scan"></i>
-                            </span>
-                            <input type="text"
-                                   class="form-control"
-                                   id="inputNomorPesanan"
-                                   placeholder="Masukkan No. Pesanan (contoh: RDH-20240815-001)">
-                            <button class="btn btn-primary fw-bold" type="button" id="btnCekStatus">
-                                <i class="bi bi-search me-1"></i> Cek Sekarang
-                            </button>
-                        </div>
+                        {{-- Form Cek Status --}}
+                        <form action="{{ route('cetak.cek-status') }}" method="POST" id="formCekStatus">
+                            @csrf
+                            <div class="input-group input-group-lg">
+                                <span class="input-group-text bg-white border-end-0">
+                                    <i class="bi bi-upc-scan text-primary"></i>
+                                </span>
+                                <input type="text"
+                                       class="form-control border-start-0 ps-0"
+                                       name="order_number"
+                                       id="inputNomorPesanan"
+                                       placeholder="Contoh: RDH-20260626-0001"
+                                       value="{{ session('cek_query', old('order_number')) }}"
+                                       autocomplete="off">
+                                <button class="btn btn-primary fw-bold px-4" type="submit">
+                                    <i class="bi bi-search me-1"></i> Cek Sekarang
+                                </button>
+                            </div>
+                        </form>
 
-                       
-
-                        {{-- Contoh tampilan hasil status (statis) --}}
-                        <div class="mt-4" id="hasilStatus" style="display: none;">
-                            <div class="alert alert-info d-flex align-items-center" role="alert">
-                                <i class="bi bi-info-circle-fill flex-shrink-0 me-3 fs-4"></i>
-                                <div>
-                                    <strong>Status Pesanan #RDH-20240815-001:</strong><br>
-                                    🔄 Sedang diproses — Estimasi selesai: Hari ini pukul 16.00 WIB.
+                        {{-- Hasil: Error tidak ditemukan --}}
+                        @if(session('cek_error'))
+                            <div class="mt-4">
+                                <div class="alert alert-warning d-flex align-items-start gap-3 mb-0"
+                                     style="border-radius: 12px; border-left: 4px solid #f59e0b;">
+                                    <i class="bi bi-exclamation-triangle-fill text-warning fs-4 flex-shrink-0 mt-1"></i>
+                                    <div>
+                                        <div class="fw-semibold mb-1">Pesanan Tidak Ditemukan</div>
+                                        <div style="font-size: 0.9rem;">{!! session('cek_error') !!}</div>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
+                        @endif
+
+                        {{-- Hasil: Pesanan ditemukan --}}
+                        @if(session('cek_result'))
+                            @php
+                                $order = session('cek_result');
+                                $statusConfig = [
+                                    'Menunggu Antrean' => ['color' => '#f59e0b', 'bg' => '#fffbeb', 'border' => '#f59e0b', 'icon' => 'bi-hourglass-split', 'label' => 'Menunggu Antrean'],
+                                    'diproses'         => ['color' => '#3b82f6', 'bg' => '#eff6ff', 'border' => '#3b82f6', 'icon' => 'bi-gear-fill',         'label' => 'Sedang Diproses'],
+                                    'selesai'          => ['color' => '#10b981', 'bg' => '#f0fdf4', 'border' => '#10b981', 'icon' => 'bi-check-circle-fill', 'label' => 'Selesai'],
+                                    'dibatalkan'       => ['color' => '#ef4444', 'bg' => '#fff5f5', 'border' => '#ef4444', 'icon' => 'bi-x-circle-fill',     'label' => 'Dibatalkan'],
+                                ];
+                                $cfg = $statusConfig[$order['status']] ?? $statusConfig['Menunggu Antrean'];
+                                $createdAt = \Carbon\Carbon::parse($order['created_at'])->locale('id');
+                                $updatedAt = \Carbon\Carbon::parse($order['updated_at'])->locale('id');
+                                $isBatalkan = $order['status'] === 'dibatalkan';
+                                $isMenunggu = $order['status'] === 'Menunggu Antrean';
+                            @endphp
+
+                            {{-- Notif sukses batalkan --}}
+                            @if(session('success_cancel'))
+                                <div class="mt-3 alert alert-success border-0 py-2 px-3"
+                                     style="border-radius: 10px; font-size: 0.88rem;">
+                                    <i class="bi bi-check-circle-fill me-2"></i>{!! session('success_cancel') !!}
+                                </div>
+                            @endif
+                            {{-- Error batalkan --}}
+                            @if(session('cek_error_cancel'))
+                                <div class="mt-3 alert alert-danger border-0 py-2 px-3"
+                                     style="border-radius: 10px; font-size: 0.88rem;">
+                                    <i class="bi bi-exclamation-circle-fill me-2"></i>{!! session('cek_error_cancel') !!}
+                                </div>
+                            @endif
+
+                            <div class="mt-4">
+                                <div class="card border-0 shadow-sm" style="border-radius: 14px; border-left: 5px solid {{ $cfg['border'] }} !important; background: {{ $cfg['bg'] }};">
+                                    <div class="card-body px-4 py-3">
+
+                                        {{-- Header: Nomor & Status --}}
+                                        <div class="d-flex justify-content-between align-items-center mb-3">
+                                            <div>
+                                                <small class="text-muted" style="font-size: 0.78rem;">NOMOR PESANAN</small>
+                                                <div class="fw-bold fs-6" style="color: var(--warna-gelap); letter-spacing: 0.5px; font-family: monospace;">
+                                                    {{ $order['order_number'] }}
+                                                </div>
+                                            </div>
+                                            <span class="badge px-3 py-2 rounded-pill fw-semibold"
+                                                  style="background-color: {{ $cfg['color'] }}; font-size: 0.85rem;">
+                                                <i class="bi {{ $cfg['icon'] }} me-1"></i>
+                                                {{ $cfg['label'] }}
+                                            </span>
+                                        </div>
+
+                                        <hr class="my-2" style="border-color: rgba(0,0,0,0.08);">
+
+                                        {{-- Detail Pesanan --}}
+                                        <div class="row g-2 mt-1" style="font-size: 0.88rem;">
+                                            <div class="col-6">
+                                                <div class="text-muted">Detail Cetak</div>
+                                                <div class="fw-semibold">{{ $order['detail_pesanan'] }}</div>
+                                            </div>
+                                            @if($order['catatan'])
+                                            <div class="col-6">
+                                                <div class="text-muted">Catatan</div>
+                                                <div class="fw-semibold">{{ $order['catatan'] }}</div>
+                                            </div>
+                                            @endif
+                                            <div class="col-6">
+                                                <div class="text-muted">Tanggal Pesan</div>
+                                                <div class="fw-semibold">{{ $createdAt->translatedFormat('d F Y, H:i') }} WIB</div>
+                                            </div>
+                                            <div class="col-6">
+                                                <div class="text-muted">Update Terakhir</div>
+                                                <div class="fw-semibold">{{ $updatedAt->translatedFormat('d F Y, H:i') }} WIB</div>
+                                            </div>
+                                        </div>
+
+                                        {{-- Info Pembatalan --}}
+                                        @if($isBatalkan && $order['alasan_pembatalan'])
+                                            <div class="mt-3 p-3 rounded" style="background: #fee2e2; font-size: 0.85rem;">
+                                                <div class="fw-semibold text-danger mb-1">
+                                                    <i class="bi bi-x-circle-fill me-1"></i>
+                                                    Dibatalkan oleh {{ $order['dibatalkan_oleh'] === 'admin' ? 'Admin' : 'Kamu' }}
+                                                </div>
+                                                <div class="text-danger" style="opacity: 0.85;">
+                                                    Alasan: {{ $order['alasan_pembatalan'] }}
+                                                </div>
+                                            </div>
+                                        @elseif(!$isBatalkan)
+                                            {{-- Progress tracker (hanya tampil kalau tidak dibatalkan) --}}
+                                            <div class="mt-3 pt-2" style="border-top: 1px solid rgba(0,0,0,0.07);">
+                                                <div class="d-flex justify-content-between align-items-center position-relative">
+                                                    <div class="position-absolute" style="top: 14px; left: 10%; right: 10%; height: 3px; background: #e2e8f0; z-index: 0;"></div>
+                                                    @php
+                                                        $steps      = ['Menunggu Antrean', 'diproses', 'selesai'];
+                                                        $currentIdx = array_search($order['status'], $steps);
+                                                        $stepIcons  = ['bi-hourglass-split', 'bi-gear-fill', 'bi-check-circle-fill'];
+                                                        $stepLabels = ['Menunggu', 'Diproses', 'Selesai'];
+                                                    @endphp
+                                                    @foreach($steps as $i => $step)
+                                                        @php
+                                                            $isDone    = $i <= $currentIdx;
+                                                            $isCurrent = $i === $currentIdx;
+                                                        @endphp
+                                                        <div class="d-flex flex-column align-items-center position-relative" style="z-index: 1; flex: 1;">
+                                                            <div class="rounded-circle d-flex align-items-center justify-content-center mb-1"
+                                                                 style="width: 30px; height: 30px;
+                                                                        background: {{ $isDone ? $cfg['color'] : '#e2e8f0' }};
+                                                                        box-shadow: {{ $isCurrent ? '0 0 0 4px ' . $cfg['color'] . '33' : 'none' }};">
+                                                                <i class="bi {{ $stepIcons[$i] }}"
+                                                                   style="font-size: 0.85rem; color: {{ $isDone ? 'white' : '#94a3b8' }};"></i>
+                                                            </div>
+                                                            <small style="font-size: 0.72rem; font-weight: {{ $isCurrent ? '700' : '400' }}; color: {{ $isDone ? $cfg['color'] : '#94a3b8' }};">
+                                                                {{ $stepLabels[$i] }}
+                                                            </small>
+                                                        </div>
+                                                    @endforeach
+                                                </div>
+                                            </div>
+
+                                            @if($order['status'] === 'selesai')
+                                                <div class="mt-3 p-2 text-center rounded"
+                                                     style="background: #dcfce7; font-size: 0.85rem; color: #15803d;">
+                                                    <i class="bi bi-bag-check-fill me-1"></i>
+                                                    Pesanan kamu sudah selesai! Silakan ambil di toko.
+                                                </div>
+                                            @elseif($order['status'] === 'diproses')
+                                                <div class="mt-3 p-2 text-center rounded"
+                                                     style="background: #dbeafe; font-size: 0.85rem; color: #1d4ed8;">
+                                                    <i class="bi bi-clock-history me-1"></i>
+                                                    Pesanan sedang kami kerjakan. Mohon ditunggu ya!
+                                                </div>
+                                            @else
+                                                <div class="mt-3 p-2 text-center rounded"
+                                                     style="background: #fef9c3; font-size: 0.85rem; color: #92400e;">
+                                                    <i class="bi bi-people-fill me-1"></i>
+                                                    Pesanan masuk antrian. Tim kami akan segera memprosesnya.
+                                                </div>
+                                            @endif
+                                        @endif
+
+                                        {{-- Tombol batalkan (hanya jika Menunggu Antrean) --}}
+                                        @if($isMenunggu)
+                                            <div class="mt-3 pt-2 text-end" style="border-top: 1px solid rgba(0,0,0,0.07);">
+                                                <button type="button"
+                                                        class="btn btn-sm btn-outline-danger rounded-pill px-3"
+                                                        style="font-size: 0.82rem;"
+                                                        data-bs-toggle="modal"
+                                                        data-bs-target="#modalBatalPelanggan">
+                                                    <i class="bi bi-x-lg me-1"></i>Batalkan Pesanan Ini
+                                                </button>
+                                            </div>
+                                        @endif
+
+                                    </div>
+                                </div>
+                            </div>
+                        @endif
 
                     </div>
                 </div>
@@ -546,6 +783,54 @@
         </section>
 
     </div>{{-- Akhir .container --}}
+
+    {{-- ================================================
+         MODAL: Batalkan Pesanan (Pelanggan)
+         ================================================ --}}
+    @if(session('cek_result') && (session('cek_result')['status'] ?? '') === 'Menunggu Antrean')
+    <div class="modal fade" id="modalBatalPelanggan" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0" style="border-radius: 16px; overflow: hidden;">
+                <div class="modal-header border-0 px-4 pt-4 pb-2" style="background: #fff5f5;">
+                    <div>
+                        <h5 class="fw-bold mb-1 text-danger">
+                            <i class="bi bi-x-circle-fill me-2"></i>Batalkan Pesanan
+                        </h5>
+                        <p class="text-muted mb-0" style="font-size: 0.85rem;">
+                            Pesanan: <strong>{{ session('cek_result')['order_number'] }}</strong>
+                        </p>
+                    </div>
+                    <button type="button" class="btn-close ms-auto" data-bs-dismiss="modal"></button>
+                </div>
+                <form action="{{ route('cetak.cancel') }}" method="POST">
+                    @csrf
+                    <input type="hidden" name="order_number" value="{{ session('cek_result')['order_number'] }}">
+                    <div class="modal-body px-4 py-3">
+                        <div class="alert alert-warning border-0 py-2 px-3 mb-3"
+                             style="border-radius: 10px; background: #fef9c3; font-size: 0.83rem;">
+                            <i class="bi bi-exclamation-triangle-fill text-warning me-2"></i>
+                            Pembatalan <strong>tidak dapat dibatalkan</strong>. Pastikan kamu yakin sebelum melanjutkan.
+                        </div>
+                        <label class="form-label fw-semibold mb-1">Alasan Pembatalan <span class="text-danger">*</span></label>
+                        <textarea name="alasan_pembatalan"
+                                  class="form-control"
+                                  rows="3"
+                                  placeholder="Contoh: Berubah pikiran, dokumen belum siap, dll."
+                                  maxlength="500"
+                                  required></textarea>
+                    </div>
+                    <div class="modal-footer border-0 px-4 pb-4 pt-0 gap-2">
+                        <button type="button" class="btn btn-outline-secondary rounded-pill flex-fill"
+                                data-bs-dismiss="modal">Kembali</button>
+                        <button type="submit" class="btn btn-danger rounded-pill flex-fill fw-semibold">
+                            <i class="bi bi-x-lg me-1"></i>Ya, Batalkan Pesanan
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    @endif
 
     <!-- ================================================
          FOOTER
@@ -575,49 +860,64 @@
          ================================================ -->
     <script>
         // ============================================================
-        // BAGIAN 1: Simulasi Tombol "Cek Status Pesanan" (Statis)
+        // SHORTCUT RAHASIA — Ctrl + Alt + A
         // ============================================================
-        document.getElementById('btnCekStatus').addEventListener('click', function() {
-            var inputVal = document.getElementById('inputNomorPesanan').value.trim();
-            var hasilDiv = document.getElementById('hasilStatus');
-
-            if (inputVal !== '') {
-                hasilDiv.style.display = 'block'; // Tampilkan hasil
-            } else {
-                hasilDiv.style.display = 'none';
-                alert('⚠️ Masukkan nomor pesanan terlebih dahulu!');
-            }
-        });
-
-
-        // ============================================================
-        // BAGIAN 2: SHORTCUT RAHASIA — Ctrl + Alt + A
-        // ============================================================
-        // Fungsi ini mendeteksi kombinasi tombol keyboard secara diam-diam.
-        // Tidak ada tombol atau link yang terlihat oleh pengunjung biasa.
-        //
-        // Cara kerja:
-        // 1. 'keydown' = event yang terpicu saat tombol ditekan
-        // 2. e.ctrlKey = true jika tombol Ctrl sedang ditekan
-        // 3. e.altKey  = true jika tombol Alt sedang ditekan
-        // 4. e.key === 'a' = mengecek apakah tombol 'A' yang ditekan
-        //    (gunakan huruf kecil karena browser mengembalikan huruf kecil)
-        // 5. e.preventDefault() = mencegah aksi default browser
-        //    (misalnya Alt bisa membuka menu browser di beberapa sistem)
-        // ============================================================
-
         document.addEventListener('keydown', function(e) {
             if (e.ctrlKey && e.altKey && e.key === 'a') {
-
-                // Mencegah aksi default browser agar kombinasi bekerja mulus
                 e.preventDefault();
-
-                // Arahkan ke halaman login admin (tidak terlihat di UI)
-                // Menggunakan URL langsung ke route '/admin/login'
                 window.location.href = '/admin/login';
             }
         });
 
+        // Tampilkan modal nomor pesanan otomatis setelah submit berhasil
+        @if(session('new_order_number'))
+            document.addEventListener('DOMContentLoaded', function () {
+                var modal = new bootstrap.Modal(document.getElementById('modalNomorPesanan'));
+                modal.show();
+            });
+        @endif
+
+        // Scroll otomatis ke seksi cek-status jika ada hasil pencarian
+        @if(session('cek_result') || session('cek_error'))
+            document.addEventListener('DOMContentLoaded', function () {
+                const el = document.getElementById('cek-status');
+                if (el) {
+                    setTimeout(() => el.scrollIntoView({ behavior: 'smooth', block: 'start' }), 300);
+                }
+            });
+        @endif
+
+        // Fungsi salin nomor pesanan ke clipboard
+        function salinNomorPesanan() {
+            const nomor = document.getElementById('nomorPesananText').textContent.trim();
+            navigator.clipboard.writeText(nomor).then(function () {
+                const btn = document.getElementById('btnSalinNomor');
+                btn.innerHTML = '<i class="bi bi-check2 me-1"></i>Tersalin!';
+                btn.classList.remove('btn-outline-primary');
+                btn.classList.add('btn-success');
+                setTimeout(function () {
+                    btn.innerHTML = '<i class="bi bi-clipboard me-1"></i>Salin';
+                    btn.classList.remove('btn-success');
+                    btn.classList.add('btn-outline-primary');
+                }, 2000);
+            });
+        }
+
+        // Tutup modal lalu scroll ke cek-status dan isi nomor
+        function tutupModalLaluCekStatus(nomor) {
+            const modalEl = document.getElementById('modalNomorPesanan');
+            const modal   = bootstrap.Modal.getInstance(modalEl);
+            modal.hide();
+
+            // Setelah modal selesai menutup (animasi ~300ms), scroll dan isi form
+            modalEl.addEventListener('hidden.bs.modal', function handler() {
+                modalEl.removeEventListener('hidden.bs.modal', handler);
+                const input = document.getElementById('inputNomorPesanan');
+                if (input) input.value = nomor;
+                const seksi = document.getElementById('cek-status');
+                if (seksi) seksi.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            });
+        }
     </script>
 </body>
 </html>

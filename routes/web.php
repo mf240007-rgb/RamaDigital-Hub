@@ -54,6 +54,10 @@ Route::get('/admin/dashboard', [AdminController::class, 'dashboard'])
 Route::get('/admin/logout', [AdminController::class, 'logout'])
     ->name('admin.logout');
 
+// Halaman Pengaturan Admin
+Route::get('/admin/settings', [AdminController::class, 'showSettings'])->name('admin.settings');
+Route::post('/admin/settings', [AdminController::class, 'updateSettings'])->name('admin.settings.update');
+
 // Rute untuk mengelola ATK di sisi Admin
 Route::get('/admin/produk', [ProductController::class, 'index'])->name('admin.produk.index');
 Route::get('/admin/produk/create', [ProductController::class, 'create'])->name('admin.produk.create');
@@ -81,10 +85,19 @@ Route::delete('/admin/customers/{id}', [AdminController::class, 'destroyCustomer
 // Route submit jasa cetak (user)
 Route::post('/jasa-cetak', [HomeController::class, 'submitCetak'])->name('cetak.submit');
 
+// Route cek status pesanan (publik, tanpa login)
+Route::post('/cek-status', [HomeController::class, 'cekStatus'])->name('cetak.cek-status');
+
+// Route batalkan pesanan oleh pelanggan (publik, via nomor pesanan)
+Route::post('/batalkan-pesanan', [HomeController::class, 'cancelOrder'])->name('cetak.cancel');
+
 // Route download dokumen (admin) — dari halaman riwayat pelanggan
 Route::get('/admin/orders/{orderId}/download', [CustomerController::class, 'downloadDokumen'])->name('admin.orders.download');
 
 // Halaman Pesanan Cetak (admin)
 Route::get('/admin/pesanan-cetak', [\App\Http\Controllers\Admin\PrintOrderController::class, 'index'])->name('admin.print-orders.index');
+Route::post('/admin/pesanan-cetak/bulk-delete', [\App\Http\Controllers\Admin\PrintOrderController::class, 'destroyBulk'])->name('admin.print-orders.bulk-delete');
 Route::post('/admin/pesanan-cetak/{id}/status', [\App\Http\Controllers\Admin\PrintOrderController::class, 'updateStatus'])->name('admin.print-orders.status');
+Route::post('/admin/pesanan-cetak/{id}/cancel', [\App\Http\Controllers\Admin\PrintOrderController::class, 'cancel'])->name('admin.print-orders.cancel');
 Route::get('/admin/pesanan-cetak/{id}/download', [\App\Http\Controllers\Admin\PrintOrderController::class, 'download'])->name('admin.print-orders.download');
+Route::delete('/admin/pesanan-cetak/{id}', [\App\Http\Controllers\Admin\PrintOrderController::class, 'destroy'])->name('admin.print-orders.destroy');

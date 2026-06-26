@@ -66,6 +66,137 @@ class PrintOrderController extends Controller
     }
 
     /**
+     * Batalkan pesanan (oleh admin)
+     */
+    public function cancel(Request $request, $id)
+    {
+        if ($redirect = $this->guardAdmin()) {
+            return $redirect;
+        }
+
+        $request->validate([
+            'alasan_pembatalan' => 'required|string|max:500',
+        ], [
+            'alasan_pembatalan.required' => 'Alasan pembatalan wajib diisi.',
+        ]);
+
+        $order = Order::where('item_type', 'jasa')->findOrFail($id);
+
+        if ($order->status === 'dibatalkan') {
+            return redirect()->back()->with('error', 'Pesanan ini sudah dibatalkan sebelumnya.');
+        }
+
+        if ($order->status === 'selesai') {
+            return redirect()->back()->with('error', 'Pesanan yang sudah selesai tidak dapat dibatalkan.');
+        }
+
+        $order->update([
+            'status'             => 'dibatalkan',
+            'alasan_pembatalan'  => $request->alasan_pembatalan,
+            'dibatalkan_oleh'    => 'admin',
+            'cancelled_at'       => now(),
+        ]);
+
+        return redirect()->back()->with('success', 'Pesanan ' . ($order->order_number ?? '#' . $id) . ' berhasil dibatalkan.');
+    }
+
+    /**
+     * Hapus satu pesanan
+     */
+    public function destroy($id)
+    {
+        if ($redirect = $this->guardAdmin()) {
+            return $redirect;
+        }
+
+        $order = Order::where('item_type', 'jasa')->findOrFail($id);
+
+        // Hapus file dokumen dari storage jika ada
+        if ($order->file_dokumen) {
+            $paths = [
+                storage_path('app/private/dokumen_cetak/' . $order->file_dokumen),
+                storage_path('app/dokumen_cetak/' . $order->file_dokumen),
+            ];
+            foreach ($paths as $path) {
+                if (file_exists($path)) {
+                    @unlink($path);
+                    break;
+                }
+            }
+        }
+
+        $order->delete();
+
+        return redirect()->back()->with('success', 'Pesanan berhasil dihapus.');
+    }
+
+    /**
+     * Hapus massal — berdasarkan ID yang dicentang atau filter status + tanggal
+     */
+    public function destroyBulk(Request $request)
+    {
+        if ($redirect = $this->guardAdmin()) {
+            return $redirect;
+        }
+
+        $mode = $request->get('bulk_mode', 'selected'); // 'selected' | 'filter'
+
+        if ($mode === 'selected') {
+            // Hapus berdasarkan checkbox yang dipilih
+            $request->validate([
+                'order_ids'   => 'required|array|min:1',
+                'order_ids.*' => 'integer|exists:orders,id',
+            ], [
+                'order_ids.required' => 'Pilih minimal satu pesanan.',
+            ]);
+
+            $orders = Order::where('item_type', 'jasa')
+                ->whereIn('id', $request->order_ids)
+                ->get();
+
+        } else {
+            // Hapus berdasarkan filter status + umur pesanan
+            $request->validate([
+                'filter_status' => 'required|in:Menunggu Antrean,diproses,selesai,dibatalkan,semua',
+                'filter_older'  => 'required|in:7,14,30,60,90',
+            ]);
+
+            $query = Order::where('item_type', 'jasa')
+                ->where('created_at', '<', now()->subDays((int) $request->filter_older));
+
+            if ($request->filter_status !== 'semua') {
+                $query->where('status', $request->filter_status);
+            }
+
+            $orders = $query->get();
+
+            if ($orders->isEmpty()) {
+                return redirect()->back()->with('error', 'Tidak ada pesanan yang sesuai filter untuk dihapus.');
+            }
+        }
+
+        $deleted = 0;
+        foreach ($orders as $order) {
+            if ($order->file_dokumen) {
+                $paths = [
+                    storage_path('app/private/dokumen_cetak/' . $order->file_dokumen),
+                    storage_path('app/dokumen_cetak/' . $order->file_dokumen),
+                ];
+                foreach ($paths as $path) {
+                    if (file_exists($path)) {
+                        @unlink($path);
+                        break;
+                    }
+                }
+            }
+            $order->delete();
+            $deleted++;
+        }
+
+        return redirect()->back()->with('success', "{$deleted} pesanan berhasil dihapus.");
+    }
+
+    /**
      * Download dokumen yang diunggah pelanggan
      */
     public function download($id)
