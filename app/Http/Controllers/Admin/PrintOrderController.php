@@ -205,16 +205,13 @@ class PrintOrderController extends Controller
             return $redirect;
         }
 
-        $order = Order::where('item_type', 'jasa')->findOrFail($id);
+        $order = Order::findOrFail($id);
 
         if (!$order->file_dokumen) {
             return redirect()->back()->with('error', 'Pesanan ini tidak memiliki dokumen.');
         }
 
-        // Laravel 11 disk 'local' menyimpan ke storage/app/private/
         $path = storage_path('app/private/dokumen_cetak/' . $order->file_dokumen);
-
-        // Fallback ke path lama jika ada file di sana
         if (!file_exists($path)) {
             $path = storage_path('app/dokumen_cetak/' . $order->file_dokumen);
         }
@@ -224,5 +221,55 @@ class PrintOrderController extends Controller
         }
 
         return response()->download($path, $order->file_dokumen);
+    }
+
+    /**
+     * Konfirmasi pembayaran (admin tandai lunas)
+     */
+    public function konfirmasiPembayaran(Request $request, $id)
+    {
+        if ($redirect = $this->guardAdmin()) {
+            return $redirect;
+        }
+
+        $request->validate([
+            'harga_final'         => 'nullable|integer|min:0',
+            'catatan_pembayaran'  => 'nullable|string|max:500',
+        ]);
+
+        $order = Order::findOrFail($id);
+        $order->payment_status       = 'lunas';
+        $order->harga_final          = $request->harga_final ?: $order->total_harga;
+        $order->catatan_pembayaran   = $request->catatan_pembayaran;
+        // Jika harga final > 0, update total_harga juga
+        if ($request->harga_final) {
+            $order->total_harga = $request->harga_final;
+        }
+        $order->save();
+
+        return redirect()->back()->with('success', 'Pembayaran pesanan ' . ($order->order_number ?? '#'.$id) . ' berhasil dikonfirmasi.');
+    }
+
+    /**
+     * Download bukti bayar yang diunggah pelanggan
+     */
+    public function downloadBukti($id)
+    {
+        if ($redirect = $this->guardAdmin()) {
+            return $redirect;
+        }
+
+        $order = Order::findOrFail($id);
+
+        if (!$order->bukti_bayar) {
+            return redirect()->back()->with('error', 'Tidak ada bukti pembayaran untuk pesanan ini.');
+        }
+
+        $path = storage_path('app/private/bukti_bayar/' . $order->bukti_bayar);
+        if (!file_exists($path)) {
+            return redirect()->back()->with('error', 'File bukti pembayaran tidak ditemukan.');
+        }
+
+        return response()->download($path, $order->bukti_bayar);
     }
 }

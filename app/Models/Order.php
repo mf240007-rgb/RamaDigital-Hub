@@ -13,7 +13,11 @@ class Order extends Model
         'file_dokumen',
         'detail_pesanan',
         'total_harga',
+        'harga_final',
         'status',
+        'payment_status',
+        'bukti_bayar',
+        'catatan_pembayaran',
         'jenis_kertas',
         'jumlah_lembar',
         'mode_cetak',
@@ -32,15 +36,11 @@ class Order extends Model
         return $this->belongsTo(User::class);
     }
 
-    /**
-     * Generate nomor pesanan unik dengan format RDH-YYYYMMDD-XXXX
-     */
     public static function generateOrderNumber(): string
     {
         $date   = now()->format('Ymd');
         $prefix = 'RDH-' . $date . '-';
 
-        // Cari nomor urut tertinggi untuk hari ini
         $last = static::where('order_number', 'LIKE', $prefix . '%')
             ->orderByDesc('order_number')
             ->first();
@@ -52,5 +52,16 @@ class Order extends Model
         }
 
         return $prefix . str_pad($nextSeq, 4, '0', STR_PAD_LEFT);
+    }
+
+    /** Label payment_status yang ramah baca */
+    public function paymentLabel(): string
+    {
+        return match($this->payment_status) {
+            'belum_bayar'     => 'Belum Bayar',
+            'menunggu_konfirmasi' => 'Menunggu Konfirmasi',
+            'lunas'           => 'Lunas',
+            default           => ucfirst($this->payment_status),
+        };
     }
 }

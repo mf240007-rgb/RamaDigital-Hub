@@ -107,8 +107,36 @@ class AdminController extends Controller
     {
         if ($redirect = $this->guardAdmin()) return $redirect;
 
-        $products = Product::all();
-        return view('admin.dashboard', compact('products'));
+        // Stat cards — data real dari DB
+        $totalProduk      = \App\Models\Product::count();
+        $pesananMasuk     = \App\Models\Order::whereIn('status', ['Menunggu Antrean', 'diproses'])->count();
+        $pesananSelesai   = \App\Models\Order::where('status', 'selesai')->count();
+        $pendapatanBulan  = \App\Models\Order::where('payment_status', 'lunas')
+            ->whereMonth('created_at', now()->month)
+            ->whereYear('created_at', now()->year)
+            ->sum('total_harga');
+
+        // Pesanan cetak terbaru (5 terakhir)
+        $recentOrders = \App\Models\Order::with('user')
+            ->where('item_type', 'jasa')
+            ->orderByDesc('created_at')
+            ->limit(5)
+            ->get();
+
+        // Pesanan ATK terbaru (5 terakhir)
+        $recentAtk = \App\Models\Order::with('user')
+            ->where('item_type', 'produk')
+            ->orderByDesc('created_at')
+            ->limit(5)
+            ->get();
+
+        // Pembayaran menunggu konfirmasi
+        $pendingPayment = \App\Models\Order::where('payment_status', 'menunggu_konfirmasi')->count();
+
+        return view('admin.dashboard', compact(
+            'totalProduk', 'pesananMasuk', 'pesananSelesai', 'pendapatanBulan',
+            'recentOrders', 'recentAtk', 'pendingPayment'
+        ));
     }
 
     /*

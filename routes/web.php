@@ -94,10 +94,19 @@ Route::post('/batalkan-pesanan', [HomeController::class, 'cancelOrder'])->name('
 // Route download dokumen (admin) — dari halaman riwayat pelanggan
 Route::get('/admin/orders/{orderId}/download', [CustomerController::class, 'downloadDokumen'])->name('admin.orders.download');
 
+// Checkout ATK (user)
+Route::get('/checkout', [\App\Http\Controllers\CheckoutController::class, 'index'])->name('checkout.index');
+Route::post('/checkout', [\App\Http\Controllers\CheckoutController::class, 'store'])->name('checkout.store');
+
 // Halaman Pesanan Cetak (admin)
 Route::get('/admin/pesanan-cetak', [\App\Http\Controllers\Admin\PrintOrderController::class, 'index'])->name('admin.print-orders.index');
 Route::post('/admin/pesanan-cetak/bulk-delete', [\App\Http\Controllers\Admin\PrintOrderController::class, 'destroyBulk'])->name('admin.print-orders.bulk-delete');
 Route::post('/admin/pesanan-cetak/{id}/status', [\App\Http\Controllers\Admin\PrintOrderController::class, 'updateStatus'])->name('admin.print-orders.status');
 Route::post('/admin/pesanan-cetak/{id}/cancel', [\App\Http\Controllers\Admin\PrintOrderController::class, 'cancel'])->name('admin.print-orders.cancel');
 Route::get('/admin/pesanan-cetak/{id}/download', [\App\Http\Controllers\Admin\PrintOrderController::class, 'download'])->name('admin.print-orders.download');
+Route::get('/admin/pesanan-cetak/{id}/download-bukti', [\App\Http\Controllers\Admin\PrintOrderController::class, 'downloadBukti'])->name('admin.print-orders.download-bukti');
+Route::post('/admin/pesanan-cetak/{id}/konfirmasi-bayar', [\App\Http\Controllers\Admin\PrintOrderController::class, 'konfirmasiPembayaran'])->name('admin.print-orders.konfirmasi-bayar');
 Route::delete('/admin/pesanan-cetak/{id}', [\App\Http\Controllers\Admin\PrintOrderController::class, 'destroy'])->name('admin.print-orders.destroy');
+
+// Halaman Laporan (admin)
+Route::get('/admin/laporan', [\App\Http\Controllers\Admin\LaporanController::class, 'index'])->name('admin.laporan.index');

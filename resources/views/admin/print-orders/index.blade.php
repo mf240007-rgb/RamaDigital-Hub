@@ -137,6 +137,8 @@
                             <th class="fw-semibold">Tanggal Masuk</th>
                             <th class="fw-semibold">Status</th>
                             <th class="fw-semibold text-center">Dokumen</th>
+                            <th class="fw-semibold text-center">Pembayaran</th>
+                            <th class="fw-semibold text-center">Konfirmasi Bayar</th>
                             <th class="fw-semibold text-center">Ubah Status</th>
                             <th class="fw-semibold text-center">Batalkan</th>
                             <th class="fw-semibold text-center pe-4">Hapus</th>
@@ -239,6 +241,48 @@
                                 @endif
                             </td>
 
+                            {{-- Status Pembayaran --}}
+                            <td class="text-center">
+                                @php
+                                    $ps = $order->payment_status ?? 'belum_bayar';
+                                    $pStyle = match($ps) {
+                                        'lunas'               => ['bg'=>'#d1fae5','text'=>'#065f46','icon'=>'bi-check-circle-fill','label'=>'Lunas'],
+                                        'menunggu_konfirmasi' => ['bg'=>'#fff3cd','text'=>'#856404','icon'=>'bi-hourglass-split','label'=>'Menunggu'],
+                                        default               => ['bg'=>'#fee2e2','text'=>'#991b1b','icon'=>'bi-x-circle','label'=>'Belum Bayar'],
+                                    };
+                                @endphp
+                                <span class="badge rounded-pill px-3 py-2"
+                                      style="background:{{ $pStyle['bg'] }};color:{{ $pStyle['text'] }};font-size:0.78rem;">
+                                    <i class="bi {{ $pStyle['icon'] }} me-1"></i>{{ $pStyle['label'] }}
+                                </span>
+                                @if($order->bukti_bayar)
+                                    <br>
+                                    <a href="{{ route('admin.print-orders.download-bukti', $order->id) }}"
+                                       class="btn btn-link btn-sm p-0 mt-1 text-primary"
+                                       style="font-size:0.75rem;" title="Lihat bukti bayar">
+                                        <i class="bi bi-image me-1"></i>Bukti
+                                    </a>
+                                @endif
+                            </td>
+
+                            {{-- Konfirmasi Bayar --}}
+                            <td class="text-center">
+                                @if($ps === 'menunggu_konfirmasi')
+                                    <button type="button"
+                                            class="btn btn-success btn-sm rounded-pill px-3"
+                                            style="font-size:0.78rem;"
+                                            onclick="bukaModalKonfirmBayar({{ $order->id }}, {{ $order->total_harga }}, '{{ addslashes($order->order_number ?? '#'.$order->id) }}')">
+                                        <i class="bi bi-check2 me-1"></i>Konfirmasi
+                                    </button>
+                                @elseif($ps === 'lunas')
+                                    <span class="text-success" style="font-size:0.78rem;">
+                                        <i class="bi bi-check-circle-fill me-1"></i>Sudah lunas
+                                    </span>
+                                @else
+                                    <span class="text-muted" style="font-size:0.8rem;">—</span>
+                                @endif
+                            </td>
+
                             {{-- Ubah Status --}}
                             <td class="text-center">
                                 @if($order->status === 'dibatalkan')
@@ -305,7 +349,7 @@
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="11" class="text-center py-5 text-muted">
+                            <td colspan="13" class="text-center py-5 text-muted">
                                 <i class="bi bi-printer fs-1 d-block mb-2 opacity-25"></i>
                                 @if($keyword || $status)
                                     Tidak ada pesanan yang cocok dengan filter.
@@ -538,6 +582,61 @@
                 new bootstrap.Tooltip(el, { placement: 'top' });
             });
         });
+
+        // ── Modal Konfirmasi Pembayaran ────────────────────────
+        function bukaModalKonfirmBayar(orderId, totalHarga, orderNumber) {
+            const modal  = document.getElementById('modalKonfirmBayar');
+            const form   = document.getElementById('formKonfirmBayar');
+            const label  = document.getElementById('labelOrderKonfirm');
+            const harga  = document.getElementById('inputHargaFinal');
+
+            form.action        = '/admin/pesanan-cetak/' + orderId + '/konfirmasi-bayar';
+            label.textContent  = 'Pesanan: ' + orderNumber;
+            harga.value        = totalHarga;
+
+            new bootstrap.Modal(modal).show();
+        }
     </script>
+
+    {{-- Modal Konfirmasi Pembayaran --}}
+    <div class="modal fade" id="modalKonfirmBayar" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0" style="border-radius: 16px; overflow: hidden;">
+                <div class="modal-header border-0 px-4 pt-4 pb-2" style="background: #f0fdf4;">
+                    <div>
+                        <h5 class="fw-bold mb-1 text-success">
+                            <i class="bi bi-check-circle-fill me-2"></i>Konfirmasi Pembayaran
+                        </h5>
+                        <p class="text-muted mb-0" id="labelOrderKonfirm" style="font-size: 0.85rem;"></p>
+                    </div>
+                    <button type="button" class="btn-close ms-auto" data-bs-dismiss="modal"></button>
+                </div>
+                <form id="formKonfirmBayar" method="POST">
+                    @csrf
+                    <div class="modal-body px-4 py-3">
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold mb-1">
+                                Harga Final (Rp) <small class="text-muted fw-normal">— opsional, kosongkan untuk pakai total pesanan</small>
+                            </label>
+                            <input type="number" name="harga_final" id="inputHargaFinal"
+                                   class="form-control" min="0" placeholder="Kosongkan jika sama dengan total pesanan">
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label fw-semibold mb-1">Catatan Pembayaran (Opsional)</label>
+                            <input type="text" name="catatan_pembayaran" class="form-control"
+                                   placeholder="Misal: Pembayaran via QRIS BCA dikonfirmasi">
+                        </div>
+                    </div>
+                    <div class="modal-footer border-0 px-4 pb-4 pt-0 gap-2">
+                        <button type="button" class="btn btn-outline-secondary rounded-pill flex-fill"
+                                data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-success rounded-pill flex-fill fw-semibold">
+                            <i class="bi bi-check2 me-1"></i>Tandai Lunas
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 
 @endsection

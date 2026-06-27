@@ -138,8 +138,9 @@
                             <span style="color: var(--warna-aksen);">Rp {{ number_format($total, 0, ',', '.') }}</span>
                         </div>
                         <button class="btn btn-primary w-100 rounded-pill fw-semibold py-2"
-                                style="background: linear-gradient(135deg, var(--warna-utama), #4a9eff); border: none;">
-                            <class></i>Checkout
+                                style="background: linear-gradient(135deg, var(--warna-utama), #4a9eff); border: none;"
+                                onclick="window.location='{{ route('checkout.index') }}'">
+                            <i class="bi bi-credit-card me-2"></i>Checkout & Bayar via QRIS
                         </button>
                         <a href="{{ route('katalog.index') }}"
                            class="btn btn-outline-secondary w-100 rounded-pill mt-2">
