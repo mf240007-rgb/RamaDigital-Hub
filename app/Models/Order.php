@@ -13,11 +13,11 @@ class Order extends Model
         'file_dokumen',
         'detail_pesanan',
         'total_harga',
-        'harga_final',
         'status',
         'payment_status',
         'bukti_bayar',
-        'catatan_pembayaran',
+        'catatan_verifikasi',
+        'paid_at',
         'jenis_kertas',
         'jumlah_lembar',
         'mode_cetak',
@@ -29,6 +29,7 @@ class Order extends Model
 
     protected $casts = [
         'cancelled_at' => 'datetime',
+        'paid_at'      => 'datetime',
     ];
 
     public function user()

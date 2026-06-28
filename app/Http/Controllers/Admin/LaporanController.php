@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Order;
 use App\Models\Product;
-use App\Models\User;
 use Illuminate\Http\Request;
 
 class LaporanController extends Controller
@@ -23,40 +22,65 @@ class LaporanController extends Controller
     {
         if ($redirect = $this->guardAdmin()) return $redirect;
 
-        $tipe  = $request->get('tipe', 'semua');   // semua | atk | cetak
         $bulan = $request->get('bulan', now()->format('Y-m'));
+        [$tahun, $bln] = explode('-', $bulan);
 
-        [$tahun, $bln] = explode('-', $bulan . '-01');
-
-        // Query dasar
+        // ── Pesanan ATK (produk) bulan ini ──────────────────────────
         $query = Order::with('user')
+            ->where('item_type', 'produk')
             ->whereYear('created_at', $tahun)
             ->whereMonth('created_at', $bln);
 
-        if ($tipe === 'atk') {
-            $query->where('item_type', 'produk');
-        } elseif ($tipe === 'cetak') {
-            $query->where('item_type', 'jasa');
+        // Filter khusus menunggu verifikasi (dari sidebar shortcut)
+        $filterVerif = $request->get('filter');
+        if ($filterVerif === 'menunggu') {
+            $query->where('payment_status', 'menunggu_konfirmasi');
         }
 
-        $orders = $query->orderByDesc('created_at')->get();
+        $atkOrders = $query->orderByDesc('created_at')->get();
 
-        // Ringkasan
-        $totalPesanan   = $orders->count();
-        $totalPendapatan = $orders->where('payment_status', 'lunas')->sum('total_harga');
-        $pesananSelesai  = $orders->where('status', 'selesai')->count();
-        $pesananProses   = $orders->whereIn('status', ['Menunggu Antrean', 'diproses'])->count();
+        // ── Ringkasan ATK ────────────────────────────────────────────
+        $totalPesananAtk    = $atkOrders->count();
+        $pesananSelesaiAtk  = $atkOrders->where('status', 'selesai')->count();
+        $pesananProsesAtk   = $atkOrders->whereIn('status', ['Menunggu Antrean', 'diproses'])->count();
+        $pesananBatalAtk    = $atkOrders->where('status', 'dibatalkan')->count();
 
-        // Breakdown per tipe
-        $jumlahAtk    = $orders->where('item_type', 'produk')->count();
-        $jumlahCetak  = $orders->where('item_type', 'jasa')->count();
+        // Pendapatan = total_harga dari pesanan ATK yang status Selesai
+        $pendapatanAtk = $atkOrders->where('status', 'selesai')->sum('total_harga');
 
-        // Breakdown pembayaran
-        $lunas           = $orders->where('payment_status', 'lunas')->count();
-        $menungguKonfirmasi = $orders->where('payment_status', 'menunggu_konfirmasi')->count();
-        $belumBayar      = $orders->where('payment_status', 'belum_bayar')->count();
+        // ── Rekap pendapatan ATK per bulan (12 bulan terakhir) ───────
+        $rekapBulanan = collect();
+        for ($i = 11; $i >= 0; $i--) {
+            $dt = now()->subMonths($i);
+            $income = Order::where('item_type', 'produk')
+                ->where('status', 'selesai')
+                ->whereYear('created_at', $dt->year)
+                ->whereMonth('created_at', $dt->month)
+                ->sum('total_harga');
+            $rekapBulanan->push([
+                'label'  => $dt->isoFormat('MMM YY'),
+                'income' => $income,
+            ]);
+        }
 
-        // Daftar bulan untuk filter (12 bulan terakhir)
+        // ── Produk terlaris berdasarkan kemunculan nama di detail_pesanan ──
+        // Ambil semua nama produk dari DB lalu hitung frekuensi di detail_pesanan
+        $semuaProduk   = Product::orderBy('name_produk')->pluck('name_produk');
+        $produkTerlaris = [];
+        foreach ($semuaProduk as $namaProduk) {
+            $jumlah = Order::where('item_type', 'produk')
+                ->whereYear('created_at', $tahun)
+                ->whereMonth('created_at', $bln)
+                ->where('detail_pesanan', 'LIKE', '%' . $namaProduk . '%')
+                ->count();
+            if ($jumlah > 0) {
+                $produkTerlaris[$namaProduk] = $jumlah;
+            }
+        }
+        arsort($produkTerlaris);
+        $produkTerlaris = array_slice($produkTerlaris, 0, 5, true); // top 5
+
+        // ── Daftar bulan untuk filter ───────────────────────────────
         $bulanList = [];
         for ($i = 0; $i < 12; $i++) {
             $dt = now()->subMonths($i);
@@ -64,10 +88,67 @@ class LaporanController extends Controller
         }
 
         return view('admin.laporan.index', compact(
-            'orders', 'tipe', 'bulan', 'bulanList',
-            'totalPesanan', 'totalPendapatan', 'pesananSelesai', 'pesananProses',
-            'jumlahAtk', 'jumlahCetak',
-            'lunas', 'menungguKonfirmasi', 'belumBayar'
+            'bulan', 'bulanList',
+            'atkOrders',
+            'totalPesananAtk', 'pesananSelesaiAtk', 'pesananProsesAtk', 'pesananBatalAtk',
+            'pendapatanAtk',
+            'rekapBulanan',
+            'produkTerlaris'
         ));
+    }
+
+    /**
+     * Lihat bukti pembayaran (download/view)
+     */
+    public function lihatBukti($id)
+    {
+        if ($redirect = $this->guardAdmin()) return $redirect;
+
+        $order = Order::where('item_type', 'produk')->findOrFail($id);
+
+        if (!$order->bukti_bayar) {
+            return redirect()->back()->with('error', 'Pesanan ini tidak memiliki bukti pembayaran.');
+        }
+
+        $path = storage_path('app/public/bukti_bayar/' . $order->bukti_bayar);
+
+        if (!file_exists($path)) {
+            return redirect()->back()->with('error', 'File bukti pembayaran tidak ditemukan.');
+        }
+
+        return response()->file($path);
+    }
+
+    /**
+     * Konfirmasi / tolak pembayaran ATK
+     */
+    public function verifikasiPembayaran(Request $request, $id)
+    {
+        if ($redirect = $this->guardAdmin()) return $redirect;
+
+        $request->validate([
+            'aksi'               => 'required|in:lunas,ditolak',
+            'catatan_verifikasi' => 'nullable|string|max:300',
+        ]);
+
+        $order = Order::where('item_type', 'produk')->findOrFail($id);
+
+        if ($request->aksi === 'lunas') {
+            $order->update([
+                'payment_status'     => 'lunas',
+                'status'             => 'selesai',
+                'catatan_verifikasi' => $request->catatan_verifikasi,
+                'paid_at'            => now(),
+            ]);
+            $msg = 'Pembayaran pesanan ' . ($order->order_number ?? '#'.$id) . ' berhasil dikonfirmasi lunas.';
+        } else {
+            $order->update([
+                'payment_status'     => 'ditolak',
+                'catatan_verifikasi' => $request->catatan_verifikasi ?: 'Bukti pembayaran tidak valid.',
+            ]);
+            $msg = 'Pembayaran pesanan ' . ($order->order_number ?? '#'.$id) . ' ditolak.';
+        }
+
+        return redirect()->back()->with('success', $msg);
     }
 }

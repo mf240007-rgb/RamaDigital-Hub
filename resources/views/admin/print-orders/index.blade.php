@@ -125,23 +125,19 @@
                 <table class="table table-hover align-middle mb-0">
                     <thead style="background: #f8faff;">
                         <tr style="font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.05em; color: #6c757d;">
-                            {{-- Checkbox pilih semua --}}
-                            <th class="ps-4 py-3" style="width: 40px;">
+                            <th class="ps-3 py-3 align-middle" style="width: 36px;">
                                 <input type="checkbox" class="form-check-input" id="checkAll"
                                        title="Pilih semua" onchange="toggleCheckAll(this)">
                             </th>
-                            <th class="fw-semibold">No</th>
-                            <th class="fw-semibold">No. Pesanan</th>
-                            <th class="fw-semibold">Pelanggan</th>
-                            <th class="fw-semibold">Detail Pesanan</th>
-                            <th class="fw-semibold">Tanggal Masuk</th>
-                            <th class="fw-semibold">Status</th>
-                            <th class="fw-semibold text-center">Dokumen</th>
-                            <th class="fw-semibold text-center">Pembayaran</th>
-                            <th class="fw-semibold text-center">Konfirmasi Bayar</th>
-                            <th class="fw-semibold text-center">Ubah Status</th>
-                            <th class="fw-semibold text-center">Batalkan</th>
-                            <th class="fw-semibold text-center pe-4">Hapus</th>
+                            <th class="fw-semibold py-3 align-middle" style="width: 40px;">No</th>
+                            <th class="fw-semibold py-3 align-middle" style="width: 150px;">No. Pesanan</th>
+                            <th class="fw-semibold py-3 align-middle" style="width: 170px;">Pelanggan</th>
+                            <th class="fw-semibold py-3 align-middle">Detail Pesanan</th>
+                            <th class="fw-semibold py-3 align-middle" style="width: 110px;">Tgl. Masuk</th>
+                            <th class="fw-semibold py-3 align-middle text-center" style="width: 110px;">Dokumen</th>
+                            <th class="fw-semibold py-3 align-middle text-center" style="width: 140px;">Ubah Status</th>
+                            <th class="fw-semibold py-3 align-middle text-center" style="width: 110px;">Batalkan</th>
+                            <th class="fw-semibold py-3 align-middle text-center pe-3" style="width: 60px;">Hapus</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -162,7 +158,7 @@
                         @endphp
                         <tr class="order-row" data-id="{{ $order->id }}">
                             {{-- Checkbox --}}
-                            <td class="ps-4">
+                            <td class="ps-3">
                                 <input type="checkbox"
                                        class="form-check-input order-checkbox"
                                        name="order_ids[]"
@@ -171,19 +167,19 @@
                             </td>
 
                             {{-- No --}}
-                            <td class="text-muted" style="font-size: 0.9rem;">
+                            <td class="text-muted text-center" style="font-size: 0.88rem;">
                                 {{ ($orders->currentPage() - 1) * $orders->perPage() + $index + 1 }}
                             </td>
 
                             {{-- No. Pesanan --}}
                             <td>
                                 @if($order->order_number)
-                                    <span class="badge rounded-pill px-3 py-2 fw-semibold"
-                                          style="background: #f0f4ff; color: #1a73e8; font-size: 0.8rem; letter-spacing: 0.3px; font-family: monospace;">
+                                    <span class="badge rounded-pill px-2 py-1 fw-semibold"
+                                          style="background:#f0f4ff;color:#1a73e8;font-size:0.75rem;letter-spacing:0.3px;font-family:monospace;white-space:nowrap;">
                                         {{ $order->order_number }}
                                     </span>
                                 @else
-                                    <span class="text-muted" style="font-size: 0.82rem;">—</span>
+                                    <span class="text-muted">—</span>
                                 @endif
                             </td>
 
@@ -191,123 +187,61 @@
                             <td>
                                 <div class="d-flex align-items-center gap-2">
                                     <div class="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold flex-shrink-0"
-                                         style="width: 36px; height: 36px; font-size: 0.75rem; background: {{ $bgColor }};">
+                                         style="width:32px;height:32px;font-size:0.72rem;background:{{ $bgColor }};">
                                         {{ $inisial }}
                                     </div>
-                                    <div>
-                                        <div class="fw-semibold" style="font-size: 0.9rem; color: var(--warna-gelap);">{{ $nama }}</div>
+                                    <div style="min-width:0;">
+                                        <div class="fw-semibold text-truncate" style="font-size:0.85rem;color:var(--warna-gelap);max-width:120px;">{{ $nama }}</div>
                                         <small class="text-muted">{{ $order->user->whatsapp ?? '-' }}</small>
                                     </div>
                                 </div>
                             </td>
 
                             {{-- Detail --}}
-                            <td style="font-size: 0.9rem; max-width: 200px;">
+                            <td style="font-size:0.85rem;">
                                 <div>{{ $order->detail_pesanan }}</div>
                                 @if($order->catatan)
-                                    <small class="text-muted">
-                                        <i class="bi bi-chat-left-text me-1"></i>{{ $order->catatan }}
-                                    </small>
+                                    <small class="text-muted"><i class="bi bi-chat-left-text me-1"></i>{{ $order->catatan }}</small>
                                 @endif
                             </td>
 
                             {{-- Tanggal --}}
-                            <td class="text-muted" style="font-size: 0.85rem;">
+                            <td class="text-muted" style="font-size:0.82rem;white-space:nowrap;">
                                 {{ $order->created_at->format('d M Y') }}<br>
                                 <small>{{ $order->created_at->format('H:i') }} WIB</small>
-                            </td>
-
-                            {{-- Status --}}
-                            <td>
-                                <span class="badge rounded-pill px-3 py-2"
-                                      style="background: {{ $statusStyle['bg'] }}; color: {{ $statusStyle['text'] }}; font-size: 0.8rem;">
-                                    <i class="bi {{ $statusStyle['icon'] }} me-1"></i>{{ ucfirst($order->status) }}
-                                </span>
                             </td>
 
                             {{-- Dokumen --}}
                             <td class="text-center">
                                 @if($order->file_dokumen)
                                     <a href="{{ route('admin.print-orders.download', $order->id) }}"
-                                       class="btn btn-primary btn-sm rounded-pill px-3 d-inline-flex align-items-center gap-1"
-                                       title="Download dokumen pelanggan">
-                                        <i class="bi bi-download"></i>
-                                        <span>Download</span>
+                                       class="btn btn-primary btn-sm rounded-pill px-3"
+                                       style="font-size:0.78rem;white-space:nowrap;"
+                                       title="Download dokumen">
+                                        <i class="bi bi-download me-1"></i>Download
                                     </a>
                                 @else
-                                    <span class="text-muted" style="font-size: 0.85rem;">
-                                        <i class="bi bi-dash"></i> Tidak ada
-                                    </span>
-                                @endif
-                            </td>
-
-                            {{-- Status Pembayaran --}}
-                            <td class="text-center">
-                                @php
-                                    $ps = $order->payment_status ?? 'belum_bayar';
-                                    $pStyle = match($ps) {
-                                        'lunas'               => ['bg'=>'#d1fae5','text'=>'#065f46','icon'=>'bi-check-circle-fill','label'=>'Lunas'],
-                                        'menunggu_konfirmasi' => ['bg'=>'#fff3cd','text'=>'#856404','icon'=>'bi-hourglass-split','label'=>'Menunggu'],
-                                        default               => ['bg'=>'#fee2e2','text'=>'#991b1b','icon'=>'bi-x-circle','label'=>'Belum Bayar'],
-                                    };
-                                @endphp
-                                <span class="badge rounded-pill px-3 py-2"
-                                      style="background:{{ $pStyle['bg'] }};color:{{ $pStyle['text'] }};font-size:0.78rem;">
-                                    <i class="bi {{ $pStyle['icon'] }} me-1"></i>{{ $pStyle['label'] }}
-                                </span>
-                                @if($order->bukti_bayar)
-                                    <br>
-                                    <a href="{{ route('admin.print-orders.download-bukti', $order->id) }}"
-                                       class="btn btn-link btn-sm p-0 mt-1 text-primary"
-                                       style="font-size:0.75rem;" title="Lihat bukti bayar">
-                                        <i class="bi bi-image me-1"></i>Bukti
-                                    </a>
-                                @endif
-                            </td>
-
-                            {{-- Konfirmasi Bayar --}}
-                            <td class="text-center">
-                                @if($ps === 'menunggu_konfirmasi')
-                                    <button type="button"
-                                            class="btn btn-success btn-sm rounded-pill px-3"
-                                            style="font-size:0.78rem;"
-                                            onclick="bukaModalKonfirmBayar({{ $order->id }}, {{ $order->total_harga }}, '{{ addslashes($order->order_number ?? '#'.$order->id) }}')">
-                                        <i class="bi bi-check2 me-1"></i>Konfirmasi
-                                    </button>
-                                @elseif($ps === 'lunas')
-                                    <span class="text-success" style="font-size:0.78rem;">
-                                        <i class="bi bi-check-circle-fill me-1"></i>Sudah lunas
-                                    </span>
-                                @else
-                                    <span class="text-muted" style="font-size:0.8rem;">—</span>
+                                    <span class="text-muted" style="font-size:0.82rem;">— Tidak ada</span>
                                 @endif
                             </td>
 
                             {{-- Ubah Status --}}
                             <td class="text-center">
                                 @if($order->status === 'dibatalkan')
-                                    <div class="text-center">
-                                        <small class="text-danger fw-semibold" style="font-size: 0.78rem;">
-                                            <i class="bi bi-x-circle-fill me-1"></i>Dibatalkan<br>
-                                            <span class="text-muted fw-normal">oleh {{ ucfirst($order->dibatalkan_oleh ?? '—') }}</span>
-                                        </small>
-                                    </div>
+                                    <small class="text-danger fw-semibold" style="font-size:0.75rem;">
+                                        <i class="bi bi-x-circle-fill me-1"></i>Dibatalkan<br>
+                                        <span class="text-muted fw-normal">oleh {{ ucfirst($order->dibatalkan_oleh ?? '—') }}</span>
+                                    </small>
                                 @else
-                                    <form action="{{ route('admin.print-orders.status', $order->id) }}" method="POST"
-                                          class="d-flex align-items-center gap-2 justify-content-center">
+                                    <form action="{{ route('admin.print-orders.status', $order->id) }}" method="POST">
                                         @csrf
-                                        <select name="status" class="form-select form-select-sm"
-                                                style="width: 150px; font-size: 0.82rem;"
+                                        <select name="status"
+                                                class="form-select form-select-sm w-100"
+                                                style="font-size:0.8rem;"
                                                 onchange="this.form.submit()">
-                                            <option value="Menunggu Antrean" {{ $order->status === 'Menunggu Antrean' ? 'selected' : '' }}>
-                                                Menunggu Antrean
-                                            </option>
-                                            <option value="diproses" {{ $order->status === 'diproses' ? 'selected' : '' }}>
-                                                Diproses
-                                            </option>
-                                            <option value="selesai" {{ $order->status === 'selesai' ? 'selected' : '' }}>
-                                                Selesai
-                                            </option>
+                                            <option value="Menunggu Antrean" {{ $order->status === 'Menunggu Antrean' ? 'selected' : '' }}>Menunggu</option>
+                                            <option value="diproses"         {{ $order->status === 'diproses'         ? 'selected' : '' }}>Diproses</option>
+                                            <option value="selesai"          {{ $order->status === 'selesai'          ? 'selected' : '' }}>Selesai</option>
                                         </select>
                                     </form>
                                 @endif
@@ -317,8 +251,8 @@
                             <td class="text-center">
                                 @if(in_array($order->status, ['Menunggu Antrean', 'diproses']))
                                     <button type="button"
-                                            class="btn btn-sm btn-outline-warning rounded-pill px-3"
-                                            style="font-size: 0.78rem;"
+                                            class="btn btn-sm btn-outline-warning rounded-pill px-2"
+                                            style="font-size:0.75rem;white-space:nowrap;"
                                             onclick="bukaModalBatalAdmin({{ $order->id }}, '{{ addslashes($order->order_number ?? '#'.$order->id) }}')"
                                             title="Batalkan pesanan ini">
                                         <i class="bi bi-x-lg me-1"></i>Batalkan
@@ -326,30 +260,30 @@
                                 @elseif($order->status === 'dibatalkan' && $order->alasan_pembatalan)
                                     <button type="button"
                                             class="btn btn-sm btn-link text-danger p-0"
-                                            style="font-size: 0.78rem;"
+                                            style="font-size:0.75rem;white-space:nowrap;"
                                             data-bs-toggle="tooltip"
                                             title="{{ $order->alasan_pembatalan }}">
                                         <i class="bi bi-chat-left-text me-1"></i>Lihat alasan
                                     </button>
                                 @else
-                                    <span class="text-muted" style="font-size: 0.8rem;">—</span>
+                                    <span class="text-muted">—</span>
                                 @endif
                             </td>
 
                             {{-- Hapus Satu --}}
-                            <td class="text-center pe-4">
+                            <td class="text-center pe-3">
                                 <button type="button"
                                         class="btn btn-sm btn-outline-danger rounded-circle d-flex align-items-center justify-content-center mx-auto"
-                                        style="width: 34px; height: 34px;"
+                                        style="width:32px;height:32px;"
                                         title="Hapus pesanan ini"
                                         onclick="hapusSatuPesanan({{ $order->id }}, '{{ addslashes($order->order_number ?? '#'.$order->id) }}')">
-                                    <i class="bi bi-trash3"></i>
+                                    <i class="bi bi-trash3" style="font-size:0.8rem;"></i>
                                 </button>
                             </td>
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="13" class="text-center py-5 text-muted">
+                            <td colspan="10" class="text-center py-5 text-muted">
                                 <i class="bi bi-printer fs-1 d-block mb-2 opacity-25"></i>
                                 @if($keyword || $status)
                                     Tidak ada pesanan yang cocok dengan filter.
@@ -582,61 +516,6 @@
                 new bootstrap.Tooltip(el, { placement: 'top' });
             });
         });
-
-        // ── Modal Konfirmasi Pembayaran ────────────────────────
-        function bukaModalKonfirmBayar(orderId, totalHarga, orderNumber) {
-            const modal  = document.getElementById('modalKonfirmBayar');
-            const form   = document.getElementById('formKonfirmBayar');
-            const label  = document.getElementById('labelOrderKonfirm');
-            const harga  = document.getElementById('inputHargaFinal');
-
-            form.action        = '/admin/pesanan-cetak/' + orderId + '/konfirmasi-bayar';
-            label.textContent  = 'Pesanan: ' + orderNumber;
-            harga.value        = totalHarga;
-
-            new bootstrap.Modal(modal).show();
-        }
     </script>
-
-    {{-- Modal Konfirmasi Pembayaran --}}
-    <div class="modal fade" id="modalKonfirmBayar" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content border-0" style="border-radius: 16px; overflow: hidden;">
-                <div class="modal-header border-0 px-4 pt-4 pb-2" style="background: #f0fdf4;">
-                    <div>
-                        <h5 class="fw-bold mb-1 text-success">
-                            <i class="bi bi-check-circle-fill me-2"></i>Konfirmasi Pembayaran
-                        </h5>
-                        <p class="text-muted mb-0" id="labelOrderKonfirm" style="font-size: 0.85rem;"></p>
-                    </div>
-                    <button type="button" class="btn-close ms-auto" data-bs-dismiss="modal"></button>
-                </div>
-                <form id="formKonfirmBayar" method="POST">
-                    @csrf
-                    <div class="modal-body px-4 py-3">
-                        <div class="mb-3">
-                            <label class="form-label fw-semibold mb-1">
-                                Harga Final (Rp) <small class="text-muted fw-normal">— opsional, kosongkan untuk pakai total pesanan</small>
-                            </label>
-                            <input type="number" name="harga_final" id="inputHargaFinal"
-                                   class="form-control" min="0" placeholder="Kosongkan jika sama dengan total pesanan">
-                        </div>
-                        <div class="mb-2">
-                            <label class="form-label fw-semibold mb-1">Catatan Pembayaran (Opsional)</label>
-                            <input type="text" name="catatan_pembayaran" class="form-control"
-                                   placeholder="Misal: Pembayaran via QRIS BCA dikonfirmasi">
-                        </div>
-                    </div>
-                    <div class="modal-footer border-0 px-4 pb-4 pt-0 gap-2">
-                        <button type="button" class="btn btn-outline-secondary rounded-pill flex-fill"
-                                data-bs-dismiss="modal">Batal</button>
-                        <button type="submit" class="btn btn-success rounded-pill flex-fill fw-semibold">
-                            <i class="bi bi-check2 me-1"></i>Tandai Lunas
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
 
 @endsection

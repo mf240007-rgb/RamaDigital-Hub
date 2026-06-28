@@ -110,3 +110,5 @@ Route::delete('/admin/pesanan-cetak/{id}', [\App\Http\Controllers\Admin\PrintOrd
 
 // Halaman Laporan (admin)
 Route::get('/admin/laporan', [\App\Http\Controllers\Admin\LaporanController::class, 'index'])->name('admin.laporan.index');
+Route::get('/admin/laporan/bukti/{id}', [\App\Http\Controllers\Admin\LaporanController::class, 'lihatBukti'])->name('admin.laporan.bukti');
+Route::post('/admin/laporan/verifikasi/{id}', [\App\Http\Controllers\Admin\LaporanController::class, 'verifikasiPembayaran'])->name('admin.laporan.verifikasi');

@@ -107,14 +107,9 @@ class AdminController extends Controller
     {
         if ($redirect = $this->guardAdmin()) return $redirect;
 
-        // Stat cards — data real dari DB
-        $totalProduk      = \App\Models\Product::count();
-        $pesananMasuk     = \App\Models\Order::whereIn('status', ['Menunggu Antrean', 'diproses'])->count();
-        $pesananSelesai   = \App\Models\Order::where('status', 'selesai')->count();
-        $pendapatanBulan  = \App\Models\Order::where('payment_status', 'lunas')
-            ->whereMonth('created_at', now()->month)
-            ->whereYear('created_at', now()->year)
-            ->sum('total_harga');
+        $totalProduk    = \App\Models\Product::count();
+        $pesananMasuk   = \App\Models\Order::whereIn('status', ['Menunggu Antrean', 'diproses'])->count();
+        $pesananSelesai = \App\Models\Order::where('status', 'selesai')->count();
 
         // Pesanan cetak terbaru (5 terakhir)
         $recentOrders = \App\Models\Order::with('user')
@@ -130,12 +125,9 @@ class AdminController extends Controller
             ->limit(5)
             ->get();
 
-        // Pembayaran menunggu konfirmasi
-        $pendingPayment = \App\Models\Order::where('payment_status', 'menunggu_konfirmasi')->count();
-
         return view('admin.dashboard', compact(
-            'totalProduk', 'pesananMasuk', 'pesananSelesai', 'pendapatanBulan',
-            'recentOrders', 'recentAtk', 'pendingPayment'
+            'totalProduk', 'pesananMasuk', 'pesananSelesai',
+            'recentOrders', 'recentAtk'
         ));
     }
 

@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Auth;
 
 class CheckoutController extends Controller
 {
-    /** Halaman checkout keranjang (tampilkan ringkasan + form QRIS) */
+    /** Halaman checkout keranjang */
     public function index()
     {
         if (!Auth::check()) {
@@ -17,8 +17,8 @@ class CheckoutController extends Controller
                 ->with('error', 'Silakan login untuk melanjutkan checkout.');
         }
 
-        $cartKey  = 'cart_user_' . Auth::id();
-        $cart     = session($cartKey, []);
+        $cartKey = 'cart_user_' . Auth::id();
+        $cart    = session($cartKey, []);
 
         if (empty($cart)) {
             return redirect()->route('cart.view')
@@ -63,25 +63,22 @@ class CheckoutController extends Controller
             return redirect()->route('cart.view')->with('error', 'Keranjang kosong.');
         }
 
-        // Hitung total & detail
-        $items  = [];
-        $total  = 0;
+        // Hitung total & buat detail
+        $total   = 0;
         $details = [];
 
         foreach ($cart as $productId => $quantity) {
             $product = Product::find($productId);
             if ($product) {
-                $subtotal  = $product->harga * $quantity;
-                $items[]   = compact('product', 'quantity', 'subtotal');
-                $total    += $subtotal;
+                $total   += $product->harga * $quantity;
                 $details[] = $product->name_produk . ' x' . $quantity;
             }
         }
 
-        // Upload bukti bayar
+        // Simpan bukti pembayaran
         $file     = $request->file('bukti_bayar');
         $fileName = time() . '_' . Auth::id() . '_bukti.' . $file->getClientOriginalExtension();
-        $file->storeAs('bukti_bayar', $fileName, 'local');
+        $file->storeAs('bukti_bayar', $fileName, 'public');
 
         // Buat order
         Order::create([
@@ -99,6 +96,6 @@ class CheckoutController extends Controller
         session()->forget($cartKey);
 
         return redirect()->route('home')
-            ->with('success', 'Pesanan berhasil dibuat! Admin akan memverifikasi pembayaran kamu dan menghubungi via WhatsApp.');
+            ->with('success', 'Pesanan berhasil dikirim! Admin akan memverifikasi bukti pembayaran kamu dan menghubungi via WhatsApp.');
     }
 }

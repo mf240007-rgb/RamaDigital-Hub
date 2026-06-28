@@ -29,20 +29,6 @@
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
 
-    {{-- Notif pembayaran menunggu --}}
-    @if($pendingPayment > 0)
-    <div class="alert d-flex align-items-center gap-3 mb-4 shadow-sm"
-         style="border-radius: 12px; border: none; border-left: 5px solid #f59e0b; background: #fffbeb;">
-        <i class="bi bi-exclamation-triangle-fill text-warning fs-4 flex-shrink-0"></i>
-        <div class="flex-grow-1">
-            <strong>{{ $pendingPayment }} pembayaran</strong> menunggu konfirmasi dari pelanggan.
-        </div>
-        <a href="{{ route('admin.print-orders.index') }}" class="btn btn-sm btn-warning rounded-pill px-3 flex-shrink-0">
-            Tinjau
-        </a>
-    </div>
-    @endif
-
     {{-- Stat Cards --}}
     <div class="row g-4 mb-4">
         <div class="col-sm-6 col-xl-3">
@@ -101,13 +87,12 @@
                     <div class="card-body d-flex align-items-center gap-3 p-4">
                         <div class="stat-icon rounded-3 d-flex align-items-center justify-content-center"
                              style="width:52px;height:52px;background:rgba(255,255,255,0.2);font-size:1.5rem;flex-shrink:0;">
-                            <i class="bi bi-cash-stack"></i>
+                            <i class="bi bi-bar-chart-fill"></i>
                         </div>
                         <div>
-                            <div class="small opacity-75">Pendapatan Bulan Ini</div>
-                            <div class="fw-bold fs-4 lh-1 mt-1">
-                                Rp {{ number_format($pendapatanBulan / 1000000, 1) }} Jt
-                            </div>
+                            <div class="small opacity-75">Lihat Laporan ATK</div>
+                            <div class="fw-bold fs-5 lh-1 mt-1">Buka Laporan</div>
+                            <div class="small opacity-75 mt-1">Pendapatan & tren penjualan</div>
                         </div>
                     </div>
                 </div>
@@ -136,19 +121,11 @@
                                 <tr style="font-size:0.8rem;text-transform:uppercase;letter-spacing:0.05em;color:#6c757d;">
                                     <th class="ps-4 py-3 fw-semibold">No. Pesanan</th>
                                     <th class="fw-semibold">Pelanggan</th>
-                                    <th class="fw-semibold">Status</th>
-                                    <th class="fw-semibold pe-4">Bayar</th>
+                                    <th class="fw-semibold pe-4">Status</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @forelse($recentOrders as $order)
-                                @php
-                                    $bayarStyle = match($order->payment_status ?? 'belum_bayar') {
-                                        'lunas'               => ['bg'=>'#d1fae5','text'=>'#065f46','label'=>'Lunas'],
-                                        'menunggu_konfirmasi' => ['bg'=>'#fff3cd','text'=>'#856404','label'=>'Menunggu'],
-                                        default               => ['bg'=>'#fee2e2','text'=>'#991b1b','label'=>'Belum'],
-                                    };
-                                @endphp
                                 <tr>
                                     <td class="ps-4">
                                         <span class="fw-semibold" style="color:var(--warna-utama);font-size:0.82rem;font-family:monospace;">
@@ -156,23 +133,17 @@
                                         </span>
                                     </td>
                                     <td style="font-size:0.88rem;">{{ $order->user->full_name ?? '-' }}</td>
-                                    <td>
+                                    <td class="pe-4">
                                         <span class="badge rounded-pill px-2" style="font-size:0.75rem;
                                             background:{{ match($order->status){ 'selesai'=>'#d1fae5','diproses'=>'#fff3cd','dibatalkan'=>'#fee2e2',default=>'#dbeafe'} }};
                                             color:{{ match($order->status){ 'selesai'=>'#065f46','diproses'=>'#856404','dibatalkan'=>'#991b1b',default=>'#1e40af'} }};">
                                             {{ $order->status }}
                                         </span>
                                     </td>
-                                    <td class="pe-4">
-                                        <span class="badge rounded-pill px-2"
-                                              style="font-size:0.75rem;background:{{ $bayarStyle['bg'] }};color:{{ $bayarStyle['text'] }};">
-                                            {{ $bayarStyle['label'] }}
-                                        </span>
-                                    </td>
                                 </tr>
                                 @empty
                                 <tr>
-                                    <td colspan="4" class="text-center py-4 text-muted">
+                                    <td colspan="3" class="text-center py-4 text-muted">
                                         <i class="bi bi-inbox d-block mb-1 opacity-25 fs-3"></i>
                                         Belum ada pesanan cetak.
                                     </td>
@@ -204,18 +175,11 @@
                                 <tr style="font-size:0.8rem;text-transform:uppercase;letter-spacing:0.05em;color:#6c757d;">
                                     <th class="ps-4 py-3 fw-semibold">Pelanggan</th>
                                     <th class="fw-semibold">Total</th>
-                                    <th class="fw-semibold pe-4">Bayar</th>
+                                    <th class="fw-semibold pe-4">Status</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @forelse($recentAtk as $order)
-                                @php
-                                    $bs = match($order->payment_status ?? 'belum_bayar') {
-                                        'lunas'               => ['bg'=>'#d1fae5','text'=>'#065f46','label'=>'Lunas'],
-                                        'menunggu_konfirmasi' => ['bg'=>'#fff3cd','text'=>'#856404','label'=>'Menunggu'],
-                                        default               => ['bg'=>'#fee2e2','text'=>'#991b1b','label'=>'Belum'],
-                                    };
-                                @endphp
                                 <tr>
                                     <td class="ps-4" style="font-size:0.88rem;">
                                         {{ $order->user->full_name ?? '-' }}
@@ -225,8 +189,10 @@
                                     </td>
                                     <td class="pe-4">
                                         <span class="badge rounded-pill px-2"
-                                              style="font-size:0.75rem;background:{{ $bs['bg'] }};color:{{ $bs['text'] }};">
-                                            {{ $bs['label'] }}
+                                              style="font-size:0.75rem;
+                                                     background:{{ match($order->status){ 'selesai'=>'#d1fae5','diproses'=>'#fff3cd','dibatalkan'=>'#fee2e2',default=>'#dbeafe'} }};
+                                                     color:{{ match($order->status){ 'selesai'=>'#065f46','diproses'=>'#856404','dibatalkan'=>'#991b1b',default=>'#1e40af'} }};">
+                                            {{ $order->status }}
                                         </span>
                                     </td>
                                 </tr>
