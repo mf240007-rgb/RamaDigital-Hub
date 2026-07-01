@@ -13,7 +13,8 @@
 
     <style>
         :root { --warna-utama: #1a73e8; --warna-aksen: #ff6d00; --warna-gelap: #1c2b4a; }
-        body { background-color: #f0f4f8; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: #f0f4f8; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; overflow-x: hidden; }
+        .page-shell { padding-top: 70px; }
         .navbar-brand-custom { font-size: 1.4rem; font-weight: 700; letter-spacing: 0.5px; }
         .navbar-brand-custom span { color: var(--warna-aksen); }
         .product-card { border: none; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); transition: transform 0.2s ease, box-shadow 0.2s ease; overflow: hidden; }
@@ -28,6 +29,93 @@
         footer a:hover { color: white; }
         .btn-login-custom { color: #ffffff !important; border-color: rgba(255, 255, 255, 0.4) !important; transition: all 0.2s ease-in-out; }
         .btn-login-custom:hover { background-color: #ffc107 !important; border-color: #ffc107 !important; color: #1c2b4a !important; }
+
+        @media (max-width: 991.98px) {
+            .page-shell { padding-top: 82px; }
+
+            .navbar-collapse {
+                margin-top: .75rem;
+                padding: .75rem;
+                background: rgba(28, 43, 74, 0.98);
+                border: 1px solid rgba(255, 255, 255, 0.08);
+                border-radius: 16px;
+                box-shadow: 0 18px 40px rgba(0, 0, 0, 0.18);
+            }
+
+            .navbar-nav {
+                gap: .35rem;
+            }
+
+            .navbar-nav .nav-item {
+                width: 100%;
+            }
+
+            .navbar-nav .nav-link {
+                width: 100%;
+                padding: .8rem 1rem;
+                border-radius: 12px;
+            }
+
+            .navbar-nav .nav-link.btn-login-custom {
+                text-align: center;
+            }
+
+            .navbar-nav .dropdown-menu {
+                width: 100%;
+                margin-top: .35rem;
+            }
+
+            .alert-wrapper .alert {
+                flex-direction: column;
+                align-items: flex-start !important;
+                gap: .75rem !important;
+            }
+
+            .alert-wrapper .btn-close {
+                margin-left: 0 !important;
+                align-self: flex-end;
+            }
+        }
+
+        @media (max-width: 767.98px) {
+            .section-title { font-size: 1.35rem; padding-left: 12px; margin-bottom: 18px; }
+            .form-cetak-wrapper, .status-wrapper { padding: 20px; border-radius: 14px; }
+            .product-card .harga { font-size: 1rem; }
+            .product-card .card-img-top-placeholder,
+            .product-card img { height: 140px !important; }
+            .page-header-row {
+                flex-direction: column;
+                align-items: flex-start !important;
+            }
+            .page-header-row .btn,
+            .page-header-row a {
+                width: 100%;
+            }
+            .cart-item-row,
+            .checkout-summary-item {
+                flex-direction: column;
+                align-items: flex-start !important;
+            }
+            .cart-item-row .text-end,
+            .checkout-summary-item .text-end {
+                width: 100%;
+                text-align: left !important;
+            }
+            .cart-item-row .input-group {
+                width: 100% !important;
+            }
+            .checkout-sticky {
+                position: static !important;
+                top: auto !important;
+            }
+            footer { text-align: center; }
+            footer p { font-size: .92rem; }
+        }
+
+        @media (max-width: 575.98px) {
+            .page-shell { padding-top: 74px; }
+            .alert-wrapper .alert { padding: .9rem; }
+        }
     </style>
 </head>
 <body>
@@ -89,7 +177,7 @@
         </div>
     </nav>
 
-    <div style="padding-top: 70px;">
+    <div class="page-shell">
         @if(session('success'))
             <div class="container mt-3 alert-wrapper">
                 <div class="alert alert-success alert-dismissible fade show d-flex align-items-center gap-3 shadow-sm"

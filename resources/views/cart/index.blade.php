@@ -4,7 +4,7 @@
 <div class="container py-5" style="max-width: 860px;">
 
     {{-- Page Header --}}
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 page-header-row">
         <div>
             <h2 class="fw-bold mb-1" style="color: var(--warna-gelap);">
                 <i class="bi bi-cart3 me-2 text-primary"></i>Keranjang Belanja
@@ -50,7 +50,7 @@
                     </div>
                     <div class="card-body p-0">
                         @foreach($products as $p)
-                        <div class="d-flex align-items-center gap-3 px-4 py-3
+                           <div class="d-flex align-items-center gap-3 px-4 py-3 cart-item-row
                                     {{ !$loop->last ? 'border-bottom' : '' }}"
                              style="border-color: #f0f0f0 !important;">
 

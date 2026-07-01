@@ -148,6 +148,110 @@
     border-color: #ffc107 !important;
     color: #1c2b4a !important; /* Teks berubah menjadi gelap agar kontras dan terbaca */
 }
+
+        @media (max-width: 991.98px) {
+            .hero-section {
+                padding: 64px 0 48px 0;
+            }
+
+            .hero-section h1 {
+                font-size: 2.25rem;
+            }
+
+            .hero-section .btn {
+                min-width: 160px;
+            }
+
+            .section-toolbar {
+                flex-direction: column;
+                align-items: flex-start !important;
+                gap: .75rem;
+            }
+
+            .section-toolbar .btn {
+                width: 100%;
+                max-width: 280px;
+            }
+        }
+
+        @media (max-width: 767.98px) {
+            .hero-section {
+                padding: 56px 0 40px 0;
+            }
+
+            .hero-section h1 {
+                font-size: 1.9rem;
+                line-height: 1.15;
+            }
+
+            .hero-section .lead {
+                font-size: 1rem;
+            }
+
+            .hero-section .btn {
+                width: 100%;
+                max-width: 290px;
+                margin-right: 0 !important;
+            }
+
+            .hero-section .btn + .btn {
+                margin-top: .75rem;
+            }
+
+            .section-title {
+                font-size: 1.35rem;
+                padding-left: 12px;
+            }
+
+            .form-cetak-wrapper,
+            .status-wrapper {
+                padding: 20px;
+                border-radius: 14px;
+            }
+
+            #katalog .row.g-4.px-2 {
+                row-gap: 1rem !important;
+            }
+
+            #katalog .col-sm-6,
+            #katalog .col-md-4,
+            #katalog .col-lg-3 {
+                padding-left: .5rem;
+                padding-right: .5rem;
+            }
+
+            #katalog .carousel-control-prev,
+            #katalog .carousel-control-next {
+                display: none;
+            }
+
+            .status-wrapper .input-group,
+            .form-cetak-wrapper .d-flex.gap-4 {
+                flex-direction: column;
+                gap: .75rem !important;
+            }
+
+            .status-wrapper .input-group > .input-group-text,
+            .status-wrapper .input-group > .form-control,
+            .status-wrapper .input-group > .btn {
+                width: 100%;
+                border-radius: 12px !important;
+            }
+
+            .status-wrapper .input-group > .input-group-text {
+                border-right: 1px solid #dee2e6;
+                justify-content: center;
+            }
+
+            .status-wrapper .input-group > .form-control {
+                border-left: 1px solid #dee2e6 !important;
+                padding-left: .75rem !important;
+            }
+
+            footer {
+                text-align: center;
+            }
+        }
     </style>
 </head>
 <body>
@@ -346,7 +450,7 @@
              ================================================ -->
 <section id="katalog" class="mb-5">
 
-            <div class="d-flex justify-content-between align-items-center mb-4">
+            <div class="d-flex justify-content-between align-items-center mb-4 section-toolbar">
                 <h2 class="section-title mb-0" style="border-left: 5px solid var(--warna-utama); padding-left: 15px;">
                     <i class="bi bi-grid-fill me-2" style="color: var(--warna-utama);"></i>
                     Katalog Produk ATK
@@ -361,9 +465,9 @@
                     @php $chunks = $products->chunk(4); @endphp
                     @forelse($chunks as $index => $productChunk)
                         <div class="carousel-item {{ $index == 0 ? 'active' : '' }}">
-                            <div class="row g-4 px-2">
+                            <div class="row row-cols-2 row-cols-lg-4 g-3 g-md-4 px-2">
                                 @foreach($productChunk as $product)
-                                    <div class="col-sm-6 col-md-4 col-lg-3">
+                                    <div class="col">
                                         <div class="card product-card h-100 bg-white">
                                             
                                             @if($product->gambar)
@@ -588,7 +692,7 @@
                         {{-- Form Cek Status --}}
                         <form action="{{ route('cetak.cek-status') }}" method="POST" id="formCekStatus">
                             @csrf
-                            <div class="input-group input-group-lg">
+                            <div class="input-group input-group-lg status-search-group">
                                 <span class="input-group-text bg-white border-end-0">
                                     <i class="bi bi-upc-scan text-primary"></i>
                                 </span>

@@ -3,7 +3,7 @@
 @section('content')
 <div class="container py-5" style="max-width: 900px;">
 
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 page-header-row">
         <div>
             <h2 class="fw-bold mb-1" style="color: var(--warna-gelap);">
                 <i class="bi bi-credit-card me-2 text-primary"></i>Checkout
@@ -41,7 +41,7 @@
                     </div>
                     <div class="card-body p-0">
                         @foreach($items as $item)
-                        <div class="d-flex align-items-center gap-3 px-4 py-3 {{ !$loop->last ? 'border-bottom' : '' }}"
+                            <div class="d-flex align-items-center gap-3 px-4 py-3 checkout-summary-item {{ !$loop->last ? 'border-bottom' : '' }}"
                              style="border-color: #f0f0f0 !important;">
                             <div class="rounded-2 flex-shrink-0 overflow-hidden"
                                  style="width: 44px; height: 44px; background: #f0f4f8;">
@@ -111,7 +111,7 @@
 
             {{-- ====== KANAN: QRIS ====== --}}
             <div class="col-lg-6">
-                <div class="card border-0 shadow-sm" style="border-radius: 16px; position: sticky; top: 20px;">
+                <div class="card border-0 shadow-sm checkout-sticky" style="border-radius: 16px; position: sticky; top: 20px;">
 
                     {{-- Header --}}
                     <div class="card-header border-0 text-center py-3"
