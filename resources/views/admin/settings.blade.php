@@ -185,6 +185,92 @@
         </div>
     </form>
 
+    {{-- =========================================
+         CARD UPLOAD QRIS (form terpisah)
+         ========================================= --}}
+    <div class="row g-4 mt-1">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm" style="border-radius: 16px;">
+                <div class="card-header bg-white px-4 py-3 border-0"
+                     style="border-radius: 16px 16px 0 0; border-bottom: 1px solid #f0f0f0;">
+                    <h6 class="fw-bold mb-0" style="color: var(--warna-gelap);">
+                        <i class="bi bi-qr-code me-2 text-primary"></i>Kelola Gambar QRIS Pembayaran
+                    </h6>
+                </div>
+                <div class="card-body px-4 py-4">
+                    <div class="row g-4 align-items-start">
+
+                        {{-- Preview QRIS sekarang --}}
+                        <div class="col-md-4 text-center">
+                            <p class="fw-semibold mb-2" style="font-size: 0.85rem;">QRIS Saat Ini</p>
+                            @if(isset($qrisPath) && $qrisPath)
+                                <img src="{{ $qrisPath }}"
+                                     alt="QRIS"
+                                     class="img-fluid rounded-3 shadow-sm border"
+                                     style="max-width: 180px; max-height: 180px; object-fit: contain;">
+                                <div class="mt-2">
+                                    <a href="{{ $qrisPath }}"
+                                       download="QRIS-RamaDigital-Hub"
+                                       class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                                        <i class="bi bi-download me-1"></i>Download QRIS
+                                    </a>
+                                </div>
+                            @else
+                                <div class="rounded-3 mx-auto d-flex flex-column align-items-center justify-content-center"
+                                     style="width:180px;height:180px;background:#f8faff;border:2px dashed #bee5eb;">
+                                    <i class="bi bi-qr-code" style="font-size:3.5rem;color:#1a73e8;opacity:0.3;"></i>
+                                    <small class="text-muted mt-2" style="font-size:0.75rem;">Belum ada QRIS</small>
+                                </div>
+                            @endif
+                        </div>
+
+                        {{-- Form Upload --}}
+                        <div class="col-md-8">
+                            <form action="{{ route('admin.settings.update') }}"
+                                  method="POST"
+                                  enctype="multipart/form-data">
+                                @csrf
+                                <p class="text-muted mb-3" style="font-size: 0.88rem;">
+                                    Upload gambar QRIS toko kamu. Gambar ini akan otomatis tampil di halaman
+                                    <strong>Checkout</strong> pelanggan dan bisa didownload.
+                                </p>
+
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold">
+                                        <i class="bi bi-image me-1"></i>Pilih Gambar QRIS
+                                    </label>
+                                    <input type="file"
+                                           name="qris_image"
+                                           id="qrisInput"
+                                           class="form-control @error('qris_image') is-invalid @enderror"
+                                           accept="image/jpeg,image/png,image/jpg"
+                                           onchange="previewQris(this)">
+                                    @error('qris_image')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                    <div class="form-text">Format: JPG atau PNG. Maks 5 MB.</div>
+                                </div>
+
+                                {{-- Preview upload baru --}}
+                                <div id="qris-preview-wrap" class="d-none mb-3 text-center">
+                                    <p class="text-muted mb-1" style="font-size:0.8rem;">Preview gambar baru:</p>
+                                    <img id="qris-preview-img" src=""
+                                         class="img-fluid rounded-3 border shadow-sm"
+                                         style="max-width:160px;max-height:160px;object-fit:contain;">
+                                </div>
+
+                                <button type="submit" class="btn btn-primary rounded-pill px-4 fw-semibold">
+                                    <i class="bi bi-upload me-1"></i>Upload & Simpan QRIS
+                                </button>
+                            </form>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
         function togglePassword(inputId, btn) {
             const input = document.getElementById(inputId);
@@ -195,6 +281,16 @@
             } else {
                 input.type = 'password';
                 icon.classList.replace('bi-eye-slash', 'bi-eye');
+            }
+        }
+
+        function previewQris(input) {
+            const wrap = document.getElementById('qris-preview-wrap');
+            const img  = document.getElementById('qris-preview-img');
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = e => { img.src = e.target.result; wrap.classList.remove('d-none'); };
+                reader.readAsDataURL(input.files[0]);
             }
         }
     </script>

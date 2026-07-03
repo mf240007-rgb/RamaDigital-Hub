@@ -57,6 +57,7 @@ Route::get('/admin/logout', [AdminController::class, 'logout'])
 // Halaman Pengaturan Admin
 Route::get('/admin/settings', [AdminController::class, 'showSettings'])->name('admin.settings');
 Route::post('/admin/settings', [AdminController::class, 'updateSettings'])->name('admin.settings.update');
+Route::post('/admin/settings/qris', [AdminController::class, 'updateSettings'])->name('admin.settings.qris');
 
 // Rute untuk mengelola ATK di sisi Admin
 Route::get('/admin/produk', [ProductController::class, 'index'])->name('admin.produk.index');
@@ -112,3 +113,9 @@ Route::delete('/admin/pesanan-cetak/{id}', [\App\Http\Controllers\Admin\PrintOrd
 Route::get('/admin/laporan', [\App\Http\Controllers\Admin\LaporanController::class, 'index'])->name('admin.laporan.index');
 Route::get('/admin/laporan/bukti/{id}', [\App\Http\Controllers\Admin\LaporanController::class, 'lihatBukti'])->name('admin.laporan.bukti');
 Route::post('/admin/laporan/verifikasi/{id}', [\App\Http\Controllers\Admin\LaporanController::class, 'verifikasiPembayaran'])->name('admin.laporan.verifikasi');
+
+// Halaman Verifikasi Bayar ATK (admin)
+Route::get('/admin/verifikasi-atk', [\App\Http\Controllers\Admin\VerifikasiAtkController::class, 'index'])->name('admin.verifikasi-atk.index');
+Route::get('/admin/verifikasi-atk/{id}/bukti', [\App\Http\Controllers\Admin\VerifikasiAtkController::class, 'lihatBukti'])->name('admin.verifikasi-atk.bukti');
+Route::get('/admin/verifikasi-atk/{id}/download', [\App\Http\Controllers\Admin\VerifikasiAtkController::class, 'downloadBukti'])->name('admin.verifikasi-atk.download');
+Route::post('/admin/verifikasi-atk/{id}/konfirmasi', [\App\Http\Controllers\Admin\VerifikasiAtkController::class, 'konfirmasi'])->name('admin.verifikasi-atk.konfirmasi');

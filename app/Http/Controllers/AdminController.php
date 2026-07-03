@@ -154,12 +154,45 @@ class AdminController extends Controller
     {
         if ($redirect = $this->guardAdmin()) return $redirect;
 
-        return view('admin.settings');
+        // Cek apakah QRIS sudah ada
+        $qrisPath = null;
+        foreach (['jpg', 'jpeg', 'png'] as $ext) {
+            if (file_exists(public_path('images/qris.' . $ext))) {
+                $qrisPath = asset('images/qris.' . $ext) . '?t=' . filemtime(public_path('images/qris.' . $ext));
+                break;
+            }
+        }
+
+        return view('admin.settings', compact('qrisPath'));
     }
 
     public function updateSettings(Request $request)
     {
         if ($redirect = $this->guardAdmin()) return $redirect;
+
+        // ── Handle upload QRIS (tidak perlu current_password) ──────────────
+        if ($request->hasFile('qris_image')) {
+            $request->validate([
+                'qris_image' => 'required|image|mimes:jpg,jpeg,png|max:5120',
+            ], [
+                'qris_image.image' => 'File harus berupa gambar.',
+                'qris_image.mimes' => 'Format gambar harus JPG atau PNG.',
+                'qris_image.max'   => 'Ukuran file maksimal 5 MB.',
+            ]);
+
+            // Hapus QRIS lama
+            foreach (['jpg', 'jpeg', 'png'] as $ext) {
+                $old = public_path('images/qris.' . $ext);
+                if (file_exists($old)) @unlink($old);
+            }
+
+            $file = $request->file('qris_image');
+            $ext  = strtolower($file->getClientOriginalExtension());
+            $file->move(public_path('images'), 'qris.' . $ext);
+
+            return redirect()->route('admin.settings')
+                ->with('success', 'Gambar QRIS berhasil diperbarui! Sekarang tampil di halaman checkout.');
+        }
 
         $request->validate([
             'current_password'      => 'required|string',

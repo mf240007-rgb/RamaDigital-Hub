@@ -39,8 +39,8 @@
                     <li class="nav-item"><a class="nav-link @if(request()->routeIs('admin.customers.*')) active @endif" href="{{ route('admin.customers.index') }}"><i class="bi bi-people me-2"></i> Data Pelanggan</a></li>
                     <li class="nav-item"><a class="nav-link @if(request()->routeIs('admin.laporan.*')) active @endif" href="{{ route('admin.laporan.index') }}"><i class="bi bi-bar-chart me-2"></i> Laporan ATK</a></li>
                     <li class="nav-item">
-                        <a class="nav-link @if(request()->is('admin/verifikasi-atk*')) active @endif"
-                           href="{{ route('admin.laporan.index') }}?filter=menunggu"
+                        <a class="nav-link @if(request()->routeIs('admin.verifikasi-atk.*')) active @endif"
+                           href="{{ route('admin.verifikasi-atk.index') }}"
                            style="position:relative;">
                             <i class="bi bi-patch-check me-2"></i> Verifikasi Bayar ATK
                             @php
