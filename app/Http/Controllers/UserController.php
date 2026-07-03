@@ -49,17 +49,18 @@ class UserController extends Controller
             return redirect()->route('home')->with('info', 'Anda sudah login.');
         }
 
+        $request->merge([
+            'whatsapp' => $this->normalizeWhatsapp($request->input('whatsapp', '')),
+        ]);
+
         $credentials = $request->validate([
             'full_name' => 'required|string|max:255',
-            'whatsapp' => 'required|string|max:20',
+            'whatsapp'  => 'required|digits_between:12,13',
             'password' => 'required',
         ]);
 
-        // Normalisasi nomor WhatsApp agar cocok dengan data di database
-        $whatsappNormalized = $this->normalizeWhatsapp($credentials['whatsapp']);
-
         $user = User::where('full_name', $credentials['full_name'])
-            ->where('whatsapp', $whatsappNormalized)
+            ->where('whatsapp', $credentials['whatsapp'])
             ->first();
 
         if (!$user) {
@@ -107,10 +108,11 @@ class UserController extends Controller
         // 1. Validasi input
         $validated = $request->validate([
             'full_name' => 'required|string|max:255',
-            'whatsapp'  => 'required|string|max:15|unique:users,whatsapp',
+            'whatsapp'  => 'required|digits_between:12,13|unique:users,whatsapp',
             'password'  => 'required|string|min:8|confirmed',
         ], [
             'whatsapp.unique'   => 'Nomor WhatsApp ini sudah terdaftar. Tidak boleh mendaftar ganda.',
+            'whatsapp.digits_between' => 'Nomor WhatsApp harus terdiri dari 12 sampai 13 angka.',
             'password.confirmed'=> 'Konfirmasi password tidak cocok.',
             'password.min'      => 'Password minimal harus 8 karakter.',
         ]);

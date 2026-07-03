@@ -223,6 +223,9 @@
                            id="whatsapp"
                            name="whatsapp"
                            value="{{ old('whatsapp') }}"
+                              inputmode="numeric"
+                              maxlength="13"
+                              pattern="[0-9]{12,13}"
                            placeholder="812-3456-7890"
                            required>
                 </div>
@@ -297,6 +300,12 @@
             crossorigin="anonymous"></script>
 
     <script>
+        const whatsappInput = document.getElementById('whatsapp');
+
+        whatsappInput.addEventListener('input', function () {
+            this.value = this.value.replace(/\D/g, '').slice(0, 13);
+        });
+
         // Toggle show/hide password
         function toggleVisibility(btnId, inputId, iconId) {
             document.getElementById(btnId).addEventListener('click', function () {

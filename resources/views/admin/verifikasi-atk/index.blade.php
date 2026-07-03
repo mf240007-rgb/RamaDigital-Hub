@@ -47,10 +47,10 @@
             <i class="bi bi-check-circle me-1"></i>Lunas
             <span class="badge bg-secondary rounded-pill ms-1">{{ $counts['lunas'] }}</span>
         </a>
-        <a href="{{ route('admin.verifikasi-atk.index', ['filter' => 'belum_bayar']) }}"
-           class="btn rounded-pill px-4 {{ $filter === 'belum_bayar' ? 'btn-danger fw-bold' : 'btn-outline-secondary' }}">
-            <i class="bi bi-x-circle me-1"></i>Belum Bayar
-            <span class="badge bg-secondary rounded-pill ms-1">{{ $counts['belum_bayar'] }}</span>
+        <a href="{{ route('admin.verifikasi-atk.index', ['filter' => 'ditolak']) }}"
+           class="btn rounded-pill px-4 {{ $filter === 'ditolak' ? 'btn-danger fw-bold' : 'btn-outline-secondary' }}">
+            <i class="bi bi-x-circle me-1"></i>Ditolak
+            <span class="badge bg-secondary rounded-pill ms-1">{{ $counts['ditolak'] }}</span>
         </a>
         <a href="{{ route('admin.verifikasi-atk.index', ['filter' => 'semua']) }}"
            class="btn rounded-pill px-4 {{ $filter === 'semua' ? 'btn-primary fw-bold' : 'btn-outline-secondary' }}">
@@ -82,7 +82,7 @@
                 <span class="text-muted fw-normal">
                     @if($filter === 'menunggu_konfirmasi') Menunggu Konfirmasi
                     @elseif($filter === 'lunas') Sudah Lunas
-                    @elseif($filter === 'belum_bayar') Belum Bayar
+                    @elseif($filter === 'ditolak') Ditolak
                     @else Semua Status
                     @endif
                 </span>
@@ -114,13 +114,8 @@
                             $bg      = $colors[$i % count($colors)];
                             $wa      = preg_replace('/^0/','62',$order->user->whatsapp ?? '');
 
-                            $ps = $order->payment_status ?? 'belum_bayar';
-                            $pStyle = match($ps) {
-                                'lunas'               => ['bg'=>'#d1fae5','text'=>'#065f46','icon'=>'bi-check-circle-fill','label'=>'Lunas'],
-                                'menunggu_konfirmasi' => ['bg'=>'#fff3cd','text'=>'#856404','icon'=>'bi-hourglass-split','label'=>'Menunggu'],
-                                'ditolak'             => ['bg'=>'#fee2e2','text'=>'#991b1b','icon'=>'bi-x-circle-fill','label'=>'Ditolak'],
-                                default               => ['bg'=>'#f3f4f6','text'=>'#374151','icon'=>'bi-dash-circle','label'=>'Belum Bayar'],
-                            };
+                            $ps = $order->payment_status ?? 'ditolak';
+                            $pStyle = $order->paymentBadge();
                         @endphp
                         <tr>
                             <td class="ps-4 text-muted" style="font-size:0.88rem;">

@@ -48,9 +48,8 @@ class CheckoutController extends Controller
         }
 
         $request->validate([
-            'bukti_bayar' => 'required|image|mimes:jpg,jpeg,png|max:5120',
+            'bukti_bayar' => 'nullable|image|mimes:jpg,jpeg,png|max:5120',
         ], [
-            'bukti_bayar.required' => 'Bukti pembayaran wajib diupload.',
             'bukti_bayar.image'    => 'File harus berupa gambar.',
             'bukti_bayar.mimes'    => 'Format gambar harus JPG atau PNG.',
             'bukti_bayar.max'      => 'Ukuran file maksimal 5 MB.',
@@ -75,10 +74,15 @@ class CheckoutController extends Controller
             }
         }
 
-        // Simpan bukti pembayaran
-        $file     = $request->file('bukti_bayar');
-        $fileName = time() . '_' . Auth::id() . '_bukti.' . $file->getClientOriginalExtension();
-        $file->storeAs('bukti_bayar', $fileName, 'public');
+        // Simpan bukti pembayaran jika sudah diupload saat checkout
+        $fileName = null;
+        if ($request->hasFile('bukti_bayar')) {
+            $file     = $request->file('bukti_bayar');
+            $fileName = time() . '_' . Auth::id() . '_bukti.' . $file->getClientOriginalExtension();
+            $file->storeAs('bukti_bayar', $fileName, 'public');
+        }
+
+        $paymentStatus = $fileName ? 'menunggu_konfirmasi' : 'ditolak';
 
         // Buat order
         Order::create([
@@ -88,14 +92,16 @@ class CheckoutController extends Controller
             'detail_pesanan' => implode(', ', $details),
             'total_harga'    => $total,
             'status'         => 'Menunggu Antrean',
-            'payment_status' => 'menunggu_konfirmasi',
+            'payment_status' => $paymentStatus,
             'bukti_bayar'    => $fileName,
         ]);
 
         // Kosongkan keranjang
         session()->forget($cartKey);
 
-        return redirect()->route('home')
-            ->with('success', 'Pesanan berhasil dikirim! Admin akan memverifikasi bukti pembayaran kamu dan menghubungi via WhatsApp.');
+        return redirect()->route('customer.orders')
+            ->with('success', $fileName
+                ? 'Pesanan berhasil dikirim! Admin akan memverifikasi bukti pembayaran kamu dan menghubungi via WhatsApp.'
+                : 'Pesanan berhasil disimpan sebagai ditolak sementara. Kamu bisa upload bukti pembayaran dari halaman Pesanan Saya.');
     }
 }

@@ -120,7 +120,7 @@ class DummyPaymentSeeder extends Seeder
                 $buktiBayar = null;
                 if ($od['payment_status'] === 'menunggu_konfirmasi') {
                     $buktiBayar = 'dummy_bukti_' . $user->id . '_' . time() . '.txt';
-                    $dir = storage_path('app/private/bukti_bayar');
+                    $dir = storage_path('app/public/bukti_bayar');
                     if (!is_dir($dir)) mkdir($dir, 0755, true);
                     file_put_contents(
                         $dir . '/' . $buktiBayar,

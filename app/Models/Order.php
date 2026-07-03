@@ -58,11 +58,47 @@ class Order extends Model
     /** Label payment_status yang ramah baca */
     public function paymentLabel(): string
     {
-        return match($this->payment_status) {
-            'belum_bayar'     => 'Belum Bayar',
-            'menunggu_konfirmasi' => 'Menunggu Konfirmasi',
-            'lunas'           => 'Lunas',
-            default           => ucfirst($this->payment_status),
+        return $this->paymentBadge()['label'];
+    }
+
+    /** Style badge status pembayaran untuk view admin/pelanggan */
+    public function paymentBadge(): array
+    {
+        return match ($this->payment_status) {
+            'lunas' => [
+                'bg' => '#d1fae5',
+                'text' => '#065f46',
+                'icon' => 'bi-check-circle-fill',
+                'label' => 'Lunas',
+            ],
+            'menunggu_konfirmasi' => [
+                'bg' => '#fff3cd',
+                'text' => '#856404',
+                'icon' => 'bi-hourglass-split',
+                'label' => 'Menunggu Konfirmasi',
+            ],
+            'ditolak' => [
+                'bg' => '#fee2e2',
+                'text' => '#991b1b',
+                'icon' => 'bi-x-circle-fill',
+                'label' => 'Ditolak',
+            ],
+            default => [
+                'bg' => '#e2e8f0',
+                'text' => '#334155',
+                'icon' => 'bi-x-circle-fill',
+                'label' => 'Ditolak',
+            ],
         };
+    }
+
+    /** Path file bukti bayar di public storage */
+    public function buktiBayarPath(): ?string
+    {
+        if (! $this->bukti_bayar) {
+            return null;
+        }
+
+        return storage_path('app/public/bukti_bayar/' . $this->bukti_bayar);
     }
 }

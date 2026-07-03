@@ -294,6 +294,11 @@
                         <a class="nav-link" href="#cek-status">Cek Status</a>
                     </li>
                     <li class="nav-item">
+                        <a class="nav-link" href="{{ route('customer.orders') }}">
+                            <i class="bi bi-receipt me-1"></i> Pesanan Saya
+                        </a>
+                    </li>
+                    <li class="nav-item">
                         <a class="nav-link position-relative" href="{{ route('cart.view') }}">
                             <i class="bi bi-cart3 me-1"></i> Keranjang
                             @if(!empty($cartCount) && $cartCount > 0)

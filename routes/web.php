@@ -99,6 +99,11 @@ Route::get('/admin/orders/{orderId}/download', [CustomerController::class, 'down
 Route::get('/checkout', [\App\Http\Controllers\CheckoutController::class, 'index'])->name('checkout.index');
 Route::post('/checkout', [\App\Http\Controllers\CheckoutController::class, 'store'])->name('checkout.store');
 
+// Pesanan ATK pelanggan
+Route::get('/pesanan-saya', [CustomerController::class, 'pesananSaya'])->name('customer.orders');
+Route::post('/pesanan-saya/{id}/bukti', [CustomerController::class, 'uploadBuktiPembayaran'])->name('customer.orders.upload-bukti');
+Route::get('/pesanan-saya/{id}/bukti', [CustomerController::class, 'lihatBuktiPembayaran'])->name('customer.orders.bukti');
+
 // Halaman Pesanan Cetak (admin)
 Route::get('/admin/pesanan-cetak', [\App\Http\Controllers\Admin\PrintOrderController::class, 'index'])->name('admin.print-orders.index');
 Route::post('/admin/pesanan-cetak/bulk-delete', [\App\Http\Controllers\Admin\PrintOrderController::class, 'destroyBulk'])->name('admin.print-orders.bulk-delete');

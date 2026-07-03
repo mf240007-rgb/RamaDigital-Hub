@@ -86,7 +86,7 @@
                     </div>
                     <div class="card-body px-4 py-3">
                         <p class="text-muted mb-3" style="font-size: 0.88rem;">
-                            Setelah transfer, upload screenshot bukti pembayaran (JPG/PNG, maks 5 MB).
+                            Setelah transfer, upload screenshot bukti pembayaran di sini atau lewat menu <strong>Pesanan Saya</strong> setelah pesanan tersimpan.
                         </p>
                         <input type="file" name="bukti_bayar" id="bukti_bayar"
                                class="form-control @error('bukti_bayar') is-invalid @enderror"
@@ -102,7 +102,7 @@
                         </div>
                         <div class="form-text mt-2">
                             <i class="bi bi-shield-check text-success me-1"></i>
-                            Admin akan memverifikasi dan menghubungi kamu via WhatsApp.
+                            Jika bukti belum diupload sekarang, pesanan tetap tersimpan sebagai <strong>Belum Bayar</strong>.
                         </div>
                     </div>
                 </div>
