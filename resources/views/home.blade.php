@@ -48,6 +48,27 @@
             color: white;
             padding: 80px 0 60px 0;
             text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-section.hero-section-with-image {
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+
+        .hero-section.hero-section-with-image::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(28, 43, 74, 0.82) 0%, rgba(26, 115, 232, 0.82) 100%);
+            z-index: 0;
+        }
+
+        .hero-section > .container {
+            position: relative;
+            z-index: 1;
         }
 
         .hero-section h1 {
@@ -61,6 +82,19 @@
             border-radius: 20px;
             font-size: 0.85rem;
             font-weight: 600;
+        }
+
+        .hero-content-box {
+            position: relative;
+            z-index: 1;
+            display: inline-block;
+            max-width: 680px;
+            padding: 32px 28px;
+            border-radius: 24px;
+            background: rgba(255, 255, 255, 0.12);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 18px 45px rgba(0, 0, 0, 0.18);
         }
 
         /* --- Kartu Produk --- */
@@ -431,20 +465,46 @@
     <!-- ================================================
          HERO SECTION
          ================================================ -->
-    <section class="hero-section">
-        <div class="container">
-            <span class="badge-custom mb-3 d-inline-block">Toko ATK & Jasa Cetak Terpercaya</span>
-            <h1>Selamat Datang di<br>RamaDigital Hub</h1>
-            <p class="lead mt-3 mb-4" style="opacity: 0.85; max-width: 550px; margin: auto;">
-                Temukan berbagai kebutuhan alat tulis kantor dan layanan cetak dokumen berkualitas di satu tempat.
-            </p>
-            <a href="#katalog" class="btn btn-warning btn-lg fw-bold me-2 px-4">
-                Lihat Katalog
-            </a>
-            <a href="#jasa-cetak" class="btn btn-outline-light btn-lg me-2 px-4">
-                Jasa Cetak
-            </a>
+    @php
+        $heroImage = null;
+        $heroImageCandidates = [
+            'images/toko.jpg',
+            'images/toko.jpeg',
+            'images/toko.png',
+            'images/store.jpg',
+            'images/store.jpeg',
+            'images/store.png',
+            'images/hero.jpg',
+            'images/hero.jpeg',
+            'images/hero.png',
+        ];
 
+        foreach ($heroImageCandidates as $candidate) {
+            if (file_exists(public_path($candidate))) {
+                $heroImage = asset($candidate);
+                break;
+            }
+        }
+    @endphp
+
+    <section class="hero-section{{ $heroImage ? ' hero-section-with-image' : '' }}"
+             @if($heroImage) style="background-image: url('{{ $heroImage }}');" @endif>
+        <div class="container">
+            <div class="hero-content-box">
+                <span class="badge-custom mb-3 d-inline-block">Toko ATK & Jasa Cetak Terpercaya</span>
+                <h1>Selamat Datang di<br>RamaDigital Hub</h1>
+                <p class="lead mt-3 mb-4" style="opacity: 0.85; max-width: 550px; margin: auto;">
+                    Temukan berbagai kebutuhan alat tulis kantor dan layanan cetak dokumen berkualitas di satu tempat.
+                </p>
+                <div class="d-flex flex-wrap justify-content-center gap-2">
+                    <a href="#katalog" class="btn btn-warning btn-lg fw-bold px-4">
+                        Lihat Katalog
+                    </a>
+                    <a href="#jasa-cetak" class="btn btn-outline-light btn-lg px-4">
+                        Jasa Cetak
+                    </a>
+                </div>
+            </div>
         </div>
     </section>
 
@@ -467,7 +527,7 @@
 
             <div id="productCarousel" class="carousel slide">
                 <div class="carousel-inner">
-                    @php $chunks = $products->chunk(4); @endphp
+                    @php $limitedProducts = $products->take(10); $chunks = $limitedProducts->chunk(4); @endphp
                     @forelse($chunks as $index => $productChunk)
                         <div class="carousel-item {{ $index == 0 ? 'active' : '' }}">
                             <div class="row row-cols-2 row-cols-lg-4 g-3 g-md-4 px-2">
@@ -517,7 +577,7 @@
                     @endforelse
                 </div>
 
-                @if($products->count() > 4)
+                @if($limitedProducts->count() > 4)
                     <button class="carousel-control-prev" type="button" data-bs-target="#productCarousel" data-bs-slide="prev" style="width: 5%; left: -50px;">
                         <span class="bg-dark rounded-circle d-flex align-items-center justify-content-center shadow" style="width: 40px; height: 40px; opacity: 0.8;">
                             <i class="bi bi-chevron-left text-white fs-5"></i>
@@ -671,9 +731,11 @@
                                     <i class="bi bi-cloud-upload me-1"></i> Upload File Dokumen
                                 </label>
                                 <input class="form-control" type="file" id="fileUpload" name="file_dokumen[]"
-                                       accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" multiple required onchange="previewFiles()">
-                                <div class="form-text">
-                                    Format: PDF, Word (.doc/.docx), Gambar (JPG/PNG). Maks. 10 MB per file. <strong>Bisa upload hingga 5 file sekaligus.</strong>
+                                       accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png" multiple required onchange="previewFiles()">
+                                <div class="form-text p-2 rounded-3" style="background:#f8fafc;border:1px solid #e2e8f0;line-height:1.6;">
+                                    <div class="fw-semibold text-dark mb-1">Format file yang didukung:</div>
+                                    <div>PDF, Word (.doc/.docx), Excel (.xls/.xlsx), dan gambar (JPG/PNG).</div>
+                                    <div class="mt-1">Maksimal <strong>10 MB</strong> per file dan <strong>5 file</strong> dalam satu unggahan.</div>
                                 </div>
                                 <div id="filePreviewList" class="mt-3" style="display:none;">
                                     <div class="fw-semibold mb-2 small text-muted">File yang dipilih:</div>
@@ -747,8 +809,8 @@
                                        class="form-control border-start-0 ps-0"
                                        name="order_number"
                                        id="inputNomorPesanan"
-                                       placeholder="Contoh: RDH-20260626-0001"
                                        value="{{ session('cek_query', old('order_number')) }}"
+                                       placeholder="Contoh: RDH-20260708-AZ4NVT"
                                        autocomplete="off">
                                 <button class="btn btn-primary fw-bold px-4" type="submit">
                                     <i class="bi bi-search me-1"></i> Cek Sekarang
@@ -826,6 +888,32 @@
                                         </div>
 
                                         <hr class="my-2" style="border-color: rgba(0,0,0,0.08);">
+
+                                        {{-- Nama Pemesan (jika tersedia) --}}
+                                        @if($order['nama_pemesan'] ?? null)
+                                            <div class="mb-2" style="font-size: 0.88rem;">
+                                                <span class="text-muted">Pemesan:</span>
+                                                <span class="fw-semibold ms-1">{{ $order['nama_pemesan'] }}</span>
+                                            </div>
+                                        @endif
+
+                                        {{-- Daftar file dokumen (khusus jasa cetak) --}}
+                                        @if(!empty($order['file_names']) && ($order['item_type'] ?? 'jasa') === 'jasa')
+                                            <div class="mb-2" style="font-size: 0.85rem;">
+                                                <div class="text-muted mb-1">File yang dicetak:</div>
+                                                <ul class="mb-0 ps-3">
+                                                    @foreach($order['file_names'] as $fn)
+                                                        @php
+                                                            // Tampilkan nama file asli (hapus prefix timestamp)
+                                                            $displayFn = preg_replace('/^\d+_\d+_[a-f0-9]+_/i', '', $fn);
+                                                        @endphp
+                                                        <li class="text-truncate" style="max-width: 280px;" title="{{ $displayFn }}">
+                                                            <i class="bi bi-file-earmark me-1 text-primary"></i>{{ $displayFn }}
+                                                        </li>
+                                                    @endforeach
+                                                </ul>
+                                            </div>
+                                        @endif
 
                                         {{-- Detail Pesanan --}}
                                         <div class="row g-2 mt-1" style="font-size: 0.88rem;">
@@ -1100,12 +1188,11 @@
                     </div>
                 </li>`;
                 previewBox.style.display = 'block';
-                // Reset input supaya tombol submit tidak aktif dengan file invalid
                 input.setCustomValidity('Maksimal 5 file.');
                 return;
             }
 
-            input.setCustomValidity(''); // Clear error jika valid
+            input.setCustomValidity('');
 
             const icons = {
                 'pdf'  : 'bi-file-earmark-pdf-fill text-danger',
@@ -1124,9 +1211,18 @@
 
                 const li = document.createElement('li');
                 li.className = 'list-group-item d-flex align-items-center gap-2 px-0 py-1 border-0';
-                li.innerHTML = `<i class="bi ${icon} fs-5 flex-shrink-0"></i>
+                li.dataset.index = i;
+                li.innerHTML = `
+                    <i class="bi ${icon} fs-5 flex-shrink-0"></i>
                     <span style="font-size:0.85rem;" class="text-truncate flex-grow-1">${file.name}</span>
-                    <span class="badge bg-light text-muted rounded-pill flex-shrink-0" style="font-size:0.75rem;">${size}</span>`;
+                    <span class="badge bg-light text-muted rounded-pill flex-shrink-0" style="font-size:0.75rem;">${size}</span>
+                    <button type="button"
+                            class="btn btn-link text-danger p-0 flex-shrink-0 ms-1"
+                            style="font-size:0.9rem;line-height:1;"
+                            title="Hapus file ini"
+                            onclick="hapusFile(${i})">
+                        <i class="bi bi-x-circle-fill"></i>
+                    </button>`;
                 listEl.appendChild(li);
             }
 
@@ -1137,6 +1233,20 @@
             listEl.appendChild(summary);
 
             previewBox.style.display = 'block';
+        }
+
+        function hapusFile(indexToRemove) {
+            const input = document.getElementById('fileUpload');
+            const dt    = new DataTransfer();
+
+            for (let i = 0; i < input.files.length; i++) {
+                if (i !== indexToRemove) {
+                    dt.items.add(input.files[i]);
+                }
+            }
+
+            input.files = dt.files;
+            previewFiles(); // Render ulang preview
         }
 
         // ============================================================

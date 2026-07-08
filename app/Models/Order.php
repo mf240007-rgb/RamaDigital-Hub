@@ -49,20 +49,18 @@ class Order extends Model
 
     public static function generateOrderNumber(): string
     {
+        // Format: RDH-{YYYYMMDD}-{6 karakter acak alfanumerik}
         $date   = now()->format('Ymd');
-        $prefix = 'RDH-' . $date . '-';
+        $random = strtoupper(substr(str_shuffle('ABCDEFGHJKLMNPQRSTUVWXYZ23456789'), 0, 6));
+        $candidate = 'RDH-' . $date . '-' . $random;
 
-        $last = static::where('order_number', 'LIKE', $prefix . '%')
-            ->orderByDesc('order_number')
-            ->first();
-
-        if ($last && preg_match('/-(\d{4})$/', $last->order_number, $matches)) {
-            $nextSeq = (int) $matches[1] + 1;
-        } else {
-            $nextSeq = 1;
+        // Pastikan tidak duplikat (sangat jarang, tapi aman)
+        while (static::where('order_number', $candidate)->exists()) {
+            $random = strtoupper(substr(str_shuffle('ABCDEFGHJKLMNPQRSTUVWXYZ23456789'), 0, 6));
+            $candidate = 'RDH-' . $date . '-' . $random;
         }
 
-        return $prefix . str_pad($nextSeq, 4, '0', STR_PAD_LEFT);
+        return $candidate;
     }
 
     /** Label payment_status yang ramah baca */
@@ -117,5 +115,98 @@ class Order extends Model
             return [$this->file_dokumen];
         }
         return [];
+    }
+
+    /** Kembalikan nama dokumen yang siap ditampilkan ke pelanggan/admin */
+    public function getDokumenDisplayNames(): array
+    {
+        return array_map(function ($fileName) {
+            return preg_replace('/^\d+_\d+_[a-f0-9]+_/i', '', (string) $fileName);
+        }, $this->getDokumenFiles());
+    }
+
+    /**
+     * Ringkasan baris yang siap dirender di kartu transaksi.
+     * Produk ATK akan diparsing dari detail_pesanan, sedangkan jasa cetak
+     * dirangkum dari atribut utama yang memang dipakai untuk menghitung harga.
+     */
+    public function summaryRows(): array
+    {
+        if ($this->item_type === 'produk') {
+            $rows = [];
+            $items = preg_split('/\s*,\s*/', (string) $this->detail_pesanan, -1, PREG_SPLIT_NO_EMPTY) ?: [];
+
+            foreach ($items as $item) {
+                $item = trim($item);
+                if ($item === '') {
+                    continue;
+                }
+
+                $label = $item;
+                $qtyText = '1 pcs';
+
+                if (preg_match('/^(.*?)[\s]*[x×][\s]*(\d+)$/u', $item, $matches)) {
+                    $label = trim($matches[1]);
+                    $qtyText = ((int) $matches[2]) . ' pcs';
+                }
+
+                $rows[] = [
+                    'label' => $label,
+                    'value' => $qtyText,
+                ];
+            }
+
+            return $rows ?: [[
+                'label' => $this->detail_pesanan ?: 'Pesanan',
+                'value' => '1 pcs',
+            ]];
+        }
+
+        $labelKertas = [
+            'hvs_a4'      => 'HVS A4',
+            'hvs_f4'      => 'HVS F4/Folio',
+            'foto_glossy' => 'Foto Glossy',
+            'foto_matte'  => 'Foto Matte (Stiker)',
+        ];
+
+        $labelMode = [
+            'hitam_putih' => 'Hitam & Putih',
+            'full_color'  => 'Full Color',
+        ];
+
+        $rows = [];
+
+        if ($this->jenis_kertas) {
+            $rows[] = [
+                'label' => 'Kertas',
+                'value' => $labelKertas[$this->jenis_kertas] ?? $this->jenis_kertas,
+            ];
+        }
+
+        if ($this->jumlah_cetak) {
+            $rows[] = [
+                'label' => 'Cetak',
+                'value' => $this->jumlah_cetak . 'x',
+            ];
+        }
+
+        if ($this->mode_cetak) {
+            $rows[] = [
+                'label' => 'Mode',
+                'value' => $labelMode[$this->mode_cetak] ?? $this->mode_cetak,
+            ];
+        }
+
+        if ($this->mode_cetak === 'full_color' && $this->intensitas_warna) {
+            $rows[] = [
+                'label' => 'Warna',
+                'value' => $this->intensitas_warna === 'sedikit_warna' ? 'Sedikit' : 'Banyak',
+            ];
+        }
+
+        return $rows ?: [[
+            'label' => 'Ringkasan',
+            'value' => $this->detail_pesanan ?: 'Jasa Cetak',
+        ]];
     }
 }

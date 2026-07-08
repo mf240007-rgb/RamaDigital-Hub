@@ -101,6 +101,7 @@ Route::post('/checkout', [\App\Http\Controllers\CheckoutController::class, 'stor
 
 // Pesanan ATK pelanggan
 Route::get('/pesanan-saya', [CustomerController::class, 'pesananSaya'])->name('customer.orders');
+Route::get('/pesanan-saya/{id}/nota', [CustomerController::class, 'nota'])->name('customer.orders.nota');
 Route::post('/pesanan-saya/{id}/bukti', [CustomerController::class, 'uploadBuktiPembayaran'])->name('customer.orders.upload-bukti');
 Route::get('/pesanan-saya/{id}/bukti', [CustomerController::class, 'lihatBuktiPembayaran'])->name('customer.orders.bukti');
 Route::post('/pesanan-saya/{id}/ajukan-batal', [CustomerController::class, 'ajukanPembatalan'])->name('customer.orders.ajukan-batal');

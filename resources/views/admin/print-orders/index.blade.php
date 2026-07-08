@@ -260,17 +260,25 @@
 
                             {{-- Dokumen --}}
                             <td class="text-center">
-                                @php $files = $order->getDokumenFiles(); @endphp
+                                @php
+                                    $files = $order->getDokumenFiles();
+                                    $displayNames = $order->getDokumenDisplayNames();
+                                @endphp
                                 @if(empty($files))
                                     <span class="text-muted" style="font-size:0.82rem;">— Tidak ada</span>
                                 @elseif(count($files) === 1)
                                     {{-- Satu file: tombol download biasa --}}
-                                    <a href="{{ route('admin.print-orders.download', ['id' => $order->id, 'fileIndex' => 0]) }}"
-                                       class="btn btn-primary btn-sm rounded-pill px-3"
-                                       style="font-size:0.78rem;white-space:nowrap;"
-                                       title="Download dokumen">
-                                        <i class="bi bi-download me-1"></i>Download
-                                    </a>
+                                    <div class="d-flex flex-column align-items-start gap-1">
+                                        <a href="{{ route('admin.print-orders.download', ['id' => $order->id, 'fileIndex' => 0]) }}"
+                                           class="btn btn-primary btn-sm rounded-pill px-3"
+                                           style="font-size:0.78rem;white-space:nowrap;"
+                                           title="Download dokumen">
+                                            <i class="bi bi-download me-1"></i>Download
+                                        </a>
+                                        <span class="text-muted small text-start" style="max-width:180px;" title="{{ $displayNames[0] }}">
+                                            {{ $displayNames[0] }}
+                                        </span>
+                                    </div>
                                 @else
                                     {{-- Banyak file: dropdown --}}
                                     <div class="dropdown">
@@ -291,8 +299,7 @@
                                                         'jpg', 'jpeg', 'png' => 'bi-file-earmark-image-fill text-success',
                                                         default       => 'bi-file-earmark-fill text-secondary',
                                                     };
-                                                    // Ambil nama asli file (hapus prefix timestamp_userid_uniqid_)
-                                                    $displayName = preg_replace('/^\d+_\d+_[a-f0-9]+_/i', '', $fileName);
+                                                    $displayName = $displayNames[$idx] ?? $fileName;
                                                 @endphp
                                                 <li>
                                                     <a class="dropdown-item d-flex align-items-center gap-2 py-2"
@@ -320,12 +327,15 @@
                                         <span class="text-muted fw-normal">oleh {{ ucfirst($order->dibatalkan_oleh ?? '—') }}</span>
                                     </small>
                                 @else
-                                    <form action="{{ route('admin.print-orders.status', $order->id) }}" method="POST">
+                                    <form action="{{ route('admin.print-orders.status', $order->id) }}" method="POST" class="status-form">
                                         @csrf
                                         <select name="status"
                                                 class="form-select form-select-sm w-100"
                                                 style="font-size:0.8rem;"
-                                                onchange="this.form.submit()">
+                                                data-order-id="{{ $order->id }}"
+                                                data-order-number="{{ $order->order_number ?? '#' . $order->id }}"
+                                                data-default-price="{{ $order->total_harga > 0 ? $order->total_harga : ($order->estimasi_harga > 0 ? $order->estimasi_harga : '') }}"
+                                                onchange="handleStatusChange(this)">
                                             <option value="Menunggu Antrean" {{ $order->status === 'Menunggu Antrean' ? 'selected' : '' }}>Menunggu</option>
                                             <option value="diproses"         {{ $order->status === 'diproses'         ? 'selected' : '' }}>Diproses</option>
                                             <option value="selesai"          {{ $order->status === 'selesai'          ? 'selected' : '' }}>Selesai</option>
@@ -513,8 +523,83 @@
     </div>
 
 
+    {{-- Modal: Harga Final saat Selesai --}}
+    <div class="modal fade" id="modalHargaFinal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0" style="border-radius: 16px; overflow: hidden;">
+                <div class="modal-header border-0 px-4 pt-4 pb-2" style="background: #ecfdf5;">
+                    <div>
+                        <h5 class="fw-bold mb-1 text-success">
+                            <i class="bi bi-check2-circle me-2"></i>Finalisasi Pesanan
+                        </h5>
+                        <p class="text-muted mb-0" id="labelNomorPesananFinal" style="font-size: 0.85rem;"></p>
+                    </div>
+                    <button type="button" class="btn-close ms-auto" data-bs-dismiss="modal"></button>
+                </div>
+                <form id="formHargaFinal" method="POST">
+                    @csrf
+                    <input type="hidden" name="status" value="selesai">
+                    <div class="modal-body px-4 py-3">
+                        <label class="form-label fw-semibold mb-1">Harga Final <span class="text-danger">*</span></label>
+                        <input type="number"
+                               name="harga_final"
+                               id="inputHargaFinal"
+                               class="form-control"
+                               min="1"
+                               required>
+                        <div class="form-text">Masukkan harga akhir jasa cetak yang akan dipakai untuk nota dan total pesanan.</div>
+
+                        <label class="form-label fw-semibold mt-3 mb-1">Catatan Admin (Opsional)</label>
+                        <textarea name="catatan_admin"
+                                  id="inputCatatanAdmin"
+                                  class="form-control"
+                                  rows="3"
+                                  maxlength="500"
+                                  placeholder="Contoh: ada revisi warna, ukuran khusus, atau tambahan finishing."></textarea>
+                        <div class="form-text">Catatan ini akan muncul di nota jika diisi.</div>
+                    </div>
+                    <div class="modal-footer border-0 px-4 pb-4 pt-0 gap-2">
+                        <button type="button" class="btn btn-outline-secondary rounded-pill flex-fill" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-success rounded-pill flex-fill fw-semibold">
+                            <i class="bi bi-check2-circle me-1"></i>Simpan & Selesaikan
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     {{-- JavaScript --}}
     <script>
+        function handleStatusChange(selectEl) {
+            const selectedValue = selectEl.value;
+            const previousValue = selectEl.dataset.previousValue || selectEl.value;
+
+            if (selectedValue !== 'selesai') {
+                selectEl.dataset.previousValue = selectedValue;
+                selectEl.closest('form').submit();
+                return;
+            }
+
+            selectEl.value = previousValue;
+            selectEl.dataset.previousValue = previousValue;
+
+            const orderId = selectEl.dataset.orderId;
+            const orderNumber = selectEl.dataset.orderNumber;
+            const defaultPrice = selectEl.dataset.defaultPrice || '';
+            const modal = document.getElementById('modalHargaFinal');
+            const form = document.getElementById('formHargaFinal');
+            const label = document.getElementById('labelNomorPesananFinal');
+            const input = document.getElementById('inputHargaFinal');
+
+            form.action = '/admin/pesanan-cetak/' + orderId + '/status';
+            label.textContent = 'Pesanan: ' + orderNumber;
+            input.value = defaultPrice;
+            input.focus();
+
+            new bootstrap.Modal(modal).show();
+        }
+
         // ── Checkbox: Pilih Semua ──────────────────────────────
         function toggleCheckAll(master) {
             document.querySelectorAll('.order-checkbox').forEach(cb => {
@@ -609,6 +694,10 @@
                 new bootstrap.Popover(el, {
                     sanitize: false,   // izinkan HTML di content
                 });
+            });
+
+            document.querySelectorAll('.status-form select').forEach(function (el) {
+                el.dataset.previousValue = el.value;
             });
 
             // Tutup semua popover saat klik di luar

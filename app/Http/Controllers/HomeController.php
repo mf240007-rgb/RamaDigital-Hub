@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
 use App\Models\Product;
 use App\Models\Category;
 use App\Models\Order;
@@ -118,7 +119,7 @@ class HomeController extends Controller
         $orderNumber = strtoupper(trim($request->order_number));
 
         // Cari pesanan dari semua tipe (jasa cetak & produk ATK)
-        $order = Order::where('order_number', $orderNumber)->first();
+        $order = Order::with('user')->where('order_number', $orderNumber)->first();
 
         if (!$order) {
             return redirect()->to(route('home') . '#cek-status')
@@ -131,6 +132,8 @@ class HomeController extends Controller
             ->with('cek_result', [
                 'order_number'      => $order->order_number,
                 'item_type'         => $order->item_type,
+                'nama_pemesan'      => $order->user->full_name ?? $order->user->name ?? null,
+                'file_names'        => $order->item_type === 'jasa' ? $order->getDokumenFiles() : [],
                 'detail_pesanan'    => $order->detail_pesanan,
                 'total_harga'       => $order->total_harga,
                 'payment_status'    => $order->payment_status,
@@ -231,6 +234,19 @@ class HomeController extends Controller
                 ->withInput();
         }
 
+        $uploadedFiles = $request->file('file_dokumen');
+        if ($uploadedFiles instanceof UploadedFile) {
+            $uploadedFiles = [$uploadedFiles];
+        }
+
+        if (!is_array($uploadedFiles)) {
+            return redirect()->to(route('home') . '#jasa-cetak')
+                ->with('error', 'Pilih minimal satu file dokumen sebelum mengirim pesanan.')
+                ->withInput();
+        }
+
+        $request->merge(['file_dokumen' => array_values($uploadedFiles)]);
+
         $validated = $request->validate([
             'jenis_kertas'     => 'required|string|max:50',
             'jumlah_halaman'   => 'required|integer|min:1',
@@ -257,7 +273,7 @@ class HomeController extends Controller
 
         // Simpan semua file dokumen ke storage/app/private/dokumen_cetak
         $fileNames = [];
-        foreach ($request->file('file_dokumen') as $file) {
+        foreach ($uploadedFiles as $file) {
             $fileName    = time() . '_' . Auth::id() . '_' . uniqid() . '_' . preg_replace('/\s+/', '_', $file->getClientOriginalName());
             $file->storeAs('dokumen_cetak', $fileName, 'local');
             $fileNames[] = $fileName;

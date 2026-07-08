@@ -61,11 +61,25 @@ class CustomerController extends Controller
 
         $orders = Order::with('user')
             ->where('user_id', Auth::id())
-            ->where('item_type', 'produk')
             ->orderByDesc('created_at')
             ->get();
 
         return view('customer.orders', compact('orders'));
+    }
+
+    public function nota($id)
+    {
+        if (!Auth::check()) {
+            return redirect()->route('user.login')
+                ->with('error', 'Silakan login untuk melihat nota pesanan Anda.');
+        }
+
+        $order = Order::with('user')
+            ->where('id', $id)
+            ->where('user_id', Auth::id())
+            ->firstOrFail();
+
+        return view('customer.nota', compact('order'));
     }
 
     public function uploadBuktiPembayaran(Request $request, $id)

@@ -56,10 +56,27 @@ class PrintOrderController extends Controller
 
         $request->validate([
             'status' => 'required|in:Menunggu Antrean,diproses,selesai',
+            'harga_final' => 'nullable|required_if:status,selesai|integer|min:1',
+            'catatan_admin' => 'nullable|string|max:500',
+        ], [
+            'harga_final.required_if' => 'Harga final wajib diisi saat status diubah menjadi selesai.',
+            'harga_final.integer' => 'Harga final harus berupa angka.',
+            'harga_final.min' => 'Harga final minimal Rp 1.',
         ]);
 
         $order = Order::where('item_type', 'jasa')->findOrFail($id);
         $order->status = $request->status;
+
+        if ($request->status === 'selesai' && $request->filled('harga_final')) {
+            $order->total_harga = (int) $request->harga_final;
+        }
+
+        if ($request->filled('catatan_admin')) {
+            $order->catatan = trim($request->catatan_admin);
+        } elseif ($request->status === 'selesai' && $order->catatan) {
+            $order->catatan = $order->catatan;
+        }
+
         $order->save();
 
         return redirect()->back()->with('success', 'Status pesanan berhasil diperbarui.');
