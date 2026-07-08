@@ -7,35 +7,46 @@
         <p class="text-muted">Temukan berbagai kebutuhan alat tulis kantor berkualitas tinggi di RamaDigital Hub</p>
     </div>
 
-    <form action="{{ route('katalog.index') }}" method="GET" class="row g-2 justify-content-center mb-4">
-        <div class="col-lg-6 col-md-8">
-            <div class="input-group shadow-sm">
-                <input type="text" name="search" class="form-control" placeholder="Cari nama produk atau kategori..." value="{{ $search ?? request('search') }}">
-                @if(request('category'))
-                    <input type="hidden" name="category" value="{{ request('category') }}">
-                @endif
-                <button class="btn btn-primary" type="submit">
-                    <i class="bi bi-search me-1"></i> Cari
+    <form action="{{ route('katalog.index') }}" method="GET" id="filterForm">
+        <div class="row g-2 justify-content-center mb-5">
+
+            {{-- Search --}}
+            <div class="col-lg-5 col-md-5 col-sm-12">
+                <div class="input-group shadow-sm">
+                    <span class="input-group-text bg-white border-end-0">
+                        <i class="bi bi-search text-muted"></i>
+                    </span>
+                    <input type="text" name="search"
+                           class="form-control border-start-0 ps-0"
+                           placeholder="Cari nama produk..."
+                           value="{{ $search ?? request('search') }}">
+                </div>
+            </div>
+
+            {{-- Dropdown Kategori --}}
+            <div class="col-lg-3 col-md-4 col-sm-8 col-8">
+                <select name="category"
+                        class="form-select shadow-sm"
+                        onchange="document.getElementById('filterForm').submit()">
+                    <option value="">🗂 Semua Kategori</option>
+                    @foreach($categories as $cat)
+                        <option value="{{ $cat->name }}"
+                            {{ request('category') == $cat->name ? 'selected' : '' }}>
+                            {{ $cat->name }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+
+            {{-- Tombol Cari --}}
+            <div class="col-lg-1 col-md-2 col-sm-4 col-4">
+                <button class="btn btn-primary w-100 shadow-sm" type="submit">
+                    <i class="bi bi-search me-1 d-none d-md-inline"></i>Cari
                 </button>
             </div>
-        </div>
-        @if(request('search') || request('category'))
-            <div class="col-12 text-center">
-                <a href="{{ route('katalog.index') }}" class="btn btn-outline-secondary btn-sm rounded-pill px-4">Reset Filter</a>
-            </div>
-        @endif
-    </form>
 
-    <div class="d-flex flex-wrap justify-content-center gap-2 mb-5">
-        <a href="{{ route('katalog.index', ['search' => request('search')]) }}" class="btn {{ !request('category') ? 'btn-primary' : 'btn-outline-primary' }} rounded-pill px-4 shadow-sm">
-            Semua Produk
-        </a>
-        @foreach($categories as $cat)
-            <a href="{{ route('katalog.index', ['category' => $cat->name, 'search' => request('search')]) }}" class="btn {{ request('category') == $cat->name ? 'btn-primary' : 'btn-outline-primary' }} rounded-pill px-4 shadow-sm">
-                {{ $cat->name }}
-            </a>
-        @endforeach
-    </div>
+        </div>
+    </form>
 
     <div class="row g-4">
         @forelse($products as $p)

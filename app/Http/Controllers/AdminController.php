@@ -111,6 +111,16 @@ class AdminController extends Controller
         $pesananMasuk   = \App\Models\Order::whereIn('status', ['Menunggu Antrean', 'diproses'])->count();
         $pesananSelesai = \App\Models\Order::where('status', 'selesai')->count();
 
+        // Total penghasilan: jumlah total_harga dari pesanan ATK yang payment_status = 'lunas'
+        $totalPenghasilan = \App\Models\Order::where('item_type', 'produk')
+            ->where('payment_status', 'lunas')
+            ->sum('total_harga');
+
+        // Badge pesanan cetak baru (Menunggu Antrean) untuk notifikasi sidebar
+        $newPesananCetak = \App\Models\Order::where('item_type', 'jasa')
+            ->where('status', 'Menunggu Antrean')
+            ->count();
+
         // Pesanan cetak terbaru (5 terakhir)
         $recentOrders = \App\Models\Order::with('user')
             ->where('item_type', 'jasa')
@@ -118,7 +128,7 @@ class AdminController extends Controller
             ->limit(5)
             ->get();
 
-        // Pesanan ATK terbaru (5 terakhir)
+        // Pesanan ATK terbaru (5 terakhir) — semua status
         $recentAtk = \App\Models\Order::with('user')
             ->where('item_type', 'produk')
             ->orderByDesc('created_at')
@@ -127,7 +137,7 @@ class AdminController extends Controller
 
         return view('admin.dashboard', compact(
             'totalProduk', 'pesananMasuk', 'pesananSelesai',
-            'recentOrders', 'recentAtk'
+            'totalPenghasilan', 'newPesananCetak', 'recentOrders', 'recentAtk'
         ));
     }
 

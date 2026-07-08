@@ -11,25 +11,35 @@ class Order extends Model
         'user_id',
         'item_type',
         'file_dokumen',
+        'file_dokumen_list',
         'detail_pesanan',
         'total_harga',
         'status',
         'payment_status',
         'bukti_bayar',
         'catatan_verifikasi',
+        'catatan_pembayaran',
         'paid_at',
         'jenis_kertas',
         'jumlah_lembar',
+        'jumlah_halaman',
+        'jumlah_cetak',
+        'intensitas_warna',
+        'estimasi_harga',
         'mode_cetak',
         'catatan',
         'alasan_pembatalan',
+        'cancellation_reason',
+        'cancellation_requested_at',
         'dibatalkan_oleh',
         'cancelled_at',
     ];
 
     protected $casts = [
-        'cancelled_at' => 'datetime',
-        'paid_at'      => 'datetime',
+        'cancelled_at'                => 'datetime',
+        'cancellation_requested_at'   => 'datetime',
+        'paid_at'                     => 'datetime',
+        'file_dokumen_list'           => 'array',
     ];
 
     public function user()
@@ -66,28 +76,24 @@ class Order extends Model
     {
         return match ($this->payment_status) {
             'lunas' => [
-                'bg' => '#d1fae5',
-                'text' => '#065f46',
-                'icon' => 'bi-check-circle-fill',
-                'label' => 'Lunas',
+                'bg' => '#d1fae5', 'text' => '#065f46',
+                'icon' => 'bi-check-circle-fill', 'label' => 'Lunas',
             ],
             'menunggu_konfirmasi' => [
-                'bg' => '#fff3cd',
-                'text' => '#856404',
-                'icon' => 'bi-hourglass-split',
-                'label' => 'Menunggu Konfirmasi',
+                'bg' => '#fff3cd', 'text' => '#856404',
+                'icon' => 'bi-hourglass-split', 'label' => 'Menunggu Konfirmasi',
+            ],
+            'menunggu_persetujuan_batal' => [
+                'bg' => '#fce7f3', 'text' => '#9d174d',
+                'icon' => 'bi-clock-history', 'label' => 'Menunggu Persetujuan Batal',
             ],
             'ditolak' => [
-                'bg' => '#fee2e2',
-                'text' => '#991b1b',
-                'icon' => 'bi-x-circle-fill',
-                'label' => 'Ditolak',
+                'bg' => '#fee2e2', 'text' => '#991b1b',
+                'icon' => 'bi-x-circle-fill', 'label' => 'Ditolak',
             ],
             default => [
-                'bg' => '#e2e8f0',
-                'text' => '#334155',
-                'icon' => 'bi-x-circle-fill',
-                'label' => 'Ditolak',
+                'bg' => '#e2e8f0', 'text' => '#334155',
+                'icon' => 'bi-x-circle-fill', 'label' => 'Ditolak',
             ],
         };
     }
@@ -98,7 +104,18 @@ class Order extends Model
         if (! $this->bukti_bayar) {
             return null;
         }
-
         return storage_path('app/public/bukti_bayar/' . $this->bukti_bayar);
+    }
+
+    /** Kembalikan semua nama file dokumen sebagai array */
+    public function getDokumenFiles(): array
+    {
+        if (!empty($this->file_dokumen_list)) {
+            return $this->file_dokumen_list;
+        }
+        if (!empty($this->file_dokumen)) {
+            return [$this->file_dokumen];
+        }
+        return [];
     }
 }

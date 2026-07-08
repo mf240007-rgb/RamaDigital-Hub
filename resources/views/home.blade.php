@@ -567,43 +567,60 @@
                                 </div>
                             @endif
 
-                            <form action="{{ route('cetak.submit') }}" method="POST" enctype="multipart/form-data">
+                            <form action="{{ route('cetak.submit') }}" method="POST" enctype="multipart/form-data" id="formCetak">
                                 @csrf
 
-                                {{-- Baris 2: Jenis Kertas & Jumlah Lembar --}}
+                                {{-- Baris 1: Jenis Kertas --}}
+                            <div class="mb-3">
+                                <label for="jenisKertas" class="form-label fw-semibold">
+                                    <i class="bi bi-file-earmark me-1"></i> Jenis Kertas
+                                </label>
+                                <select class="form-select" id="jenisKertas" name="jenis_kertas" required onchange="hitungEstimasi()">
+                                    <option value="" disabled selected>-- Pilih Jenis Kertas --</option>
+                                    <optgroup label="Kertas Biasa">
+                                        <option value="hvs_a4">HVS A4</option>
+                                        <option value="hvs_f4">HVS F4/Folio</option>
+                                    </optgroup>
+                                    <optgroup label="Kertas Foto">
+                                        <option value="foto_glossy">Foto Glossy (Foto)</option>
+                                        <option value="foto_matte">Foto Matte (Stiker)</option>
+                                    </optgroup>
+                                </select>
+                            </div>
+
+                            {{-- Baris 2: Jumlah Halaman & Jumlah Cetak --}}
                             <div class="row g-3 mb-3">
                                 <div class="col-md-6">
-                                    <label for="jenisKertas" class="form-label fw-semibold">
-                                        <i class="bi bi-file-earmark me-1"></i> Jenis Kertas
-                                    </label>
-                                    {{-- DROPDOWN PILIHAN KERTAS --}}
-                                    <select class="form-select" id="jenisKertas" name="jenis_kertas" required>
-                                        <option value="" disabled selected>-- Pilih Jenis Kertas --</option>
-                                        <optgroup label="Kertas Biasa">
-                                            <option value="hvs_a4">HVS A4</option>
-                                            <option value="hvs_f4">HVS F4/Folio</option>
-                                        </optgroup>
-                                        <optgroup label="Kertas Foto">
-                                            <option value="foto_glossy">Foto Glossy (Foto)</option>
-                                            <option value="foto_matte">Foto Matte (Stiker)</option>
-                                        </optgroup>
-                                    </select>
-                                </div>
-                                <div class="col-md-6">
-                                    <label for="jumlahLembar" class="form-label fw-semibold">
-                                        <i class="bi bi-stack me-1"></i> Jumlah Lembar / Eksemplar
+                                    <label for="jumlahHalaman" class="form-label fw-semibold">
+                                        <i class="bi bi-file-text me-1"></i> Jumlah Halaman
                                     </label>
                                     <input type="number"
                                            class="form-control"
-                                           id="jumlahLembar"
-                                           name="jumlah"
+                                           id="jumlahHalaman"
+                                           name="jumlah_halaman"
+                                           min="1"
+                                           placeholder="Contoh: 5"
+                                           required
+                                           oninput="hitungEstimasi()">
+                                    <div class="form-text">Berapa halaman dalam dokumen?</div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="jumlahCetak" class="form-label fw-semibold">
+                                        <i class="bi bi-stack me-1"></i> Berapa Kali Dicetak
+                                    </label>
+                                    <input type="number"
+                                           class="form-control"
+                                           id="jumlahCetak"
+                                           name="jumlah_cetak"
                                            min="1"
                                            placeholder="Contoh: 10"
-                                           required>
+                                           required
+                                           oninput="hitungEstimasi()">
+                                    <div class="form-text">Berapa eksemplar/rangkap?</div>
                                 </div>
                             </div>
 
-                            {{-- Baris 3: Pilihan Warna Cetak --}}
+                            {{-- Baris 3: Mode Cetak --}}
                             <div class="mb-3">
                                 <label class="form-label fw-semibold">
                                     <i class="bi bi-palette me-1"></i> Mode Cetak
@@ -611,14 +628,14 @@
                                 <div class="d-flex gap-4">
                                     <div class="form-check">
                                         <input class="form-check-input" type="radio"
-                                               name="mode_cetak" id="cetakBW" value="hitam_putih" checked>
+                                               name="mode_cetak" id="cetakBW" value="hitam_putih" checked onchange="hitungEstimasi()">
                                         <label class="form-check-label" for="cetakBW">
-                                            Hitam & Putih
+                                            Hitam & Putih (Rp 1.000/hal)
                                         </label>
                                     </div>
                                     <div class="form-check">
                                         <input class="form-check-input" type="radio"
-                                               name="mode_cetak" id="cetakWarna" value="full_color">
+                                               name="mode_cetak" id="cetakWarna" value="full_color" onchange="hitungEstimasi()">
                                         <label class="form-check-label" for="cetakWarna">
                                             Full Color
                                         </label>
@@ -626,20 +643,45 @@
                                 </div>
                             </div>
 
-                            {{-- Baris 4: Upload File --}}
+                            {{-- Baris 4: Intensitas Warna (muncul hanya jika Full Color) --}}
+                            <div class="mb-3" id="divIntensitasWarna" style="display:none;">
+                                <label class="form-label fw-semibold">
+                                    <i class="bi bi-droplet-half me-1"></i> Intensitas Warna
+                                </label>
+                                <select class="form-select" id="intensitasWarna" name="intensitas_warna" onchange="hitungEstimasi()">
+                                    <option value="" disabled selected>-- Pilih Intensitas Warna --</option>
+                                    <option value="sedikit_warna">Sedikit Warna (Rp 2.000/hal)</option>
+                                    <option value="banyak_warna">Banyak Warna (Rp 3.000/hal)</option>
+                                </select>
+                                <div class="form-text">Untuk kertas foto berwarna: Rp 5.000/hal</div>
+                            </div>
+
+                            {{-- Estimasi Harga --}}
+                            <div class="alert alert-info d-flex align-items-center mb-3" role="alert" id="estimasiBox" style="display:none !important;">
+                                <i class="bi bi-calculator me-2 flex-shrink-0" style="font-size:1.5rem;"></i>
+                                <div>
+                                    <strong>Estimasi Total:</strong> <span id="estimasiHarga" class="fw-bold fs-5">Rp 0</span><br>
+                                    <small class="text-muted">Estimasi ini bersifat sementara. Harga final akan dikonfirmasi admin via WhatsApp.</small>
+                                </div>
+                            </div>
+
+                            {{-- Baris 5: Upload File --}}
                             <div class="mb-3">
                                 <label for="fileUpload" class="form-label fw-semibold">
                                     <i class="bi bi-cloud-upload me-1"></i> Upload File Dokumen
                                 </label>
-                                {{-- TOMBOL UPLOAD FILE TIRUAN --}}
-                                <input class="form-control" type="file" id="fileUpload" name="file_dokumen"
-                                       accept=".pdf,.doc,.docx,.jpg,.jpeg,.png">
+                                <input class="form-control" type="file" id="fileUpload" name="file_dokumen[]"
+                                       accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" multiple required onchange="previewFiles()">
                                 <div class="form-text">
-                                    Format yang diterima: PDF, Word (.doc/.docx), atau Gambar (JPG/PNG). Maks. 10 MB.
+                                    Format: PDF, Word (.doc/.docx), Gambar (JPG/PNG). Maks. 10 MB per file. <strong>Bisa upload hingga 5 file sekaligus.</strong>
+                                </div>
+                                <div id="filePreviewList" class="mt-3" style="display:none;">
+                                    <div class="fw-semibold mb-2 small text-muted">File yang dipilih:</div>
+                                    <ul id="fileListItems" class="list-group list-group-flush"></ul>
                                 </div>
                             </div>
 
-                            {{-- Baris 5: Catatan Tambahan --}}
+                            {{-- Baris 6: Catatan Tambahan --}}
                             <div class="mb-4">
                                 <label for="catatanTambahan" class="form-label fw-semibold">
                                     <i class="bi bi-chat-left-text me-1"></i> Catatan Tambahan (Opsional)
@@ -739,10 +781,14 @@
                                     'dibatalkan'       => ['color' => '#ef4444', 'bg' => '#fff5f5', 'border' => '#ef4444', 'icon' => 'bi-x-circle-fill',     'label' => 'Dibatalkan'],
                                 ];
                                 $cfg = $statusConfig[$order['status']] ?? $statusConfig['Menunggu Antrean'];
+
+                                // Untuk pesanan ATK, ubah label "Menunggu Antrean" → "Menunggu Konfirmasi"
+                                if (($order['item_type'] ?? 'jasa') === 'produk' && $order['status'] === 'Menunggu Antrean') {
+                                    $cfg['label'] = 'Menunggu Konfirmasi';
+                                }
                                 $createdAt = \Carbon\Carbon::parse($order['created_at'])->locale('id');
                                 $updatedAt = \Carbon\Carbon::parse($order['updated_at'])->locale('id');
                                 $isBatalkan = $order['status'] === 'dibatalkan';
-                                $isMenunggu = $order['status'] === 'Menunggu Antrean';
                             @endphp
 
                             {{-- Notif sukses batalkan --}}
@@ -784,14 +830,45 @@
                                         {{-- Detail Pesanan --}}
                                         <div class="row g-2 mt-1" style="font-size: 0.88rem;">
                                             <div class="col-6">
-                                                <div class="text-muted">Detail Cetak</div>
+                                                <div class="text-muted">{{ ($order['item_type'] ?? 'jasa') === 'produk' ? 'Detail Produk' : 'Detail Cetak' }}</div>
                                                 <div class="fw-semibold">{{ $order['detail_pesanan'] }}</div>
                                             </div>
+                                            @if(($order['item_type'] ?? 'jasa') === 'produk')
+                                            {{-- Info khusus pesanan ATK --}}
+                                            <div class="col-6">
+                                                <div class="text-muted">Total Pembayaran</div>
+                                                <div class="fw-semibold" style="color: var(--warna-aksen);">
+                                                    Rp {{ number_format($order['total_harga'] ?? 0, 0, ',', '.') }}
+                                                </div>
+                                            </div>
+                                            <div class="col-6">
+                                                <div class="text-muted">Status Pembayaran</div>
+                                                <div class="fw-semibold">
+                                                    @php
+                                                        $payLabel = match($order['payment_status'] ?? '') {
+                                                            'lunas'               => '✅ Lunas',
+                                                            'menunggu_konfirmasi' => '⏳ Menunggu Konfirmasi',
+                                                            'ditolak'             => '❌ Bukti Ditolak',
+                                                            default               => '⏳ Menunggu Konfirmasi',
+                                                        };
+                                                    @endphp
+                                                    {{ $payLabel }}
+                                                </div>
+                                            </div>
+                                            @if($order['catatan_pembayaran'] ?? null)
+                                            <div class="col-12">
+                                                <div class="text-muted">Catatan Admin</div>
+                                                <div class="fw-semibold">{{ $order['catatan_pembayaran'] }}</div>
+                                            </div>
+                                            @endif
+                                            @else
+                                            {{-- Info khusus jasa cetak --}}
                                             @if($order['catatan'])
                                             <div class="col-6">
                                                 <div class="text-muted">Catatan</div>
                                                 <div class="fw-semibold">{{ $order['catatan'] }}</div>
                                             </div>
+                                            @endif
                                             @endif
                                             <div class="col-6">
                                                 <div class="text-muted">Tanggal Pesan</div>
@@ -814,8 +891,8 @@
                                                     Alasan: {{ $order['alasan_pembatalan'] }}
                                                 </div>
                                             </div>
-                                        @elseif(!$isBatalkan)
-                                            {{-- Progress tracker (hanya tampil kalau tidak dibatalkan) --}}
+                                        @elseif(!$isBatalkan && ($order['item_type'] ?? 'jasa') === 'jasa')
+                                            {{-- Progress tracker hanya untuk jasa cetak --}}
                                             <div class="mt-3 pt-2" style="border-top: 1px solid rgba(0,0,0,0.07);">
                                                 <div class="d-flex justify-content-between align-items-center position-relative">
                                                     <div class="position-absolute" style="top: 14px; left: 10%; right: 10%; height: 3px; background: #e2e8f0; z-index: 0;"></div>
@@ -865,20 +942,38 @@
                                                     Pesanan masuk antrian. Tim kami akan segera memprosesnya.
                                                 </div>
                                             @endif
+                                        @elseif(!$isBatalkan && ($order['item_type'] ?? 'jasa') === 'produk')
+                                            {{-- Info status pembayaran untuk ATK --}}
+                                            @php
+                                                $ps = $order['payment_status'] ?? 'menunggu_konfirmasi';
+                                            @endphp
+                                            @if($ps === 'lunas')
+                                                <div class="mt-3 p-2 text-center rounded"
+                                                     style="background: #dcfce7; font-size: 0.85rem; color: #15803d;">
+                                                    <i class="bi bi-check-circle-fill me-1"></i>
+                                                    Pembayaran dikonfirmasi lunas. Pesanan sedang diproses admin.
+                                                </div>
+                                            @elseif($ps === 'ditolak')
+                                                <div class="mt-3 p-2 text-center rounded"
+                                                     style="background: #fee2e2; font-size: 0.85rem; color: #991b1b;">
+                                                    <i class="bi bi-x-circle-fill me-1"></i>
+                                                    Bukti pembayaran ditolak. Silakan upload ulang melalui halaman Pesanan Saya.
+                                                </div>
+                                            @elseif($ps === 'menunggu_persetujuan_batal')
+                                                <div class="mt-3 p-2 text-center rounded"
+                                                     style="background: #fce7f3; font-size: 0.85rem; color: #9d174d;">
+                                                    <i class="bi bi-clock-history me-1"></i>
+                                                    Permintaan pembatalan sedang diproses admin.
+                                                </div>
+                                            @else
+                                                <div class="mt-3 p-2 text-center rounded"
+                                                     style="background: #fef9c3; font-size: 0.85rem; color: #92400e;">
+                                                    <i class="bi bi-hourglass-split me-1"></i>
+                                                    Bukti pembayaran sedang menunggu konfirmasi admin.
+                                                </div>
+                                            @endif
                                         @endif
 
-                                        {{-- Tombol batalkan (hanya jika Menunggu Antrean) --}}
-                                        @if($isMenunggu)
-                                            <div class="mt-3 pt-2 text-end" style="border-top: 1px solid rgba(0,0,0,0.07);">
-                                                <button type="button"
-                                                        class="btn btn-sm btn-outline-danger rounded-pill px-3"
-                                                        style="font-size: 0.82rem;"
-                                                        data-bs-toggle="modal"
-                                                        data-bs-target="#modalBatalPelanggan">
-                                                    <i class="bi bi-x-lg me-1"></i>Batalkan Pesanan Ini
-                                                </button>
-                                            </div>
-                                        @endif
 
                                     </div>
                                 </div>
@@ -892,54 +987,6 @@
         </section>
 
     </div>{{-- Akhir .container --}}
-
-    {{-- ================================================
-         MODAL: Batalkan Pesanan (Pelanggan)
-         ================================================ --}}
-    @if(session('cek_result') && (session('cek_result')['status'] ?? '') === 'Menunggu Antrean')
-    <div class="modal fade" id="modalBatalPelanggan" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content border-0" style="border-radius: 16px; overflow: hidden;">
-                <div class="modal-header border-0 px-4 pt-4 pb-2" style="background: #fff5f5;">
-                    <div>
-                        <h5 class="fw-bold mb-1 text-danger">
-                            <i class="bi bi-x-circle-fill me-2"></i>Batalkan Pesanan
-                        </h5>
-                        <p class="text-muted mb-0" style="font-size: 0.85rem;">
-                            Pesanan: <strong>{{ session('cek_result')['order_number'] }}</strong>
-                        </p>
-                    </div>
-                    <button type="button" class="btn-close ms-auto" data-bs-dismiss="modal"></button>
-                </div>
-                <form action="{{ route('cetak.cancel') }}" method="POST">
-                    @csrf
-                    <input type="hidden" name="order_number" value="{{ session('cek_result')['order_number'] }}">
-                    <div class="modal-body px-4 py-3">
-                        <div class="alert alert-warning border-0 py-2 px-3 mb-3"
-                             style="border-radius: 10px; background: #fef9c3; font-size: 0.83rem;">
-                            <i class="bi bi-exclamation-triangle-fill text-warning me-2"></i>
-                            Pembatalan <strong>tidak dapat dibatalkan</strong>. Pastikan kamu yakin sebelum melanjutkan.
-                        </div>
-                        <label class="form-label fw-semibold mb-1">Alasan Pembatalan <span class="text-danger">*</span></label>
-                        <textarea name="alasan_pembatalan"
-                                  class="form-control"
-                                  rows="3"
-                                  placeholder="Contoh: Berubah pikiran, dokumen belum siap, dll."
-                                  maxlength="500"
-                                  required></textarea>
-                    </div>
-                    <div class="modal-footer border-0 px-4 pb-4 pt-0 gap-2">
-                        <button type="button" class="btn btn-outline-secondary rounded-pill flex-fill"
-                                data-bs-dismiss="modal">Kembali</button>
-                        <button type="submit" class="btn btn-danger rounded-pill flex-fill fw-semibold">
-                            <i class="bi bi-x-lg me-1"></i>Ya, Batalkan Pesanan
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-    @endif
 
     <!-- ================================================
          FOOTER
@@ -1027,6 +1074,135 @@
                 if (seksi) seksi.scrollIntoView({ behavior: 'smooth', block: 'start' });
             });
         }
+
+        // ============================================================
+        // PREVIEW NAMA FILE YANG DIPILIH
+        // ============================================================
+        function previewFiles() {
+            const input       = document.getElementById('fileUpload');
+            const previewBox  = document.getElementById('filePreviewList');
+            const listEl      = document.getElementById('fileListItems');
+
+            listEl.innerHTML = '';
+
+            if (!input.files || input.files.length === 0) {
+                previewBox.style.display = 'none';
+                return;
+            }
+
+            // Validasi maks 5 file
+            if (input.files.length > 5) {
+                listEl.innerHTML = `<li class="list-group-item px-0 py-2 border-0">
+                    <div class="alert alert-danger mb-0 py-2 px-3" style="font-size:0.85rem; border-radius:8px;">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                        Maksimal <strong>5 file</strong> yang dapat diunggah. Kamu memilih <strong>${input.files.length} file</strong>.
+                        Silakan pilih ulang.
+                    </div>
+                </li>`;
+                previewBox.style.display = 'block';
+                // Reset input supaya tombol submit tidak aktif dengan file invalid
+                input.setCustomValidity('Maksimal 5 file.');
+                return;
+            }
+
+            input.setCustomValidity(''); // Clear error jika valid
+
+            const icons = {
+                'pdf'  : 'bi-file-earmark-pdf-fill text-danger',
+                'doc'  : 'bi-file-earmark-word-fill text-primary',
+                'docx' : 'bi-file-earmark-word-fill text-primary',
+                'jpg'  : 'bi-file-earmark-image-fill text-success',
+                'jpeg' : 'bi-file-earmark-image-fill text-success',
+                'png'  : 'bi-file-earmark-image-fill text-success',
+            };
+
+            for (let i = 0; i < input.files.length; i++) {
+                const file = input.files[i];
+                const ext  = file.name.split('.').pop().toLowerCase();
+                const icon = icons[ext] || 'bi-file-earmark-fill text-secondary';
+                const size = (file.size / 1024 / 1024).toFixed(2) + ' MB';
+
+                const li = document.createElement('li');
+                li.className = 'list-group-item d-flex align-items-center gap-2 px-0 py-1 border-0';
+                li.innerHTML = `<i class="bi ${icon} fs-5 flex-shrink-0"></i>
+                    <span style="font-size:0.85rem;" class="text-truncate flex-grow-1">${file.name}</span>
+                    <span class="badge bg-light text-muted rounded-pill flex-shrink-0" style="font-size:0.75rem;">${size}</span>`;
+                listEl.appendChild(li);
+            }
+
+            // Label jumlah file
+            const summary = document.createElement('li');
+            summary.className = 'list-group-item px-0 pt-2 pb-0 border-0';
+            summary.innerHTML = `<small class="text-muted"><i class="bi bi-info-circle me-1"></i>${input.files.length} dari 5 file dipilih</small>`;
+            listEl.appendChild(summary);
+
+            previewBox.style.display = 'block';
+        }
+
+        // ============================================================
+        // KALKULASI ESTIMASI HARGA JASA CETAK
+        // ============================================================
+        const TARIF = {
+            // Kertas biasa
+            hvs_a4:      { hitam_putih: 1000, sedikit_warna: 2000, banyak_warna: 3000 },
+            hvs_f4:      { hitam_putih: 1000, sedikit_warna: 2000, banyak_warna: 3000 },
+            // Kertas foto
+            foto_glossy: { hitam_putih: 1000, sedikit_warna: 5000, banyak_warna: 5000 },
+            foto_matte:  { hitam_putih: 1000, sedikit_warna: 5000, banyak_warna: 5000 },
+        };
+
+        function hitungEstimasi() {
+            const jenisKertas     = document.getElementById('jenisKertas').value;
+            const jumlahHalaman   = parseInt(document.getElementById('jumlahHalaman').value) || 0;
+            const jumlahCetak     = parseInt(document.getElementById('jumlahCetak').value) || 0;
+            const modeCetak       = document.querySelector('input[name="mode_cetak"]:checked')?.value;
+            const intensitasEl    = document.getElementById('intensitasWarna');
+            const divIntensitas   = document.getElementById('divIntensitasWarna');
+            const estimasiBox     = document.getElementById('estimasiBox');
+            const estimasiHargaEl = document.getElementById('estimasiHarga');
+
+            // Tampilkan / sembunyikan intensitas warna
+            if (modeCetak === 'full_color') {
+                divIntensitas.style.display = 'block';
+                intensitasEl.required = true;
+            } else {
+                divIntensitas.style.display = 'none';
+                intensitasEl.required = false;
+            }
+
+            // Hitung estimasi jika semua field terisi
+            if (!jenisKertas || jumlahHalaman < 1 || jumlahCetak < 1 || !modeCetak) {
+                estimasiBox.style.display = 'none';
+                return;
+            }
+
+            let hargaPerHalaman = 0;
+            const tarif = TARIF[jenisKertas];
+
+            if (tarif) {
+                if (modeCetak === 'hitam_putih') {
+                    hargaPerHalaman = tarif.hitam_putih;
+                } else {
+                    const intensitas = intensitasEl.value;
+                    if (!intensitas) {
+                        estimasiBox.style.display = 'none';
+                        return;
+                    }
+                    hargaPerHalaman = tarif[intensitas] ?? 0;
+                }
+            }
+
+            const total = hargaPerHalaman * jumlahHalaman * jumlahCetak;
+
+            estimasiHargaEl.textContent = 'Rp ' + total.toLocaleString('id-ID');
+            estimasiBox.style.removeProperty('display');
+            estimasiBox.style.display = 'flex';
+        }
+
+        // Jalankan saat halaman load (reset)
+        document.addEventListener('DOMContentLoaded', function () {
+            hitungEstimasi();
+        });
     </script>
 </body>
 </html>

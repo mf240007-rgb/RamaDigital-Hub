@@ -42,10 +42,11 @@ class VerifikasiAtkController extends Controller
 
         // Hitung badge tiap status
         $counts = [
-            'menunggu_konfirmasi' => Order::where('item_type','produk')->where('payment_status','menunggu_konfirmasi')->count(),
-            'lunas'               => Order::where('item_type','produk')->where('payment_status','lunas')->count(),
-            'ditolak'             => Order::where('item_type','produk')->where('payment_status','ditolak')->count(),
-            'semua'               => Order::where('item_type','produk')->count(),
+            'menunggu_konfirmasi'        => Order::where('item_type','produk')->where('payment_status','menunggu_konfirmasi')->count(),
+            'menunggu_persetujuan_batal' => Order::where('item_type','produk')->where('payment_status','menunggu_persetujuan_batal')->count(),
+            'lunas'                      => Order::where('item_type','produk')->where('payment_status','lunas')->count(),
+            'ditolak'                    => Order::where('item_type','produk')->where('payment_status','ditolak')->count(),
+            'semua'                      => Order::where('item_type','produk')->count(),
         ];
 
         return view('admin.verifikasi-atk.index', compact('orders', 'filter', 'keyword', 'counts'));
@@ -131,5 +132,77 @@ class VerifikasiAtkController extends Controller
             ->with('error', 'Pembayaran pesanan '
                 .($order->order_number ?? '#'.$id)
                 .' ditolak.');
+    }
+
+    /**
+     * Setujui permintaan pembatalan dari pelanggan — restock & batalkan order
+     */
+    public function setujuiPembatalan(Request $request, $id)
+    {
+        if ($redirect = $this->guardAdmin()) return $redirect;
+
+        $order = Order::where('item_type', 'produk')
+            ->where('payment_status', 'menunggu_persetujuan_batal')
+            ->findOrFail($id);
+
+        // Kembalikan stok dari detail_pesanan
+        // Format: "Nama Produk x3, Produk Lain x1"
+        $this->restoreStock($order);
+
+        $order->update([
+            'payment_status' => 'dibatalkan',
+            'status'         => 'dibatalkan',
+            'catatan_pembayaran' => $request->catatan ?: 'Pembatalan disetujui admin. Refund sedang diproses.',
+            'dibatalkan_oleh' => 'admin',
+            'cancelled_at'    => now(),
+        ]);
+
+        return redirect()->back()
+            ->with('success', 'Pembatalan pesanan '.($order->order_number ?? '#'.$id).' disetujui. Stok produk telah dikembalikan.');
+    }
+
+    /**
+     * Tolak permintaan pembatalan — kembalikan ke menunggu_konfirmasi
+     */
+    public function tolakPembatalan(Request $request, $id)
+    {
+        if ($redirect = $this->guardAdmin()) return $redirect;
+
+        $order = Order::where('item_type', 'produk')
+            ->where('payment_status', 'menunggu_persetujuan_batal')
+            ->findOrFail($id);
+
+        $order->update([
+            'payment_status'             => 'menunggu_konfirmasi',
+            'cancellation_reason'        => null,
+            'cancellation_requested_at'  => null,
+            'catatan_pembayaran'         => $request->catatan ?: 'Permintaan pembatalan ditolak oleh admin.',
+        ]);
+
+        return redirect()->back()
+            ->with('success', 'Permintaan pembatalan pesanan '.($order->order_number ?? '#'.$id).' ditolak. Status dikembalikan ke Menunggu Konfirmasi.');
+    }
+
+    /**
+     * Helper: kembalikan stok berdasarkan detail_pesanan
+     * Format yang diparse: "Nama Produk x3, Produk Lain x1"
+     */
+    private function restoreStock(Order $order): void
+    {
+        if (!$order->detail_pesanan) return;
+
+        $items = explode(', ', $order->detail_pesanan);
+        foreach ($items as $item) {
+            // Match "Nama Produk xN"
+            if (preg_match('/^(.+)\s+x(\d+)$/i', trim($item), $matches)) {
+                $namaProduk = trim($matches[1]);
+                $qty        = (int) $matches[2];
+
+                $product = \App\Models\Product::where('name_produk', $namaProduk)->first();
+                if ($product && $qty > 0) {
+                    $product->increment('stok', $qty);
+                }
+            }
+        }
     }
 }

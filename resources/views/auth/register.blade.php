@@ -216,23 +216,19 @@
                 <label for="whatsapp" class="form-label">
                     <i class="bi bi-whatsapp me-2"></i>Nomor WhatsApp
                 </label>
-                <div class="input-group">
-                    <span class="input-group-text @error('whatsapp') border-danger text-danger @enderror">+62</span>
-                    <input type="tel"
-                           class="form-control @error('whatsapp') is-invalid @enderror"
-                           id="whatsapp"
-                           name="whatsapp"
-                           value="{{ old('whatsapp') }}"
-                              inputmode="numeric"
-                              maxlength="13"
-                              pattern="[0-9]{12,13}"
-                           placeholder="812-3456-7890"
-                           required>
-                </div>
+                <input type="tel"
+                       class="form-control @error('whatsapp') is-invalid @enderror"
+                       id="whatsapp"
+                       name="whatsapp"
+                       value="{{ old('whatsapp') }}"
+                       inputmode="numeric"
+                       maxlength="15"
+                       pattern="[0-9]{10,15}"
+                       placeholder="Contoh: 08123456789"
+                       required>
                 @error('whatsapp')
                     <div class="invalid-feedback d-block fw-bold mt-1">{{ $message }}</div>
                 @enderror
-                <small class="text-muted d-block mt-1">Nomor tanpa +62, contoh: 812-3456-7890</small>
             </div>
 
             {{-- Password Field --}}
@@ -296,7 +292,7 @@
 
     {{-- Bootstrap JS --}}
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
-            integrity="sha384-YvpcrYf0tY3lHB60NNkmXc4s9bIOgUxi8T/jyor3NBAIsDfCxnXHcpkEPRiNqaEB"
+            integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
             crossorigin="anonymous"></script>
 
     <script>

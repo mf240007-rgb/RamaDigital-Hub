@@ -65,15 +65,15 @@
                                 <td>
                                     @php
                                         $statusColor = match($order->status) {
-                                            'Menunggu Antrean' => ['bg' => '#dbeafe', 'text' => '#1e40af', 'icon' => 'bi-clock'],
-                                            'diproses'        => ['bg' => '#fff3cd', 'text' => '#856404', 'icon' => 'bi-gear'],
-                                            'selesai'         => ['bg' => '#d1fae5', 'text' => '#065f46', 'icon' => 'bi-check-circle'],
-                                            default           => ['bg' => '#f3f4f6', 'text' => '#374151', 'icon' => 'bi-dash'],
+                                            'Menunggu Antrean' => ['bg' => '#dbeafe', 'text' => '#1e40af', 'icon' => 'bi-clock',       'label' => 'Menunggu Antrean'],
+                                            'diproses'        => ['bg' => '#fff3cd', 'text' => '#856404', 'icon' => 'bi-gear',         'label' => 'Diproses'],
+                                            'selesai'         => ['bg' => '#d1fae5', 'text' => '#065f46', 'icon' => 'bi-check-circle', 'label' => 'Selesai'],
+                                            default           => ['bg' => '#f3f4f6', 'text' => '#374151', 'icon' => 'bi-dash',         'label' => $order->status],
                                         };
                                     @endphp
                                     <span class="badge rounded-pill px-3 py-2"
                                           style="background: {{ $statusColor['bg'] }}; color: {{ $statusColor['text'] }}; font-size: 0.8rem;">
-                                        <i class="bi {{ $statusColor['icon'] }} me-1"></i>{{ $order->status }}
+                                        <i class="bi {{ $statusColor['icon'] }} me-1"></i>{{ $statusColor['label'] ?? $order->status }}
                                     </span>
                                 </td>
                                 <td>{{ $order->created_at->format('d M Y H:i') }}</td>

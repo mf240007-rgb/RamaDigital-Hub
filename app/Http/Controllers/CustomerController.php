@@ -134,6 +134,45 @@ class CustomerController extends Controller
         return response()->file($path);
     }
 
+    public function ajukanPembatalan(Request $request, $id)
+    {
+        if (!Auth::check()) {
+            return redirect()->route('user.login');
+        }
+
+        $request->validate([
+            'cancellation_reason' => 'required|string|max:500',
+        ], [
+            'cancellation_reason.required' => 'Alasan pembatalan wajib diisi.',
+        ]);
+
+        $order = Order::where('id', $id)
+            ->where('user_id', Auth::id())
+            ->where('item_type', 'produk')
+            ->firstOrFail();
+
+        // Hanya boleh ajukan batal jika masih menunggu konfirmasi
+        if ($order->payment_status !== 'menunggu_konfirmasi') {
+            return redirect()->route('customer.orders')
+                ->with('error', 'Pembatalan hanya bisa diajukan saat status pembayaran masih Menunggu Konfirmasi.');
+        }
+
+        // Cegah duplikat permintaan
+        if ($order->cancellation_requested_at) {
+            return redirect()->route('customer.orders')
+                ->with('error', 'Permintaan pembatalan sudah pernah diajukan dan sedang diproses admin.');
+        }
+
+        $order->update([
+            'payment_status'             => 'menunggu_persetujuan_batal',
+            'cancellation_reason'        => $request->cancellation_reason,
+            'cancellation_requested_at'  => now(),
+        ]);
+
+        return redirect()->route('customer.orders')
+            ->with('success', 'Permintaan pembatalan berhasil diajukan. Admin akan menghubungi kamu via WhatsApp untuk proses refund.');
+    }
+
     public function resetPassword(Request $request, $id)
     {
         if ($redirect = $this->guardAdmin()) {

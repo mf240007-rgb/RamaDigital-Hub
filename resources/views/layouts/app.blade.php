@@ -86,10 +86,12 @@
             .page-header-row {
                 flex-direction: column;
                 align-items: flex-start !important;
+                gap: .5rem;
             }
             .page-header-row .btn,
-            .page-header-row a {
+            .page-header-row a.btn {
                 width: 100%;
+                text-align: center;
             }
             .cart-item-row,
             .checkout-summary-item {
@@ -100,14 +102,29 @@
             .checkout-summary-item .text-end {
                 width: 100%;
                 text-align: left !important;
+                margin-top: .5rem;
             }
             .cart-item-row .input-group {
                 width: 100% !important;
+                margin-top: .5rem;
+            }
+            .cart-item-row {
+                padding: 1rem !important;
+            }
+            .cart-item-row > div:first-child {
+                width: 56px;
+                height: 56px;
             }
             .checkout-sticky {
                 position: static !important;
                 top: auto !important;
             }
+            .checkout-sticky img.img-fluid { max-width: 180px !important; }
+            .form-cetak-wrapper .d-flex.gap-4 { flex-direction: column; gap: .75rem !important; }
+            .status-wrapper .input-group { flex-direction: column; }
+            .status-wrapper .input-group .form-control,
+            .status-wrapper .input-group .btn { border-radius: 10px !important; width: 100%; }
+            .status-wrapper .input-group .input-group-text { display: none; }
             footer { text-align: center; }
             footer p { font-size: .92rem; }
         }
@@ -115,6 +132,12 @@
         @media (max-width: 575.98px) {
             .page-shell { padding-top: 74px; }
             .alert-wrapper .alert { padding: .9rem; }
+            .container { padding-left: 12px !important; padding-right: 12px !important; }
+            .card-body.px-4 { padding-left: 1rem !important; padding-right: 1rem !important; }
+            .card-header.px-4 { padding-left: 1rem !important; padding-right: 1rem !important; }
+            h2 { font-size: 1.4rem !important; }
+            .fs-5 { font-size: 1rem !important; }
+            .fs-3 { font-size: 1.3rem !important; }
         }
     </style>
 </head>

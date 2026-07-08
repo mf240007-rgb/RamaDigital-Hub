@@ -111,16 +111,16 @@ class PrintOrderController extends Controller
 
         $order = Order::where('item_type', 'jasa')->findOrFail($id);
 
-        // Hapus file dokumen dari storage jika ada
-        if ($order->file_dokumen) {
+        // Hapus semua file dokumen dari storage
+        $files = $order->getDokumenFiles();
+        foreach ($files as $fileName) {
             $paths = [
-                storage_path('app/private/dokumen_cetak/' . $order->file_dokumen),
-                storage_path('app/dokumen_cetak/' . $order->file_dokumen),
+                storage_path('app/private/dokumen_cetak/' . $fileName),
+                storage_path('app/dokumen_cetak/' . $fileName),
             ];
             foreach ($paths as $path) {
                 if (file_exists($path)) {
                     @unlink($path);
-                    break;
                 }
             }
         }
@@ -177,15 +177,15 @@ class PrintOrderController extends Controller
 
         $deleted = 0;
         foreach ($orders as $order) {
-            if ($order->file_dokumen) {
+            $files = $order->getDokumenFiles();
+            foreach ($files as $fileName) {
                 $paths = [
-                    storage_path('app/private/dokumen_cetak/' . $order->file_dokumen),
-                    storage_path('app/dokumen_cetak/' . $order->file_dokumen),
+                    storage_path('app/private/dokumen_cetak/' . $fileName),
+                    storage_path('app/dokumen_cetak/' . $fileName),
                 ];
                 foreach ($paths as $path) {
                     if (file_exists($path)) {
                         @unlink($path);
-                        break;
                     }
                 }
             }
@@ -197,30 +197,39 @@ class PrintOrderController extends Controller
     }
 
     /**
-     * Download dokumen yang diunggah pelanggan
+     * Download dokumen yang diunggah pelanggan.
+     * Mendukung multi-file via query param ?fileIndex=0
      */
-    public function download($id)
+    public function download(Request $request, $id)
     {
         if ($redirect = $this->guardAdmin()) {
             return $redirect;
         }
 
         $order = Order::findOrFail($id);
+        $files = $order->getDokumenFiles();
 
-        if (!$order->file_dokumen) {
+        if (empty($files)) {
             return redirect()->back()->with('error', 'Pesanan ini tidak memiliki dokumen.');
         }
 
-        $path = storage_path('app/private/dokumen_cetak/' . $order->file_dokumen);
+        $fileIndex = (int) $request->get('fileIndex', 0);
+        if (!isset($files[$fileIndex])) {
+            $fileIndex = 0;
+        }
+
+        $fileName = $files[$fileIndex];
+
+        $path = storage_path('app/private/dokumen_cetak/' . $fileName);
         if (!file_exists($path)) {
-            $path = storage_path('app/dokumen_cetak/' . $order->file_dokumen);
+            $path = storage_path('app/dokumen_cetak/' . $fileName);
         }
 
         if (!file_exists($path)) {
             return redirect()->back()->with('error', 'File dokumen tidak ditemukan di server.');
         }
 
-        return response()->download($path, $order->file_dokumen);
+        return response()->download($path, $fileName);
     }
 
     /**

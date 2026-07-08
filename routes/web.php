@@ -103,6 +103,7 @@ Route::post('/checkout', [\App\Http\Controllers\CheckoutController::class, 'stor
 Route::get('/pesanan-saya', [CustomerController::class, 'pesananSaya'])->name('customer.orders');
 Route::post('/pesanan-saya/{id}/bukti', [CustomerController::class, 'uploadBuktiPembayaran'])->name('customer.orders.upload-bukti');
 Route::get('/pesanan-saya/{id}/bukti', [CustomerController::class, 'lihatBuktiPembayaran'])->name('customer.orders.bukti');
+Route::post('/pesanan-saya/{id}/ajukan-batal', [CustomerController::class, 'ajukanPembatalan'])->name('customer.orders.ajukan-batal');
 
 // Halaman Pesanan Cetak (admin)
 Route::get('/admin/pesanan-cetak', [\App\Http\Controllers\Admin\PrintOrderController::class, 'index'])->name('admin.print-orders.index');
@@ -114,13 +115,10 @@ Route::get('/admin/pesanan-cetak/{id}/download-bukti', [\App\Http\Controllers\Ad
 Route::post('/admin/pesanan-cetak/{id}/konfirmasi-bayar', [\App\Http\Controllers\Admin\PrintOrderController::class, 'konfirmasiPembayaran'])->name('admin.print-orders.konfirmasi-bayar');
 Route::delete('/admin/pesanan-cetak/{id}', [\App\Http\Controllers\Admin\PrintOrderController::class, 'destroy'])->name('admin.print-orders.destroy');
 
-// Halaman Laporan (admin)
-Route::get('/admin/laporan', [\App\Http\Controllers\Admin\LaporanController::class, 'index'])->name('admin.laporan.index');
-Route::get('/admin/laporan/bukti/{id}', [\App\Http\Controllers\Admin\LaporanController::class, 'lihatBukti'])->name('admin.laporan.bukti');
-Route::post('/admin/laporan/verifikasi/{id}', [\App\Http\Controllers\Admin\LaporanController::class, 'verifikasiPembayaran'])->name('admin.laporan.verifikasi');
-
 // Halaman Verifikasi Bayar ATK (admin)
 Route::get('/admin/verifikasi-atk', [\App\Http\Controllers\Admin\VerifikasiAtkController::class, 'index'])->name('admin.verifikasi-atk.index');
 Route::get('/admin/verifikasi-atk/{id}/bukti', [\App\Http\Controllers\Admin\VerifikasiAtkController::class, 'lihatBukti'])->name('admin.verifikasi-atk.bukti');
 Route::get('/admin/verifikasi-atk/{id}/download', [\App\Http\Controllers\Admin\VerifikasiAtkController::class, 'downloadBukti'])->name('admin.verifikasi-atk.download');
 Route::post('/admin/verifikasi-atk/{id}/konfirmasi', [\App\Http\Controllers\Admin\VerifikasiAtkController::class, 'konfirmasi'])->name('admin.verifikasi-atk.konfirmasi');
+Route::post('/admin/verifikasi-atk/{id}/setujui-batal', [\App\Http\Controllers\Admin\VerifikasiAtkController::class, 'setujuiPembatalan'])->name('admin.verifikasi-atk.setujui-batal');
+Route::post('/admin/verifikasi-atk/{id}/tolak-batal', [\App\Http\Controllers\Admin\VerifikasiAtkController::class, 'tolakPembatalan'])->name('admin.verifikasi-atk.tolak-batal');

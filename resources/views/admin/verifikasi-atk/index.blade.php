@@ -42,6 +42,14 @@
                 <span class="badge bg-danger rounded-pill ms-1">{{ $counts['menunggu_konfirmasi'] }}</span>
             @endif
         </a>
+        <a href="{{ route('admin.verifikasi-atk.index', ['filter' => 'menunggu_persetujuan_batal']) }}"
+           class="btn rounded-pill px-4 {{ $filter === 'menunggu_persetujuan_batal' ? 'btn-pink fw-bold' : 'btn-outline-secondary' }}"
+           style="{{ $filter === 'menunggu_persetujuan_batal' ? 'background:#9d174d;color:white;border-color:#9d174d;' : '' }}">
+            <i class="bi bi-clock-history me-1"></i>Permintaan Batal
+            @if($counts['menunggu_persetujuan_batal'] > 0)
+                <span class="badge bg-danger rounded-pill ms-1">{{ $counts['menunggu_persetujuan_batal'] }}</span>
+            @endif
+        </a>
         <a href="{{ route('admin.verifikasi-atk.index', ['filter' => 'lunas']) }}"
            class="btn rounded-pill px-4 {{ $filter === 'lunas' ? 'btn-success fw-bold' : 'btn-outline-secondary' }}">
             <i class="bi bi-check-circle me-1"></i>Lunas
@@ -207,25 +215,45 @@
                                 <div class="d-flex flex-column align-items-center gap-1">
 
                                     @if($ps === 'menunggu_konfirmasi')
-                                        {{-- Tombol Konfirmasi Lunas --}}
                                         <button type="button"
                                                 class="btn btn-success btn-sm rounded-pill px-3 w-100"
                                                 style="font-size:0.78rem;"
                                                 onclick="bukaModalKonfirm({{ $order->id }}, '{{ addslashes($order->order_number ?? '#'.$order->id) }}', {{ $order->total_harga }})">
                                             <i class="bi bi-check2 me-1"></i>Konfirmasi Lunas
                                         </button>
-                                        {{-- Tombol Tolak --}}
                                         <button type="button"
                                                 class="btn btn-outline-danger btn-sm rounded-pill px-3 w-100"
                                                 style="font-size:0.78rem;"
                                                 onclick="bukaModalTolak({{ $order->id }}, '{{ addslashes($order->order_number ?? '#'.$order->id) }}')">
                                             <i class="bi bi-x me-1"></i>Tolak
                                         </button>
+
+                                    @elseif($ps === 'menunggu_persetujuan_batal')
+                                        {{-- Info alasan batal dari pelanggan --}}
+                                        @if($order->cancellation_reason)
+                                            <div class="text-muted mb-1 text-start w-100"
+                                                 style="font-size:0.72rem;background:#fce7f3;border-radius:6px;padding:4px 8px;border:1px solid #fbcfe8;">
+                                                <i class="bi bi-chat-left-text me-1 text-danger"></i>
+                                                {{ Str::limit($order->cancellation_reason, 50) }}
+                                            </div>
+                                        @endif
+                                        <button type="button"
+                                                class="btn btn-success btn-sm rounded-pill px-3 w-100"
+                                                style="font-size:0.78rem;"
+                                                onclick="bukaModalSetujuiBatal({{ $order->id }}, '{{ addslashes($order->order_number ?? '#'.$order->id) }}')">
+                                            <i class="bi bi-check2 me-1"></i>Setujui Batal
+                                        </button>
+                                        <button type="button"
+                                                class="btn btn-outline-warning btn-sm rounded-pill px-3 w-100"
+                                                style="font-size:0.78rem;"
+                                                onclick="bukaModalTolakBatal({{ $order->id }}, '{{ addslashes($order->order_number ?? '#'.$order->id) }}')">
+                                            <i class="bi bi-arrow-counterclockwise me-1"></i>Tolak Batal
+                                        </button>
+
                                     @elseif($ps === 'lunas')
                                         <span class="text-success" style="font-size:0.78rem;">
                                             <i class="bi bi-check-circle-fill me-1"></i>Selesai
                                         </span>
-                                        {{-- Hubungi WA --}}
                                         @if($order->user->whatsapp)
                                         <a href="https://api.whatsapp.com/send?phone={{ urlencode($wa) }}&text={{ urlencode('Halo '.$nama.', pembayaran pesanan '.$order->order_number.' sudah kami konfirmasi lunas. Pesanan sedang diproses. Terima kasih!') }}"
                                            target="_blank"
@@ -234,12 +262,12 @@
                                             <i class="bi bi-whatsapp me-1"></i>WA
                                         </a>
                                         @endif
+
                                     @elseif($ps === 'ditolak')
                                         <span class="text-danger" style="font-size:0.78rem;">
                                             <i class="bi bi-x-circle-fill me-1"></i>Ditolak
                                         </span>
                                     @else
-                                        {{-- Belum bayar — bisa hubungi via WA --}}
                                         @if($order->user->whatsapp)
                                         <a href="https://api.whatsapp.com/send?phone={{ urlencode($wa) }}&text={{ urlencode('Halo '.$nama.', kami mengingatkan bahwa pesanan '.$order->order_number.' belum kami terima pembayarannya. Silakan segera transfer dan upload bukti bayar. Terima kasih!') }}"
                                            target="_blank"
@@ -357,6 +385,75 @@
         </div>
     </div>
 
+    {{-- ── Modal Setujui Batal ── --}}
+    <div class="modal fade" id="modalSetujuiBatal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" style="max-width:420px;">
+            <div class="modal-content border-0" style="border-radius:16px;overflow:hidden;">
+                <div class="modal-header border-0 px-4 pt-4 pb-2" style="background:#fce7f3;">
+                    <div>
+                        <h5 class="fw-bold mb-1" style="color:#9d174d;">
+                            <i class="bi bi-check-circle-fill me-2"></i>Setujui Pembatalan
+                        </h5>
+                        <p class="text-muted mb-0" id="labelNoSetujuiBatal" style="font-size:0.85rem;"></p>
+                    </div>
+                    <button type="button" class="btn-close ms-auto" data-bs-dismiss="modal"></button>
+                </div>
+                <form id="formSetujuiBatal" method="POST">
+                    @csrf
+                    <div class="modal-body px-4 py-3">
+                        <div class="alert alert-warning py-2 px-3 mb-3" style="border-radius:10px;font-size:0.85rem;">
+                            <i class="bi bi-exclamation-triangle me-2"></i>
+                            Stok produk akan dikembalikan otomatis. Pastikan refund sudah dilakukan secara manual via transfer.
+                        </div>
+                        <label class="form-label fw-semibold mb-1" style="font-size:0.88rem;">Catatan (Opsional)</label>
+                        <input type="text" name="catatan" class="form-control form-control-sm"
+                               placeholder="Misal: Refund sudah ditransfer ke rekening pelanggan">
+                    </div>
+                    <div class="modal-footer border-0 px-4 pb-4 pt-0 gap-2">
+                        <button type="button" class="btn btn-outline-secondary rounded-pill flex-fill" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn rounded-pill flex-fill fw-semibold text-white" style="background:#9d174d;">
+                            <i class="bi bi-check2 me-1"></i>Setujui & Batalkan Pesanan
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    {{-- ── Modal Tolak Permintaan Batal ── --}}
+    <div class="modal fade" id="modalTolakBatal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" style="max-width:420px;">
+            <div class="modal-content border-0" style="border-radius:16px;overflow:hidden;">
+                <div class="modal-header border-0 px-4 pt-4 pb-2" style="background:#fffbeb;">
+                    <div>
+                        <h5 class="fw-bold mb-1 text-warning">
+                            <i class="bi bi-arrow-counterclockwise me-2"></i>Tolak Permintaan Batal
+                        </h5>
+                        <p class="text-muted mb-0" id="labelNoTolakBatal" style="font-size:0.85rem;"></p>
+                    </div>
+                    <button type="button" class="btn-close ms-auto" data-bs-dismiss="modal"></button>
+                </div>
+                <form id="formTolakBatal" method="POST">
+                    @csrf
+                    <div class="modal-body px-4 py-3">
+                        <p class="text-muted" style="font-size:0.85rem;">
+                            Status pesanan akan dikembalikan ke <strong>Menunggu Konfirmasi</strong>.
+                        </p>
+                        <label class="form-label fw-semibold mb-1" style="font-size:0.88rem;">Alasan Penolakan (Opsional)</label>
+                        <input type="text" name="catatan" class="form-control form-control-sm"
+                               placeholder="Misal: Pembayaran sudah terverifikasi, tidak bisa dibatalkan">
+                    </div>
+                    <div class="modal-footer border-0 px-4 pb-4 pt-0 gap-2">
+                        <button type="button" class="btn btn-outline-secondary rounded-pill flex-fill" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-warning rounded-pill flex-fill fw-semibold text-dark">
+                            <i class="bi bi-arrow-counterclockwise me-1"></i>Tolak Permintaan Batal
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <script>
         function bukaModalKonfirm(orderId, orderNumber, total) {
             document.getElementById('formKonfirm').action =
@@ -374,6 +471,20 @@
             document.getElementById('labelNoTolak').textContent = 'Pesanan: ' + orderNumber;
             document.querySelector('#formTolak textarea').value = '';
             new bootstrap.Modal(document.getElementById('modalTolak')).show();
+        }
+
+        function bukaModalSetujuiBatal(orderId, orderNumber) {
+            document.getElementById('formSetujuiBatal').action =
+                '/admin/verifikasi-atk/' + orderId + '/setujui-batal';
+            document.getElementById('labelNoSetujuiBatal').textContent = 'Pesanan: ' + orderNumber;
+            new bootstrap.Modal(document.getElementById('modalSetujuiBatal')).show();
+        }
+
+        function bukaModalTolakBatal(orderId, orderNumber) {
+            document.getElementById('formTolakBatal').action =
+                '/admin/verifikasi-atk/' + orderId + '/tolak-batal';
+            document.getElementById('labelNoTolakBatal').textContent = 'Pesanan: ' + orderNumber;
+            new bootstrap.Modal(document.getElementById('modalTolakBatal')).show();
         }
     </script>
 

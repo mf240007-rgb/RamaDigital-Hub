@@ -149,12 +149,11 @@
                             $bgColor = $colors[$index % count($colors)];
 
                             $statusStyle = match($order->status) {
-                                'Menunggu Antrean' => ['bg' => '#dbeafe', 'text' => '#1e40af', 'icon' => 'bi-clock'],
+                                'Menunggu Antrean' => ['bg' => '#dbeafe', 'text' => '#1e40af', 'icon' => 'bi-clock', 'label' => 'Menunggu Konfirmasi'],
                                 'diproses'         => ['bg' => '#fff3cd', 'text' => '#856404', 'icon' => 'bi-gear-fill'],
                                 'selesai'          => ['bg' => '#d1fae5', 'text' => '#065f46', 'icon' => 'bi-check-circle-fill'],
                                 'dibatalkan'       => ['bg' => '#fee2e2', 'text' => '#991b1b', 'icon' => 'bi-x-circle-fill'],
-                                default            => ['bg' => '#f3f4f6', 'text' => '#374151', 'icon' => 'bi-dash'],
-                            };
+                                default            => ['bg' => '#f3f4f6', 'text' => '#374151', 'icon' => 'bi-dash'],                            };
                         @endphp
                         <tr class="order-row" data-id="{{ $order->id }}">
                             {{-- Checkbox --}}
@@ -199,9 +198,57 @@
 
                             {{-- Detail --}}
                             <td style="font-size:0.85rem;">
-                                <div>{{ $order->detail_pesanan }}</div>
-                                @if($order->catatan)
-                                    <small class="text-muted"><i class="bi bi-chat-left-text me-1"></i>{{ $order->catatan }}</small>
+                                @php
+                                    // ── Ringkasan satu baris ──────────────────────────────
+                                    $labelKertasPendek = match($order->jenis_kertas ?? '') {
+                                        'hvs_a4'      => 'HVS A4',
+                                        'hvs_f4'      => 'HVS F4',
+                                        'foto_glossy' => 'Foto Glossy',
+                                        'foto_matte'  => 'Foto Matte',
+                                        default       => $order->jenis_kertas ?? '—',
+                                    };
+                                    $labelMode = match($order->mode_cetak ?? '') {
+                                        'hitam_putih' => 'H&P',
+                                        'full_color'  => 'Full Color',
+                                        default       => null,
+                                    };
+                                    // ── Konten popover (HTML di-escape) ──────────────────
+                                    $popLines = [];
+                                    if ($order->jenis_kertas)    $popLines[] = '<b>Kertas:</b> ' . $labelKertasPendek;
+                                    if ($order->jumlah_cetak)    $popLines[] = '<b>Cetak:</b> ' . $order->jumlah_cetak . '×';
+                                    if ($order->mode_cetak)      $popLines[] = '<b>Mode:</b> ' . ($order->mode_cetak === 'hitam_putih' ? 'Hitam & Putih' : 'Full Color');
+                                    if ($order->intensitas_warna) $popLines[] = '<b>Warna:</b> ' . ($order->intensitas_warna === 'sedikit_warna' ? 'Sedikit' : 'Banyak');
+                                    if ($order->estimasi_harga > 0) $popLines[] = '<b>Estimasi:</b> Rp ' . number_format($order->estimasi_harga, 0, ',', '.');
+                                    if ($order->catatan)         $popLines[] = '<b>Catatan:</b> ' . e($order->catatan);
+                                    $popContent = implode('<br>', $popLines) ?: 'Tidak ada detail tambahan.';
+                                @endphp
+
+                                {{-- Ringkasan utama --}}
+                                <div class="d-flex align-items-center gap-1 fw-semibold">
+                                    <span>{{ $labelKertasPendek }}{{ $labelMode ? ' · ' . $labelMode : '' }}</span>
+                                    @if(!empty($popLines))
+                                        <button type="button"
+                                                class="btn btn-link p-0 border-0 text-muted detail-popover"
+                                                data-bs-toggle="popover"
+                                                data-bs-trigger="click"
+                                                data-bs-placement="right"
+                                                data-bs-html="true"
+                                                data-bs-title="Detail Pesanan"
+                                                data-bs-content="{{ $popContent }}"
+                                                style="font-size:0.9rem;line-height:1;"
+                                                title="Lihat detail">
+                                            <i class="bi bi-info-circle"></i>
+                                        </button>
+                                    @endif
+                                </div>
+
+                                {{-- Estimasi harga — satu-satunya info tambahan yang selalu tampil --}}
+                                @if($order->estimasi_harga > 0)
+                                    <div class="mt-1">
+                                        <span style="font-size:0.78rem;font-weight:600;color:var(--warna-aksen);">
+                                            Rp {{ number_format($order->estimasi_harga, 0, ',', '.') }}
+                                        </span>
+                                    </div>
                                 @endif
                             </td>
 
@@ -213,15 +260,55 @@
 
                             {{-- Dokumen --}}
                             <td class="text-center">
-                                @if($order->file_dokumen)
-                                    <a href="{{ route('admin.print-orders.download', $order->id) }}"
+                                @php $files = $order->getDokumenFiles(); @endphp
+                                @if(empty($files))
+                                    <span class="text-muted" style="font-size:0.82rem;">— Tidak ada</span>
+                                @elseif(count($files) === 1)
+                                    {{-- Satu file: tombol download biasa --}}
+                                    <a href="{{ route('admin.print-orders.download', ['id' => $order->id, 'fileIndex' => 0]) }}"
                                        class="btn btn-primary btn-sm rounded-pill px-3"
                                        style="font-size:0.78rem;white-space:nowrap;"
                                        title="Download dokumen">
                                         <i class="bi bi-download me-1"></i>Download
                                     </a>
                                 @else
-                                    <span class="text-muted" style="font-size:0.82rem;">— Tidak ada</span>
+                                    {{-- Banyak file: dropdown --}}
+                                    <div class="dropdown">
+                                        <button class="btn btn-primary btn-sm rounded-pill px-3 dropdown-toggle"
+                                                type="button"
+                                                data-bs-toggle="dropdown"
+                                                aria-expanded="false"
+                                                style="font-size:0.78rem;white-space:nowrap;">
+                                            <i class="bi bi-files me-1"></i>{{ count($files) }} Dokumen
+                                        </button>
+                                        <ul class="dropdown-menu dropdown-menu-end shadow-sm" style="min-width:220px;font-size:0.82rem;border-radius:10px;">
+                                            @foreach($files as $idx => $fileName)
+                                                @php
+                                                    $ext      = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
+                                                    $iconFile = match($ext) {
+                                                        'pdf'         => 'bi-file-earmark-pdf-fill text-danger',
+                                                        'doc', 'docx' => 'bi-file-earmark-word-fill text-primary',
+                                                        'jpg', 'jpeg', 'png' => 'bi-file-earmark-image-fill text-success',
+                                                        default       => 'bi-file-earmark-fill text-secondary',
+                                                    };
+                                                    // Ambil nama asli file (hapus prefix timestamp_userid_uniqid_)
+                                                    $displayName = preg_replace('/^\d+_\d+_[a-f0-9]+_/i', '', $fileName);
+                                                @endphp
+                                                <li>
+                                                    <a class="dropdown-item d-flex align-items-center gap-2 py-2"
+                                                       href="{{ route('admin.print-orders.download', ['id' => $order->id, 'fileIndex' => $idx]) }}">
+                                                        <i class="bi {{ $iconFile }} flex-shrink-0"></i>
+                                                        <span class="text-truncate" style="max-width:150px;" title="{{ $displayName }}">
+                                                            {{ $displayName }}
+                                                        </span>
+                                                    </a>
+                                                </li>
+                                                @if(!$loop->last)
+                                                    <li><hr class="dropdown-divider my-0"></li>
+                                                @endif
+                                            @endforeach
+                                        </ul>
+                                    </div>
                                 @endif
                             </td>
 
@@ -510,10 +597,28 @@
             new bootstrap.Modal(modal).show();
         }
 
-        // ── Init tooltips ─────────────────────────────────────
+        // ── Init tooltips & popovers ──────────────────────────
         document.addEventListener('DOMContentLoaded', function () {
+            // Tooltips
             document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(function (el) {
                 new bootstrap.Tooltip(el, { placement: 'top' });
+            });
+
+            // Popovers (detail pesanan)
+            document.querySelectorAll('.detail-popover').forEach(function (el) {
+                new bootstrap.Popover(el, {
+                    sanitize: false,   // izinkan HTML di content
+                });
+            });
+
+            // Tutup semua popover saat klik di luar
+            document.addEventListener('click', function (e) {
+                if (!e.target.closest('.detail-popover') && !e.target.closest('.popover')) {
+                    document.querySelectorAll('.detail-popover').forEach(function (el) {
+                        const pop = bootstrap.Popover.getInstance(el);
+                        if (pop) pop.hide();
+                    });
+                }
             });
         });
     </script>

@@ -35,9 +35,15 @@
                 <ul class="nav flex-column sidebar-nav mt-2">
                     <li class="nav-item"><a class="nav-link @if(request()->routeIs('admin.dashboard')) active @endif" href="{{ route('admin.dashboard') }}"><i class="bi bi-speedometer2 me-2"></i> Dashboard</a></li>
                     <li class="nav-item"><a class="nav-link @if(request()->routeIs('admin.produk.*')) active @endif" href="{{ route('admin.produk.index') }}"><i class="bi bi-box-seam me-2"></i> Kelola Produk ATK</a></li>
-                    <li class="nav-item"><a class="nav-link @if(request()->routeIs('admin.print-orders.*')) active @endif" href="{{ route('admin.print-orders.index') }}"><i class="bi bi-printer me-2"></i> Pesanan Cetak</a></li>
+                    <li class="nav-item"><a class="nav-link @if(request()->routeIs('admin.print-orders.*')) active @endif" href="{{ route('admin.print-orders.index') }}"><i class="bi bi-printer me-2"></i> Pesanan Cetak
+                        @php
+                            $newCetak = \App\Models\Order::where('item_type','jasa')->where('status','Menunggu Antrean')->count();
+                        @endphp
+                        @if($newCetak > 0)
+                            <span class="badge bg-danger rounded-pill ms-1" style="font-size:0.7rem;">{{ $newCetak }}</span>
+                        @endif
+                    </a></li>
                     <li class="nav-item"><a class="nav-link @if(request()->routeIs('admin.customers.*')) active @endif" href="{{ route('admin.customers.index') }}"><i class="bi bi-people me-2"></i> Data Pelanggan</a></li>
-                    <li class="nav-item"><a class="nav-link @if(request()->routeIs('admin.laporan.*')) active @endif" href="{{ route('admin.laporan.index') }}"><i class="bi bi-bar-chart me-2"></i> Laporan ATK</a></li>
                     <li class="nav-item">
                         <a class="nav-link @if(request()->routeIs('admin.verifikasi-atk.*')) active @endif"
                            href="{{ route('admin.verifikasi-atk.index') }}"

@@ -81,22 +81,22 @@
             </div>
         </div>
         <div class="col-sm-6 col-xl-3">
-            <a href="{{ route('admin.laporan.index') }}" class="text-decoration-none">
-                <div class="card stat-card border-0 h-100"
-                     style="border-radius:16px; background:linear-gradient(135deg,#ef4444,#f87171); color:white;">
-                    <div class="card-body d-flex align-items-center gap-3 p-4">
-                        <div class="stat-icon rounded-3 d-flex align-items-center justify-content-center"
-                             style="width:52px;height:52px;background:rgba(255,255,255,0.2);font-size:1.5rem;flex-shrink:0;">
-                            <i class="bi bi-bar-chart-fill"></i>
+            <div class="card stat-card border-0 h-100"
+                 style="border-radius:16px; background:linear-gradient(135deg,#ef4444,#f87171); color:white;">
+                <div class="card-body d-flex align-items-center gap-3 p-4">
+                    <div class="stat-icon rounded-3 d-flex align-items-center justify-content-center"
+                         style="width:52px;height:52px;background:rgba(255,255,255,0.2);font-size:1.5rem;flex-shrink:0;">
+                        <i class="bi bi-cash-coin"></i>
+                    </div>
+                    <div>
+                        <div class="small opacity-75">Total Penghasilan</div>
+                        <div class="fw-bold lh-1 mt-1" style="font-size:1.1rem;">
+                            Rp {{ number_format($totalPenghasilan, 0, ',', '.') }}
                         </div>
-                        <div>
-                            <div class="small opacity-75">Lihat Laporan ATK</div>
-                            <div class="fw-bold fs-5 lh-1 mt-1">Buka Laporan</div>
-                            <div class="small opacity-75 mt-1">Pendapatan & tren penjualan</div>
-                        </div>
+                        <div class="small opacity-75 mt-1">Pesanan ATK yang lunas</div>
                     </div>
                 </div>
-            </a>
+            </div>
         </div>
     </div>
 
@@ -164,8 +164,8 @@
                     <h6 class="fw-bold mb-0" style="color: var(--warna-gelap);">
                         <i class="bi bi-bag me-2 text-warning"></i>Pesanan ATK Terbaru
                     </h6>
-                    <a href="{{ route('admin.laporan.index') }}" class="btn btn-sm btn-outline-warning rounded-pill px-3">
-                        Laporan
+                    <a href="{{ route('admin.verifikasi-atk.index') }}" class="btn btn-sm btn-outline-warning rounded-pill px-3">
+                        Lihat Semua
                     </a>
                 </div>
                 <div class="card-body p-0">
@@ -188,11 +188,36 @@
                                         Rp {{ number_format($order->total_harga, 0, ',', '.') }}
                                     </td>
                                     <td class="pe-4">
+                                        @php
+                                            $ps = $order->payment_status ?? 'menunggu_konfirmasi';
+                                            $psBg = match($ps) {
+                                                'lunas'                      => '#d1fae5',
+                                                'menunggu_konfirmasi'        => '#dbeafe',
+                                                'menunggu_persetujuan_batal' => '#fce7f3',
+                                                'ditolak'                    => '#fee2e2',
+                                                'dibatalkan'                 => '#fee2e2',
+                                                default                      => '#dbeafe',
+                                            };
+                                            $psColor = match($ps) {
+                                                'lunas'                      => '#065f46',
+                                                'menunggu_konfirmasi'        => '#1e40af',
+                                                'menunggu_persetujuan_batal' => '#9d174d',
+                                                'ditolak'                    => '#991b1b',
+                                                'dibatalkan'                 => '#991b1b',
+                                                default                      => '#1e40af',
+                                            };
+                                            $psLabel = match($ps) {
+                                                'lunas'                      => 'Lunas',
+                                                'menunggu_konfirmasi'        => 'Menunggu Konfirmasi',
+                                                'menunggu_persetujuan_batal' => 'Permintaan Batal',
+                                                'ditolak'                    => 'Ditolak',
+                                                'dibatalkan'                 => 'Dibatalkan',
+                                                default                      => 'Menunggu Konfirmasi',
+                                            };
+                                        @endphp
                                         <span class="badge rounded-pill px-2"
-                                              style="font-size:0.75rem;
-                                                     background:{{ match($order->status){ 'selesai'=>'#d1fae5','diproses'=>'#fff3cd','dibatalkan'=>'#fee2e2',default=>'#dbeafe'} }};
-                                                     color:{{ match($order->status){ 'selesai'=>'#065f46','diproses'=>'#856404','dibatalkan'=>'#991b1b',default=>'#1e40af'} }};">
-                                            {{ $order->status }}
+                                              style="font-size:0.75rem;background:{{ $psBg }};color:{{ $psColor }};">
+                                            {{ $psLabel }}
                                         </span>
                                     </td>
                                 </tr>

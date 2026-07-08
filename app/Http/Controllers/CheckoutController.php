@@ -6,6 +6,7 @@ use App\Models\Order;
 use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class CheckoutController extends Controller
 {
@@ -40,7 +41,7 @@ class CheckoutController extends Controller
         return view('checkout.index', compact('items', 'total'));
     }
 
-    /** Proses checkout: simpan order + bukti bayar */
+    /** Proses checkout: validasi stok → simpan order → kurangi stok → upload bukti */
     public function store(Request $request)
     {
         if (!Auth::check()) {
@@ -48,8 +49,9 @@ class CheckoutController extends Controller
         }
 
         $request->validate([
-            'bukti_bayar' => 'nullable|image|mimes:jpg,jpeg,png|max:5120',
+            'bukti_bayar' => 'required|image|mimes:jpg,jpeg,png|max:5120',
         ], [
+            'bukti_bayar.required' => 'Bukti pembayaran wajib diupload sebelum mengirim pesanan.',
             'bukti_bayar.image'    => 'File harus berupa gambar.',
             'bukti_bayar.mimes'    => 'Format gambar harus JPG atau PNG.',
             'bukti_bayar.max'      => 'Ukuran file maksimal 5 MB.',
@@ -62,46 +64,80 @@ class CheckoutController extends Controller
             return redirect()->route('cart.view')->with('error', 'Keranjang kosong.');
         }
 
-        // Hitung total & buat detail
-        $total   = 0;
-        $details = [];
-
+        // ── Validasi stok sebelum proses ──────────────────────
+        $stockErrors = [];
         foreach ($cart as $productId => $quantity) {
             $product = Product::find($productId);
-            if ($product) {
-                $total   += $product->harga * $quantity;
-                $details[] = $product->name_produk . ' x' . $quantity;
+            if (!$product) continue;
+            if ($product->stok < $quantity) {
+                $stockErrors[] = "Stok <strong>{$product->name_produk}</strong> tidak cukup. "
+                    . "Tersedia: {$product->stok} pcs, diminta: {$quantity} pcs.";
             }
         }
 
-        // Simpan bukti pembayaran jika sudah diupload saat checkout
-        $fileName = null;
-        if ($request->hasFile('bukti_bayar')) {
-            $file     = $request->file('bukti_bayar');
-            $fileName = time() . '_' . Auth::id() . '_bukti.' . $file->getClientOriginalExtension();
-            $file->storeAs('bukti_bayar', $fileName, 'public');
+        if (!empty($stockErrors)) {
+            return redirect()->route('cart.view')
+                ->with('error', 'Pesanan gagal: ' . implode(' ', $stockErrors));
         }
 
-        $paymentStatus = $fileName ? 'menunggu_konfirmasi' : 'ditolak';
+        // ── Proses dalam transaction ────────────────────────────
+        try {
+            DB::beginTransaction();
 
-        // Buat order
-        Order::create([
-            'order_number'   => Order::generateOrderNumber(),
-            'user_id'        => Auth::id(),
-            'item_type'      => 'produk',
-            'detail_pesanan' => implode(', ', $details),
-            'total_harga'    => $total,
-            'status'         => 'Menunggu Antrean',
-            'payment_status' => $paymentStatus,
-            'bukti_bayar'    => $fileName,
-        ]);
+            $total   = 0;
+            $details = [];
+
+            foreach ($cart as $productId => $quantity) {
+                // lockForUpdate mencegah race condition jika 2 user beli produk sama bersamaan
+                $product = Product::lockForUpdate()->find($productId);
+                if (!$product) continue;
+
+                // Double check stok di dalam transaction
+                if ($product->stok < $quantity) {
+                    DB::rollBack();
+                    return redirect()->route('cart.view')
+                        ->with('error', "Stok {$product->name_produk} habis saat pemrosesan. Silakan cek kembali keranjang.");
+                }
+
+                $total   += $product->harga * $quantity;
+                $details[] = $product->name_produk . ' x' . $quantity;
+
+                // Kurangi stok sejumlah yang dibeli
+                $product->decrement('stok', $quantity);
+            }
+
+            // Simpan bukti pembayaran
+            $fileName = null;
+            if ($request->hasFile('bukti_bayar')) {
+                $file     = $request->file('bukti_bayar');
+                $fileName = time() . '_' . Auth::id() . '_bukti.' . $file->getClientOriginalExtension();
+                $file->storeAs('bukti_bayar', $fileName, 'public');
+            }
+
+            // Buat order
+            Order::create([
+                'order_number'   => Order::generateOrderNumber(),
+                'user_id'        => Auth::id(),
+                'item_type'      => 'produk',
+                'detail_pesanan' => implode(', ', $details),
+                'total_harga'    => $total,
+                'status'         => 'Menunggu Antrean',
+                'payment_status' => 'menunggu_konfirmasi',
+                'bukti_bayar'    => $fileName,
+            ]);
+
+            DB::commit();
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->route('cart.view')
+                ->with('error', 'Terjadi kesalahan saat memproses pesanan. Silakan coba lagi.');
+        }
 
         // Kosongkan keranjang
         session()->forget($cartKey);
 
         return redirect()->route('customer.orders')
-            ->with('success', $fileName
-                ? 'Pesanan berhasil dikirim! Admin akan memverifikasi bukti pembayaran kamu dan menghubungi via WhatsApp.'
-                : 'Pesanan berhasil disimpan sebagai ditolak sementara. Kamu bisa upload bukti pembayaran dari halaman Pesanan Saya.');
+            ->with('success', 'Pesanan berhasil dikirim! Admin akan memverifikasi bukti pembayaran kamu dan menghubungi via WhatsApp.');
     }
 }

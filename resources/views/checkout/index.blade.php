@@ -86,23 +86,28 @@
                     </div>
                     <div class="card-body px-4 py-3">
                         <p class="text-muted mb-3" style="font-size: 0.88rem;">
-                            Setelah transfer, upload screenshot bukti pembayaran di sini atau lewat menu <strong>Pesanan Saya</strong> setelah pesanan tersimpan.
+                            Setelah transfer, upload screenshot bukti pembayaran di sini.
+                            <span class="text-danger fw-semibold">Bukti pembayaran wajib diupload untuk mengirim pesanan.</span>
                         </p>
                         <input type="file" name="bukti_bayar" id="bukti_bayar"
                                class="form-control @error('bukti_bayar') is-invalid @enderror"
                                accept="image/jpeg,image/png,image/jpg"
+                               required
                                onchange="previewBukti(this)">
                         @error('bukti_bayar')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
+                        <div class="form-text mt-2">
+                            <i class="bi bi-exclamation-triangle-fill text-warning me-1"></i>
+                            Format: <strong>JPG / PNG</strong>, maksimal <strong>5 MB</strong>.
+                        </div>
                         <div id="preview-container" class="mt-3 d-none text-center">
                             <img id="preview-img" src="" alt="Preview"
                                  class="rounded-2 shadow-sm"
                                  style="max-width: 100%; max-height: 180px; object-fit: contain;">
-                        </div>
-                        <div class="form-text mt-2">
-                            <i class="bi bi-shield-check text-success me-1"></i>
-                            Jika bukti belum diupload sekarang, pesanan tetap tersimpan sebagai <strong>Belum Bayar</strong>.
+                            <div class="mt-2">
+                                <span class="badge bg-success"><i class="bi bi-check-circle me-1"></i>Bukti siap dikirim</span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -183,10 +188,14 @@
                             </div>
                         </div>
 
-                        <button type="submit" class="btn btn-primary w-100 fw-bold py-2 rounded-pill"
-                                style="background: linear-gradient(135deg, var(--warna-utama), #4a9eff); border: none;">
+                        <button type="submit" id="btn-submit" class="btn btn-primary w-100 fw-bold py-2 rounded-pill"
+                                style="background: linear-gradient(135deg, var(--warna-utama), #4a9eff); border: none;"
+                                disabled>
                             <i class="bi bi-send-fill me-2"></i>Kirim Pesanan
                         </button>
+                        <div id="submit-warning" class="text-center mt-2" style="font-size:0.8rem; color:#dc3545;">
+                            <i class="bi bi-exclamation-circle me-1"></i>Upload bukti pembayaran terlebih dahulu
+                        </div>
 
                     </div>
                 </div>
@@ -200,6 +209,9 @@
 function previewBukti(input) {
     const container = document.getElementById('preview-container');
     const img       = document.getElementById('preview-img');
+    const btnSubmit = document.getElementById('btn-submit');
+    const warning   = document.getElementById('submit-warning');
+
     if (input.files && input.files[0]) {
         const reader = new FileReader();
         reader.onload = e => {
@@ -207,7 +219,29 @@ function previewBukti(input) {
             container.classList.remove('d-none');
         };
         reader.readAsDataURL(input.files[0]);
+
+        // Aktifkan tombol submit
+        btnSubmit.disabled = false;
+        btnSubmit.style.opacity = '1';
+        warning.style.display = 'none';
+    } else {
+        container.classList.add('d-none');
+        btnSubmit.disabled = true;
+        warning.style.display = 'block';
     }
 }
+
+// Pastikan tombol tetap disabled jika belum ada file saat halaman di-refresh (browser autofill)
+document.addEventListener('DOMContentLoaded', function () {
+    const input     = document.getElementById('bukti_bayar');
+    const btnSubmit = document.getElementById('btn-submit');
+    const warning   = document.getElementById('submit-warning');
+
+    if (!input.files || input.files.length === 0) {
+        btnSubmit.disabled = true;
+        btnSubmit.style.opacity = '0.65';
+        warning.style.display = 'block';
+    }
+});
 </script>
 @endsection

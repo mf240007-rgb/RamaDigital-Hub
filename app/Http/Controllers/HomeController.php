@@ -105,6 +105,7 @@ class HomeController extends Controller
 
     /**
      * Cek status pesanan berdasarkan nomor pesanan (tanpa login)
+     * Mendukung kedua tipe: jasa cetak & produk ATK
      */
     public function cekStatus(Request $request)
     {
@@ -116,9 +117,8 @@ class HomeController extends Controller
 
         $orderNumber = strtoupper(trim($request->order_number));
 
-        $order = Order::where('order_number', $orderNumber)
-            ->where('item_type', 'jasa')
-            ->first();
+        // Cari pesanan dari semua tipe (jasa cetak & produk ATK)
+        $order = Order::where('order_number', $orderNumber)->first();
 
         if (!$order) {
             return redirect()->to(route('home') . '#cek-status')
@@ -130,8 +130,12 @@ class HomeController extends Controller
         return redirect()->to(route('home') . '#cek-status')
             ->with('cek_result', [
                 'order_number'      => $order->order_number,
+                'item_type'         => $order->item_type,
                 'detail_pesanan'    => $order->detail_pesanan,
+                'total_harga'       => $order->total_harga,
+                'payment_status'    => $order->payment_status,
                 'catatan'           => $order->catatan,
+                'catatan_pembayaran'=> $order->catatan_pembayaran,
                 'status'            => $order->status,
                 'alasan_pembatalan' => $order->alasan_pembatalan,
                 'dibatalkan_oleh'   => $order->dibatalkan_oleh,
@@ -218,26 +222,75 @@ class HomeController extends Controller
                 ->with('error', 'Silakan login terlebih dahulu untuk memesan jasa cetak.');
         }
 
+        // Deteksi jika request body kosong akibat post_max_size PHP terlampaui
+        // Ketika ini terjadi, $_POST dan $_FILES kosong padahal ada data yang dikirim
+        if (empty($_POST) && empty($_FILES) && $request->server('CONTENT_LENGTH') > 0) {
+            $maxPost = ini_get('post_max_size');
+            return redirect()->to(route('home') . '#jasa-cetak')
+                ->with('error', "Total ukuran file terlalu besar. Batas upload server saat ini adalah {$maxPost}. Coba kurangi jumlah file atau gunakan file yang lebih kecil.")
+                ->withInput();
+        }
+
         $validated = $request->validate([
-            'jenis_kertas'  => 'required|string|max:50',
-            'jumlah'        => 'required|integer|min:1',
-            'mode_cetak'    => 'required|in:hitam_putih,full_color',
-            'file_dokumen'  => 'required|file|mimes:pdf,doc,docx,jpg,jpeg,png|max:10240',
-            'catatan'       => 'nullable|string|max:500',
+            'jenis_kertas'     => 'required|string|max:50',
+            'jumlah_halaman'   => 'required|integer|min:1',
+            'jumlah_cetak'     => 'required|integer|min:1',
+            'mode_cetak'       => 'required|in:hitam_putih,full_color',
+            'intensitas_warna' => 'required_if:mode_cetak,full_color|nullable|in:sedikit_warna,banyak_warna',
+            'file_dokumen'     => 'required|array|min:1|max:5',
+            'file_dokumen.*'   => 'file|mimes:pdf,doc,docx,jpg,jpeg,png|max:10240',
+            'catatan'          => 'nullable|string|max:500',
         ], [
-            'jenis_kertas.required' => 'Pilih jenis kertas terlebih dahulu.',
-            'jumlah.required'       => 'Jumlah lembar wajib diisi.',
-            'jumlah.min'            => 'Jumlah lembar minimal 1.',
-            'mode_cetak.required'   => 'Pilih mode cetak.',
-            'file_dokumen.required' => 'File dokumen wajib diunggah.',
-            'file_dokumen.mimes'    => 'Format file harus PDF, Word, JPG, atau PNG.',
-            'file_dokumen.max'      => 'Ukuran file maksimal 10 MB.',
+            'jenis_kertas.required'          => 'Pilih jenis kertas terlebih dahulu.',
+            'jumlah_halaman.required'         => 'Jumlah halaman wajib diisi.',
+            'jumlah_halaman.min'              => 'Jumlah halaman minimal 1.',
+            'jumlah_cetak.required'           => 'Jumlah cetak wajib diisi.',
+            'jumlah_cetak.min'                => 'Jumlah cetak minimal 1.',
+            'mode_cetak.required'             => 'Pilih mode cetak.',
+            'intensitas_warna.required_if'    => 'Pilih intensitas warna untuk mode Full Color.',
+            'file_dokumen.required'           => 'Upload minimal satu file dokumen.',
+            'file_dokumen.min'                => 'Upload minimal satu file dokumen.',
+            'file_dokumen.max'                => 'Maksimal 5 file dapat diunggah sekaligus.',
+            'file_dokumen.*.mimes'            => 'Format file harus PDF, Word, JPG, atau PNG.',
+            'file_dokumen.*.max'              => 'Ukuran setiap file maksimal 10 MB.',
         ]);
 
-        // Simpan file dokumen ke storage/app/private/dokumen_cetak (disk local Laravel 11)
-        $file      = $request->file('file_dokumen');
-        $fileName  = time() . '_' . Auth::id() . '_' . preg_replace('/\s+/', '_', $file->getClientOriginalName());
-        $file->storeAs('dokumen_cetak', $fileName, 'local');
+        // Simpan semua file dokumen ke storage/app/private/dokumen_cetak
+        $fileNames = [];
+        foreach ($request->file('file_dokumen') as $file) {
+            $fileName    = time() . '_' . Auth::id() . '_' . uniqid() . '_' . preg_replace('/\s+/', '_', $file->getClientOriginalName());
+            $file->storeAs('dokumen_cetak', $fileName, 'local');
+            $fileNames[] = $fileName;
+        }
+
+        // ===== HITUNG ESTIMASI HARGA =====
+        $jumlahHalaman   = $validated['jumlah_halaman'];
+        $jumlahCetak     = $validated['jumlah_cetak'];
+        $jenisKertas     = $validated['jenis_kertas'];
+        $modeCetak       = $validated['mode_cetak'];
+        $intensitasWarna = $validated['intensitas_warna'] ?? null;
+
+        $hargaPerHalaman = 0;
+
+        // Kertas biasa
+        if (in_array($jenisKertas, ['hvs_a4', 'hvs_f4'])) {
+            if ($modeCetak === 'hitam_putih') {
+                $hargaPerHalaman = 1000;
+            } else {
+                // Full color
+                $hargaPerHalaman = ($intensitasWarna === 'sedikit_warna') ? 2000 : 3000;
+            }
+        }
+        // Kertas foto
+        elseif (in_array($jenisKertas, ['foto_glossy', 'foto_matte'])) {
+            if ($modeCetak === 'hitam_putih') {
+                $hargaPerHalaman = 1000; // asumsi H&P di foto sama dengan biasa
+            } else {
+                $hargaPerHalaman = 5000;
+            }
+        }
+
+        $estimasiHarga = $hargaPerHalaman * $jumlahHalaman * $jumlahCetak;
 
         // Buat detail pesanan yang mudah dibaca
         $labelKertas = [
@@ -248,22 +301,29 @@ class HomeController extends Controller
         ];
         $namaKertas    = $labelKertas[$validated['jenis_kertas']] ?? $validated['jenis_kertas'];
         $namaCetak     = $validated['mode_cetak'] === 'hitam_putih' ? 'Hitam & Putih' : 'Full Color';
-        $detailPesanan = "{$namaKertas}, {$validated['jumlah']} lembar, {$namaCetak}";
+        
+        // Detail pesanan dengan info halaman × cetak
+        $detailPesanan = "{$namaKertas}, {$jumlahHalaman} halaman × {$jumlahCetak} cetak, {$namaCetak}";
 
         $orderNumber = Order::generateOrderNumber();
 
         Order::create([
-            'order_number'  => $orderNumber,
-            'user_id'       => Auth::id(),
-            'item_type'     => 'jasa',
-            'file_dokumen'  => $fileName,
-            'detail_pesanan'=> $detailPesanan,
-            'total_harga'   => 0, // Admin akan konfirmasi harga via WhatsApp
-            'status'        => 'Menunggu Antrean',
-            'jenis_kertas'  => $validated['jenis_kertas'],
-            'jumlah_lembar' => $validated['jumlah'],
-            'mode_cetak'    => $validated['mode_cetak'],
-            'catatan'       => $validated['catatan'] ?? null,
+            'order_number'     => $orderNumber,
+            'user_id'          => Auth::id(),
+            'item_type'        => 'jasa',
+            'file_dokumen'     => $fileNames[0],          // File pertama di kolom lama (kompatibilitas)
+            'file_dokumen_list'=> $fileNames,             // Semua file di kolom baru (JSON)
+            'detail_pesanan'   => $detailPesanan,
+            'total_harga'      => $estimasiHarga, // Simpan estimasi sebagai total_harga awal, admin bisa edit
+            'estimasi_harga'   => $estimasiHarga, // Simpan juga di kolom estimasi untuk tracking
+            'status'           => 'Menunggu Antrean',
+            'jenis_kertas'     => $validated['jenis_kertas'],
+            'jumlah_lembar'    => null, // Field lama, tidak terpakai lagi
+            'jumlah_halaman'   => $jumlahHalaman,
+            'jumlah_cetak'     => $jumlahCetak,
+            'mode_cetak'       => $validated['mode_cetak'],
+            'intensitas_warna' => $intensitasWarna,
+            'catatan'          => $validated['catatan'] ?? null,
         ]);
 
         return redirect()->route('home')
