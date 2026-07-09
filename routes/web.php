@@ -114,6 +114,7 @@ Route::post('/admin/pesanan-cetak/{id}/cancel', [\App\Http\Controllers\Admin\Pri
 Route::get('/admin/pesanan-cetak/{id}/download', [\App\Http\Controllers\Admin\PrintOrderController::class, 'download'])->name('admin.print-orders.download');
 Route::get('/admin/pesanan-cetak/{id}/download-bukti', [\App\Http\Controllers\Admin\PrintOrderController::class, 'downloadBukti'])->name('admin.print-orders.download-bukti');
 Route::post('/admin/pesanan-cetak/{id}/konfirmasi-bayar', [\App\Http\Controllers\Admin\PrintOrderController::class, 'konfirmasiPembayaran'])->name('admin.print-orders.konfirmasi-bayar');
+Route::post('/admin/pesanan-cetak/{id}/tolak-bayar', [\App\Http\Controllers\Admin\PrintOrderController::class, 'tolakPembayaran'])->name('admin.print-orders.tolak-bayar');
 Route::delete('/admin/pesanan-cetak/{id}', [\App\Http\Controllers\Admin\PrintOrderController::class, 'destroy'])->name('admin.print-orders.destroy');
 
 // Halaman Verifikasi Bayar ATK (admin)

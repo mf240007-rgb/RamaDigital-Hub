@@ -37,7 +37,17 @@
                     <li class="nav-item"><a class="nav-link @if(request()->routeIs('admin.produk.*')) active @endif" href="{{ route('admin.produk.index') }}"><i class="bi bi-box-seam me-2"></i> Kelola Produk ATK</a></li>
                     <li class="nav-item"><a class="nav-link @if(request()->routeIs('admin.print-orders.*')) active @endif" href="{{ route('admin.print-orders.index') }}"><i class="bi bi-printer me-2"></i> Pesanan Cetak
                         @php
-                            $newCetak = \App\Models\Order::where('item_type','jasa')->where('status','Menunggu Antrean')->count();
+                            $newCetak = \App\Models\Order::where('item_type','jasa')
+                                ->where('status','!=','dibatalkan')
+                                ->where(function ($query) {
+                                    $query->whereIn('payment_status',['dp_diterima','lunas','sisa_dibayar'])
+                                        ->orWhere(function ($sub) {
+                                            $sub->where('payment_status','menunggu_konfirmasi')
+                                                ->whereNotNull('bukti_bayar')
+                                                ->where('bukti_bayar','!=','');
+                                        });
+                                })
+                                ->count();
                         @endphp
                         @if($newCetak > 0)
                             <span class="badge bg-danger rounded-pill ms-1" style="font-size:0.7rem;">{{ $newCetak }}</span>

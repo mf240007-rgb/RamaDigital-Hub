@@ -12,8 +12,12 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->string('full_name')->nullable()->after('name');
-            $table->string('whatsapp')->nullable()->after('full_name');
+            if (!Schema::hasColumn('users', 'full_name')) {
+                $table->string('full_name')->nullable()->after('name');
+            }
+            if (!Schema::hasColumn('users', 'whatsapp')) {
+                $table->string('whatsapp')->nullable()->after('full_name');
+            }
         });
     }
 

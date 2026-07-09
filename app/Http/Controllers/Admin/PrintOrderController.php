@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Order;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Schema;
 
 class PrintOrderController extends Controller
 {
@@ -31,6 +32,15 @@ class PrintOrderController extends Controller
 
         $orders = Order::with('user')
             ->where('item_type', 'jasa')
+            ->where('status', '!=', 'dibatalkan')
+            ->where(function ($query) {
+                $query->whereIn('payment_status', ['dp_diterima', 'lunas', 'sisa_dibayar'])
+                    ->orWhere(function ($sub) {
+                        $sub->where('payment_status', 'menunggu_konfirmasi')
+                            ->whereNotNull('bukti_bayar')
+                            ->where('bukti_bayar', '!=', '');
+                    });
+            })
             ->when($keyword, function ($q) use ($keyword) {
                 $q->whereHas('user', function ($uq) use ($keyword) {
                     $uq->where('full_name', 'LIKE', '%' . $keyword . '%');
@@ -65,6 +75,11 @@ class PrintOrderController extends Controller
         ]);
 
         $order = Order::where('item_type', 'jasa')->findOrFail($id);
+
+        if (in_array($request->status, ['diproses', 'selesai'], true) && !$order->isDepositConfirmed()) {
+            return redirect()->back()->with('error', 'Pesanan belum menerima pembayaran awal (DP). Konfirmasi pembayaran awal terlebih dahulu sebelum memproses pesanan.');
+        }
+
         $order->status = $request->status;
 
         if ($request->status === 'selesai' && $request->filled('harga_final')) {
@@ -179,6 +194,15 @@ class PrintOrderController extends Controller
             ]);
 
             $query = Order::where('item_type', 'jasa')
+                ->where('status', '!=', 'dibatalkan')
+                ->where(function ($query) {
+                    $query->whereIn('payment_status', ['dp_diterima', 'lunas', 'sisa_dibayar'])
+                        ->orWhere(function ($sub) {
+                            $sub->where('payment_status', 'menunggu_konfirmasi')
+                                ->whereNotNull('bukti_bayar')
+                                ->where('bukti_bayar', '!=', '');
+                        });
+                })
                 ->where('created_at', '<', now()->subDays((int) $request->filter_older));
 
             if ($request->filter_status !== 'semua') {
@@ -264,16 +288,67 @@ class PrintOrderController extends Controller
         ]);
 
         $order = Order::findOrFail($id);
-        $order->payment_status       = 'lunas';
-        $order->harga_final          = $request->harga_final ?: $order->total_harga;
-        $order->catatan_pembayaran   = $request->catatan_pembayaran;
-        // Jika harga final > 0, update total_harga juga
-        if ($request->harga_final) {
-            $order->total_harga = $request->harga_final;
+        $mode = $request->input('payment_mode', 'dp');
+
+        $catatanPembayaran = trim((string) ($request->input('catatan_pembayaran') ?: ''));
+        $order->catatan_pembayaran = $catatanPembayaran !== ''
+            ? $catatanPembayaran
+            : ($mode === 'sisa' ? 'Pembayaran sisa telah diterima oleh admin.' : 'Pembayaran awal (DP) diterima oleh admin.');
+
+        $finalPrice = $request->filled('harga_final') ? (int) $request->input('harga_final') : null;
+        if ($finalPrice !== null && $finalPrice > 0) {
+            $order->total_harga = $finalPrice;
+        } elseif (($order->total_harga ?? 0) <= 0) {
+            $order->total_harga = (int) ($order->estimasi_harga ?: 0);
         }
+
+        if (Schema::hasColumn('orders', 'harga_final')) {
+            $order->harga_final = $finalPrice !== null && $finalPrice > 0 ? $finalPrice : $order->total_harga;
+        }
+
+        if ($mode === 'sisa') {
+            $order->payment_status = 'lunas';
+            $order->paid_at = now();
+        } else {
+            $order->payment_status = 'dp_diterima';
+            $order->paid_at = now();
+            $order->status = 'diproses';
+        }
+
         $order->save();
 
-        return redirect()->back()->with('success', 'Pembayaran pesanan ' . ($order->order_number ?? '#'.$id) . ' berhasil dikonfirmasi.');
+        $message = $mode === 'sisa'
+            ? 'Pembayaran sisa pesanan ' . ($order->order_number ?? '#'.$id) . ' berhasil dikonfirmasi.'
+            : 'Pembayaran awal (DP) pesanan ' . ($order->order_number ?? '#'.$id) . ' berhasil dikonfirmasi.';
+
+        return redirect()->back()->with('success', $message);
+    }
+
+    /**
+     * Tolak bukti pembayaran yang dinilai tidak valid.
+     */
+    public function tolakPembayaran(Request $request, $id)
+    {
+        if ($redirect = $this->guardAdmin()) {
+            return $redirect;
+        }
+
+        $request->validate([
+            'alasan_pembatalan' => 'nullable|string|max:500',
+        ]);
+
+        $order = Order::findOrFail($id);
+        $alasan = trim((string) ($request->input('alasan_pembatalan') ?: ''));
+
+        $order->payment_status = 'ditolak';
+        $order->catatan_pembayaran = $alasan !== ''
+            ? 'Pembayaran ditolak oleh admin: ' . $alasan
+            : 'Pembayaran ditolak oleh admin karena bukti tidak sesuai/valid.';
+        $order->paid_at = null;
+        $order->status = 'Menunggu Antrean';
+        $order->save();
+
+        return redirect()->back()->with('success', 'Pembayaran pesanan ' . ($order->order_number ?? '#'.$id) . ' berhasil ditolak.');
     }
 
     /**
@@ -291,9 +366,26 @@ class PrintOrderController extends Controller
             return redirect()->back()->with('error', 'Tidak ada bukti pembayaran untuk pesanan ini.');
         }
 
-        $path = storage_path('app/private/bukti_bayar/' . $order->bukti_bayar);
-        if (!file_exists($path)) {
+        $paths = [
+            storage_path('app/private/bukti_bayar/' . $order->bukti_bayar),
+            storage_path('app/public/bukti_bayar/' . $order->bukti_bayar),
+        ];
+
+        $path = null;
+        foreach ($paths as $candidate) {
+            if (file_exists($candidate)) {
+                $path = $candidate;
+                break;
+            }
+        }
+
+        if (!$path) {
             return redirect()->back()->with('error', 'File bukti pembayaran tidak ditemukan.');
+        }
+
+        $mimeType = mime_content_type($path);
+        if (str_starts_with($mimeType, 'image/')) {
+            return response()->file($path, ['Content-Type' => $mimeType]);
         }
 
         return response()->download($path, $order->bukti_bayar);

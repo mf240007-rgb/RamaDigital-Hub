@@ -64,7 +64,11 @@ class CustomerController extends Controller
             ->orderByDesc('created_at')
             ->get();
 
-        return view('customer.orders', compact('orders'));
+        // Kirim cartCount agar badge keranjang di navbar muncul
+        $cartKey   = 'cart_user_' . Auth::id();
+        $cartCount = count(session($cartKey, []));
+
+        return view('customer.orders', compact('orders', 'cartCount'));
     }
 
     public function nota($id)
@@ -100,7 +104,7 @@ class CustomerController extends Controller
 
         $order = Order::where('id', $id)
             ->where('user_id', Auth::id())
-            ->where('item_type', 'produk')
+            ->whereIn('item_type', ['produk', 'jasa'])
             ->firstOrFail();
 
         $file = $request->file('bukti_bayar');
@@ -115,8 +119,9 @@ class CustomerController extends Controller
         }
 
         $order->bukti_bayar = $fileName;
-        $order->payment_status = 'menunggu_konfirmasi';
+        $order->payment_status = $order->payment_status === 'dp_diterima' ? 'sisa_dibayar' : 'menunggu_konfirmasi';
         $order->catatan_pembayaran = null;
+        $order->paid_at = null;
         $order->save();
 
         return redirect()->route('customer.orders')
@@ -132,7 +137,7 @@ class CustomerController extends Controller
 
         $order = Order::where('id', $id)
             ->where('user_id', Auth::id())
-            ->where('item_type', 'produk')
+            ->whereIn('item_type', ['produk', 'jasa'])
             ->firstOrFail();
 
         if (! $order->bukti_bayar) {
@@ -162,19 +167,42 @@ class CustomerController extends Controller
 
         $order = Order::where('id', $id)
             ->where('user_id', Auth::id())
-            ->where('item_type', 'produk')
+            ->whereIn('item_type', ['produk', 'jasa'])
             ->firstOrFail();
 
-        // Hanya boleh ajukan batal jika masih menunggu konfirmasi
-        if ($order->payment_status !== 'menunggu_konfirmasi') {
+        $canCancelImmediately = $order->item_type === 'jasa'
+            && $order->status === 'Menunggu Antrean'
+            && $order->payment_status !== 'lunas';
+
+        $canRequestCancellation = $order->item_type === 'produk'
+            && $order->payment_status === 'menunggu_konfirmasi';
+
+        if (!($canCancelImmediately || $canRequestCancellation)) {
             return redirect()->route('customer.orders')
-                ->with('error', 'Pembatalan hanya bisa diajukan saat status pembayaran masih Menunggu Konfirmasi.');
+                ->with('error', 'Pembatalan hanya bisa diajukan saat pesanan masih menunggu pembayaran DP atau verifikasi.');
         }
 
-        // Cegah duplikat permintaan
-        if ($order->cancellation_requested_at) {
+        if ($order->status === 'dibatalkan') {
+            return redirect()->route('customer.orders')
+                ->with('error', 'Pesanan ini sudah dibatalkan sebelumnya.');
+        }
+
+        if ($order->cancellation_requested_at && $order->item_type === 'produk') {
             return redirect()->route('customer.orders')
                 ->with('error', 'Permintaan pembatalan sudah pernah diajukan dan sedang diproses admin.');
+        }
+
+        if ($order->item_type === 'jasa') {
+            $order->update([
+                'status'             => 'dibatalkan',
+                'payment_status'    => 'dibatalkan',
+                'alasan_pembatalan' => $request->cancellation_reason,
+                'dibatalkan_oleh'   => 'customer',
+                'cancelled_at'      => now(),
+            ]);
+
+            return redirect()->route('customer.orders')
+                ->with('success', 'Pesanan cetak berhasil dibatalkan.');
         }
 
         $order->update([

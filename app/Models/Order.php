@@ -14,8 +14,10 @@ class Order extends Model
         'file_dokumen_list',
         'detail_pesanan',
         'total_harga',
+        'harga_final',
         'status',
         'payment_status',
+        'dp_amount',
         'bukti_bayar',
         'catatan_verifikasi',
         'catatan_pembayaran',
@@ -94,6 +96,102 @@ class Order extends Model
                 'icon' => 'bi-x-circle-fill', 'label' => 'Ditolak',
             ],
         };
+    }
+
+    public function getDpAmount(): int
+    {
+        if ($this->dp_amount !== null && $this->dp_amount !== '') {
+            return (int) $this->dp_amount;
+        }
+
+        $baseAmount = (int) ($this->estimasi_harga ?: $this->total_harga ?: 0);
+
+        return $baseAmount > 0 ? (int) ceil($baseAmount * 0.5) : 0;
+    }
+
+    public function isDepositConfirmed(): bool
+    {
+        return in_array($this->payment_status, ['lunas', 'dp_diterima'], true);
+    }
+
+    public function isVisibleInAdminQueue(): bool
+    {
+        if ($this->status === 'dibatalkan') {
+            return false;
+        }
+
+        if (in_array($this->payment_status, ['dp_diterima', 'lunas', 'sisa_dibayar'], true)) {
+            return true;
+        }
+
+        return !empty($this->bukti_bayar) && $this->payment_status === 'menunggu_konfirmasi';
+    }
+
+    public function getDisplayTotalHarga(): int
+    {
+        if (!empty($this->harga_final) && (int) $this->harga_final > 0) {
+            return (int) $this->harga_final;
+        }
+
+        return (int) ($this->total_harga ?: 0);
+    }
+
+    public function getRemainingBalance(): int
+    {
+        $total = (int) ($this->total_harga ?: 0);
+        $paid = (int) ($this->dp_amount ?: 0);
+
+        if ($this->payment_status === 'lunas' && $this->total_harga > 0) {
+            return 0;
+        }
+
+        if ($this->payment_status === 'sisa_dibayar' && $this->total_harga > 0) {
+            return 0;
+        }
+
+        return max(0, $total - $paid);
+    }
+
+    public function paymentStatusLabel(): string
+    {
+        return match ($this->payment_status) {
+            'lunas' => 'Lunas',
+            'dp_diterima' => 'DP Diterima',
+            'sisa_dibayar' => 'Menunggu Pelunasan Sisa',
+            'menunggu_konfirmasi' => 'Menunggu Konfirmasi',
+            'menunggu_persetujuan_batal' => 'Menunggu Persetujuan Batal',
+            'ditolak' => 'Ditolak',
+            default => 'Belum Bayar',
+        };
+    }
+
+    public function getCustomerDisplayState(): string
+    {
+        if ($this->payment_status === 'ditolak') {
+            return 'ditolak';
+        }
+
+        if ($this->payment_status === 'lunas') {
+            return 'lunas';
+        }
+
+        if ($this->payment_status === 'dp_diterima') {
+            return 'dp_diterima';
+        }
+
+        if ($this->payment_status === 'sisa_dibayar') {
+            return 'sisa_dibayar';
+        }
+
+        if ($this->payment_status === 'menunggu_konfirmasi') {
+            return 'menunggu_konfirmasi';
+        }
+
+        if ($this->payment_status === 'menunggu_persetujuan_batal') {
+            return 'menunggu_persetujuan_batal';
+        }
+
+        return $this->status === 'selesai' ? 'selesai' : ($this->status === 'diproses' ? 'diproses' : 'Menunggu Antrean');
     }
 
     /** Path file bukti bayar di public storage */

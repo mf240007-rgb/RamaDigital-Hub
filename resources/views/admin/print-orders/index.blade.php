@@ -2,6 +2,188 @@
 
 @section('content')
 
+    <style>
+        .print-orders-table {
+            min-width: 980px;
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+
+        .print-orders-table th,
+        .print-orders-table td {
+            padding: 0.95rem 0.8rem;
+            vertical-align: middle;
+            white-space: normal;
+            line-height: 1.45;
+        }
+
+        .print-orders-table thead th {
+            white-space: nowrap;
+            padding-top: 1rem;
+            padding-bottom: 1rem;
+            background: #f8fafc;
+            color: #64748b;
+            font-size: 0.76rem;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .print-orders-table tbody tr {
+            border-bottom: 1px solid #f1f5f9;
+            transition: background-color 0.2s ease;
+        }
+
+        .print-orders-table tbody tr:nth-child(even) {
+            background-color: #fcfdff;
+        }
+
+        .print-orders-table tbody tr:hover {
+            background-color: #f8fbff;
+        }
+
+        .print-orders-table th:first-child,
+        .print-orders-table td:first-child {
+            padding-left: 1.15rem;
+        }
+
+        .print-orders-table th:last-child,
+        .print-orders-table td:last-child {
+            padding-right: 1.15rem;
+        }
+
+        .print-orders-table .detail-cell {
+            min-width: 260px;
+        }
+
+        .print-orders-table .detail-stack {
+            display: flex;
+            flex-direction: column;
+            gap: 0.35rem;
+        }
+
+        .print-orders-table .detail-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0.28rem 0.6rem;
+            border-radius: 0.375rem;
+            font-size: 0.78rem;
+            font-weight: 600;
+            background: #f8fafc;
+            color: #475569;
+            border: none;
+            width: fit-content;
+        }
+
+        .print-orders-table .detail-pill-accent {
+            background: #fff7ed;
+            color: #9a2c00;
+        }
+
+        .print-orders-table .customer-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 999px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.78rem;
+            color: #fff;
+            flex-shrink: 0;
+            letter-spacing: 0.02em;
+        }
+
+        .print-orders-table .status-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            border-radius: 999px;
+            padding: 0.34rem 0.7rem;
+            font-size: 0.76rem;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .print-orders-table .status-info {
+            background: #dbeafe;
+            color: #1d4ed8;
+        }
+
+        .print-orders-table .status-warning {
+            background: #fef3c7;
+            color: #b45309;
+        }
+
+        .print-orders-table .status-success {
+            background: #dcfce7;
+            color: #15803d;
+        }
+
+        .print-orders-table .status-danger {
+            background: #fee2e2;
+            color: #b91c1c;
+        }
+
+        .print-orders-table .status-muted {
+            background: #f1f5f9;
+            color: #475569;
+        }
+
+        .print-orders-table .doc-btn {
+            min-width: 112px;
+            justify-content: center;
+            padding: 0.42rem 0.7rem;
+            font-size: 0.78rem;
+            border-radius: 999px;
+            white-space: nowrap;
+        }
+
+        .print-orders-table .dropdown-menu {
+            background-color: #ffffff !important;
+            border: 1px solid rgba(226, 232, 240, 0.95) !important;
+            box-shadow: 0 20px 45px rgba(15, 23, 42, 0.16) !important;
+            z-index: 1055;
+        }
+
+        .print-orders-table .dropdown {
+            position: relative;
+        }
+
+        .table-responsive {
+            overflow: visible;
+        }
+
+        .print-orders-table .dropdown-item {
+            padding: 0.7rem 0.9rem;
+            border-radius: 0.5rem;
+            margin: 0.15rem 0.35rem;
+            transition: background-color 0.18s ease, color 0.18s ease;
+        }
+
+        .print-orders-table .dropdown-item:hover,
+        .print-orders-table .dropdown-item:focus {
+            background-color: #f3f4f6;
+            color: #111827;
+        }
+
+        .print-orders-table .meta-text {
+            font-size: 0.8rem;
+            color: #64748b;
+        }
+
+        .print-orders-table .muted-note {
+            font-size: 0.72rem;
+            color: #94a3b8;
+            line-height: 1.3;
+        }
+
+        .print-orders-table .cell-tight {
+            white-space: nowrap;
+        }
+    </style>
+
     {{-- Header --}}
     <div class="d-flex justify-content-between align-items-start mb-4 flex-wrap gap-2">
         <div>
@@ -10,13 +192,13 @@
         </div>
         <div class="d-flex align-items-center gap-2">
             <div class="d-flex align-items-center gap-2 px-4 py-2 rounded-3 shadow-sm"
-                 style="background: var(--warna-gelap); color: white;">
+                 style="background: var(--warna-gelap); color: white; min-height: 44px;">
                 <i class="bi bi-printer-fill text-warning"></i>
-                <span class="fw-semibold">{{ $orders->total() }} Pesanan</span>
+                <span class="fw-semibold">{{ $orders->total() }} Pesanan Aktif</span>
             </div>
             {{-- Tombol Hapus Filter (buka modal) --}}
             <button type="button"
-                    class="btn btn-outline-danger rounded-3 px-3 py-2 d-flex align-items-center gap-2"
+                    class="btn btn-outline-danger rounded-3 px-3 py-2 d-flex align-items-center gap-2 align-self-stretch"
                     data-bs-toggle="modal" data-bs-target="#modalHapusFilter"
                     title="Hapus pesanan berdasarkan filter">
                 <i class="bi bi-funnel-fill"></i>
@@ -82,13 +264,6 @@
         </div>
     </div>
 
-    {{-- Form Hapus Massal (Checkbox) --}}
-    <form id="formHapusMassal"
-          action="{{ route('admin.print-orders.bulk-delete') }}"
-          method="POST">
-        @csrf
-        <input type="hidden" name="bulk_mode" value="selected">
-
     {{-- Toolbar Hapus Massal (muncul saat ada yang dicentang) --}}
     <div id="toolbarHapusMassal"
          class="d-none mb-3 px-4 py-2 rounded-3 d-flex align-items-center gap-3"
@@ -107,6 +282,12 @@
         </button>
     </div>
 
+    <form id="formHapusMassal" action="{{ route('admin.print-orders.bulk-delete') }}" method="POST" style="display:none;">
+        @csrf
+        <input type="hidden" name="bulk_mode" value="selected">
+        <div id="bulkOrderIdsContainer"></div>
+    </form>
+
     {{-- Tabel Pesanan --}}
     <div class="card border-0 shadow-sm" style="border-radius: 16px;">
         <div class="card-header bg-white d-flex justify-content-between align-items-center px-4 py-3"
@@ -121,8 +302,8 @@
         </div>
 
         <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
+            <div class="table-responsive px-2 px-lg-3 py-2">
+                <table class="table table-hover align-middle mb-0 print-orders-table">
                     <thead style="background: #f8faff;">
                         <tr style="font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.05em; color: #6c757d;">
                             <th class="ps-3 py-3 align-middle" style="width: 36px;">
@@ -131,13 +312,13 @@
                             </th>
                             <th class="fw-semibold py-3 align-middle" style="width: 40px;">No</th>
                             <th class="fw-semibold py-3 align-middle" style="width: 150px;">No. Pesanan</th>
-                            <th class="fw-semibold py-3 align-middle" style="width: 170px;">Pelanggan</th>
+                            <th class="fw-semibold py-3 align-middle" style="width: 170px; min-width: 150px;">Pelanggan</th>
                             <th class="fw-semibold py-3 align-middle">Detail Pesanan</th>
-                            <th class="fw-semibold py-3 align-middle" style="width: 110px;">Tgl. Masuk</th>
-                            <th class="fw-semibold py-3 align-middle text-center" style="width: 110px;">Dokumen</th>
-                            <th class="fw-semibold py-3 align-middle text-center" style="width: 140px;">Ubah Status</th>
-                            <th class="fw-semibold py-3 align-middle text-center" style="width: 110px;">Batalkan</th>
-                            <th class="fw-semibold py-3 align-middle text-center pe-3" style="width: 60px;">Hapus</th>
+                            <th class="fw-semibold py-3 align-middle" style="width: 110px; min-width: 100px;">Tgl. Masuk</th>
+                            <th class="fw-semibold py-3 align-middle text-center" style="width: 120px; min-width: 110px;">Dokumen</th>
+                            <th class="fw-semibold py-3 align-middle text-center" style="width: 140px; min-width: 125px;">DP / Bukti</th>
+                            <th class="fw-semibold py-3 align-middle text-center" style="width: 150px; min-width: 130px;">Ubah Status</th>
+                            <th class="fw-semibold py-3 align-middle text-center pe-3" style="width: 70px; min-width: 60px;">Hapus</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -153,15 +334,23 @@
                                 'diproses'         => ['bg' => '#fff3cd', 'text' => '#856404', 'icon' => 'bi-gear-fill'],
                                 'selesai'          => ['bg' => '#d1fae5', 'text' => '#065f46', 'icon' => 'bi-check-circle-fill'],
                                 'dibatalkan'       => ['bg' => '#fee2e2', 'text' => '#991b1b', 'icon' => 'bi-x-circle-fill'],
-                                default            => ['bg' => '#f3f4f6', 'text' => '#374151', 'icon' => 'bi-dash'],                            };
+                                default            => ['bg' => '#f3f4f6', 'text' => '#374151', 'icon' => 'bi-dash'],
+                            };
+                            $dpBadge = match($order->payment_status ?? '') {
+                                'lunas' => ['bg' => '#d1fae5', 'text' => '#065f46', 'label' => 'Lunas'],
+                                'dp_diterima' => ['bg' => '#d1fae5', 'text' => '#065f46', 'label' => 'DP Diterima'],
+                                'sisa_dibayar' => ['bg' => '#fff3cd', 'text' => '#856404', 'label' => 'Sisa Menunggu'],
+                                'menunggu_konfirmasi' => ['bg' => '#fff3cd', 'text' => '#856404', 'label' => 'Menunggu'],
+                                'ditolak' => ['bg' => '#fee2e2', 'text' => '#991b1b', 'label' => 'Ditolak'],
+                                default => ['bg' => '#f3f4f6', 'text' => '#374151', 'label' => 'Belum'],
+                            };
                         @endphp
                         <tr class="order-row" data-id="{{ $order->id }}">
                             {{-- Checkbox --}}
                             <td class="ps-3">
                                 <input type="checkbox"
                                        class="form-check-input order-checkbox"
-                                       name="order_ids[]"
-                                       value="{{ $order->id }}"
+                                       data-order-id="{{ $order->id }}"
                                        onchange="updateToolbar()">
                             </td>
 
@@ -183,21 +372,20 @@
                             </td>
 
                             {{-- Pelanggan --}}
-                            <td>
+                            <td class="align-middle">
                                 <div class="d-flex align-items-center gap-2">
-                                    <div class="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold flex-shrink-0"
-                                         style="width:32px;height:32px;font-size:0.72rem;background:{{ $bgColor }};">
+                                    <div class="customer-avatar" style="background:{{ $bgColor }};">
                                         {{ $inisial }}
                                     </div>
-                                    <div style="min-width:0;">
-                                        <div class="fw-semibold text-truncate" style="font-size:0.85rem;color:var(--warna-gelap);max-width:120px;">{{ $nama }}</div>
-                                        <small class="text-muted">{{ $order->user->whatsapp ?? '-' }}</small>
+                                    <div class="min-w-0">
+                                        <div class="fw-semibold text-truncate" style="font-size:0.86rem;color:var(--warna-gelap);max-width:140px;">{{ $nama }}</div>
+                                        <div class="meta-text mt-1">{{ $order->user->whatsapp ?? '-' }}</div>
                                     </div>
                                 </div>
                             </td>
 
                             {{-- Detail --}}
-                            <td style="font-size:0.85rem;">
+                            <td class="detail-cell" style="font-size:0.85rem;">
                                 @php
                                     // ── Ringkasan satu baris ──────────────────────────────
                                     $labelKertasPendek = match($order->jenis_kertas ?? '') {
@@ -224,158 +412,230 @@
                                 @endphp
 
                                 {{-- Ringkasan utama --}}
-                                <div class="d-flex align-items-center gap-1 fw-semibold">
-                                    <span>{{ $labelKertasPendek }}{{ $labelMode ? ' · ' . $labelMode : '' }}</span>
-                                    @if(!empty($popLines))
-                                        <button type="button"
-                                                class="btn btn-link p-0 border-0 text-muted detail-popover"
-                                                data-bs-toggle="popover"
-                                                data-bs-trigger="click"
-                                                data-bs-placement="right"
-                                                data-bs-html="true"
-                                                data-bs-title="Detail Pesanan"
-                                                data-bs-content="{{ $popContent }}"
-                                                style="font-size:0.9rem;line-height:1;"
-                                                title="Lihat detail">
-                                            <i class="bi bi-info-circle"></i>
-                                        </button>
+                                <div class="detail-stack">
+                                    <div class="d-flex align-items-center gap-1 fw-semibold text-dark">
+                                        <span>{{ $labelKertasPendek }}{{ $labelMode ? ' · ' . $labelMode : '' }}</span>
+                                        @if(!empty($popLines))
+                                            <button type="button"
+                                                    class="btn btn-link p-0 border-0 text-muted detail-popover"
+                                                    data-bs-toggle="popover"
+                                                    data-bs-trigger="click"
+                                                    data-bs-placement="right"
+                                                    data-bs-html="true"
+                                                    data-bs-title="Detail Pesanan"
+                                                    data-bs-content="{{ $popContent }}"
+                                                    style="font-size:0.9rem;line-height:1;"
+                                                    title="Lihat detail">
+                                                <i class="bi bi-info-circle"></i>
+                                            </button>
+                                        @endif
+                                    </div>
+
+                                    {{-- Estimasi harga — satu-satunya info tambahan yang selalu tampil --}}
+                                    @if($order->estimasi_harga > 0)
+                                        <div class="d-flex flex-wrap gap-2">
+                                            <span class="detail-pill">
+                                                <i class="bi bi-cash-stack"></i>
+                                                Estimasi: Rp {{ number_format($order->estimasi_harga, 0, ',', '.') }}
+                                            </span>
+                                            <span class="detail-pill detail-pill-accent">
+                                                <i class="bi bi-credit-card-2-front"></i>
+                                                DP: Rp {{ number_format($order->getDpAmount(), 0, ',', '.') }}
+                                            </span>
+                                        </div>
                                     @endif
                                 </div>
-
-                                {{-- Estimasi harga — satu-satunya info tambahan yang selalu tampil --}}
-                                @if($order->estimasi_harga > 0)
-                                    <div class="mt-1">
-                                        <span style="font-size:0.78rem;font-weight:600;color:var(--warna-aksen);">
-                                            Rp {{ number_format($order->estimasi_harga, 0, ',', '.') }}
-                                        </span>
-                                    </div>
-                                @endif
                             </td>
 
                             {{-- Tanggal --}}
-                            <td class="text-muted" style="font-size:0.82rem;white-space:nowrap;">
-                                {{ $order->created_at->format('d M Y') }}<br>
-                                <small>{{ $order->created_at->format('H:i') }} WIB</small>
+                            <td class="text-muted cell-tight text-center" style="font-size:0.82rem;">
+                                <div class="fw-semibold text-dark">{{ $order->created_at->format('d M Y') }}</div>
+                                <div class="muted-note mt-1">{{ $order->created_at->format('H:i') }} WIB</div>
                             </td>
 
                             {{-- Dokumen --}}
-                            <td class="text-center">
-                                @php
-                                    $files = $order->getDokumenFiles();
-                                    $displayNames = $order->getDokumenDisplayNames();
-                                @endphp
+                            <td class="text-center align-middle">
+                                @php $files = $order->getDokumenFiles(); @endphp
                                 @if(empty($files))
-                                    <span class="text-muted" style="font-size:0.82rem;">— Tidak ada</span>
+                                    <span class="text-muted" style="font-size:0.82rem;">—</span>
                                 @elseif(count($files) === 1)
-                                    {{-- Satu file: tombol download biasa --}}
-                                    <div class="d-flex flex-column align-items-start gap-1">
-                                        <a href="{{ route('admin.print-orders.download', ['id' => $order->id, 'fileIndex' => 0]) }}"
-                                           class="btn btn-primary btn-sm rounded-pill px-3"
-                                           style="font-size:0.78rem;white-space:nowrap;"
-                                           title="Download dokumen">
-                                            <i class="bi bi-download me-1"></i>Download
-                                        </a>
-                                        <span class="text-muted small text-start" style="max-width:180px;" title="{{ $displayNames[0] }}">
-                                            {{ $displayNames[0] }}
-                                        </span>
-                                    </div>
+                                    <a href="{{ route('admin.print-orders.download', ['id' => $order->id, 'fileIndex' => 0]) }}"
+                                       class="btn btn-primary btn-sm rounded-pill doc-btn"
+                                       title="Download dokumen">
+                                        <i class="bi bi-download me-1"></i>Download
+                                    </a>
                                 @else
-                                    {{-- Banyak file: dropdown --}}
                                     <div class="dropdown">
-                                        <button class="btn btn-primary btn-sm rounded-pill px-3 dropdown-toggle"
+                                        <button class="btn btn-primary btn-sm rounded-pill doc-btn dropdown-toggle"
                                                 type="button"
                                                 data-bs-toggle="dropdown"
-                                                aria-expanded="false"
-                                                style="font-size:0.78rem;white-space:nowrap;">
-                                            <i class="bi bi-files me-1"></i>{{ count($files) }} Dokumen
+                                                aria-expanded="false">
+                                            <i class="bi bi-download me-1"></i>{{ count($files) }} Dokumen
                                         </button>
-                                        <ul class="dropdown-menu dropdown-menu-end shadow-sm" style="min-width:220px;font-size:0.82rem;border-radius:10px;">
+                                        <ul class="dropdown-menu dropdown-menu-end shadow-sm p-2" style="min-width:240px;font-size:0.82rem;border-radius:12px;">
+                                            <li class="px-2 pb-2 pt-1">
+                                                <div class="small fw-semibold text-muted">
+                                                    {{ count($files) }} file tersedia
+                                                </div>
+                                            </li>
                                             @foreach($files as $idx => $fileName)
                                                 @php
-                                                    $ext      = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
-                                                    $iconFile = match($ext) {
-                                                        'pdf'         => 'bi-file-earmark-pdf-fill text-danger',
-                                                        'doc', 'docx' => 'bi-file-earmark-word-fill text-primary',
-                                                        'jpg', 'jpeg', 'png' => 'bi-file-earmark-image-fill text-success',
-                                                        default       => 'bi-file-earmark-fill text-secondary',
+                                                    $extension = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
+                                                    $typeLabel = match($extension) {
+                                                        'pdf' => 'PDF',
+                                                        'doc', 'docx' => 'Word',
+                                                        'xls', 'xlsx' => 'Excel',
+                                                        'jpg', 'jpeg', 'png' => 'Gambar',
+                                                        default => strtoupper($extension ?: 'File')
                                                     };
-                                                    $displayName = $displayNames[$idx] ?? $fileName;
+                                                    $displayName = preg_replace('/^\d+_\d+_[a-f0-9]+_/i', '', $fileName);
                                                 @endphp
                                                 <li>
-                                                    <a class="dropdown-item d-flex align-items-center gap-2 py-2"
+                                                    <a class="dropdown-item rounded-2 py-2 px-2 d-flex align-items-center justify-content-between gap-2"
                                                        href="{{ route('admin.print-orders.download', ['id' => $order->id, 'fileIndex' => $idx]) }}">
-                                                        <i class="bi {{ $iconFile }} flex-shrink-0"></i>
-                                                        <span class="text-truncate" style="max-width:150px;" title="{{ $displayName }}">
-                                                            {{ $displayName }}
-                                                        </span>
+                                                        <div class="text-start">
+                                                            <div class="fw-semibold text-truncate" style="max-width:145px;" title="{{ $displayName }}">{{ $displayName }}</div>
+                                                        </div>
+                                                        <span class="badge rounded-pill bg-light text-dark fw-normal flex-shrink-0">{{ $typeLabel }}</span>
                                                     </a>
                                                 </li>
-                                                @if(!$loop->last)
-                                                    <li><hr class="dropdown-divider my-0"></li>
-                                                @endif
                                             @endforeach
                                         </ul>
                                     </div>
                                 @endif
                             </td>
 
-                            {{-- Ubah Status --}}
-                            <td class="text-center">
-                                @if($order->status === 'dibatalkan')
-                                    <small class="text-danger fw-semibold" style="font-size:0.75rem;">
-                                        <i class="bi bi-x-circle-fill me-1"></i>Dibatalkan<br>
-                                        <span class="text-muted fw-normal">oleh {{ ucfirst($order->dibatalkan_oleh ?? '—') }}</span>
-                                    </small>
-                                @else
-                                    <form action="{{ route('admin.print-orders.status', $order->id) }}" method="POST" class="status-form">
-                                        @csrf
-                                        <select name="status"
-                                                class="form-select form-select-sm w-100"
-                                                style="font-size:0.8rem;"
-                                                data-order-id="{{ $order->id }}"
-                                                data-order-number="{{ $order->order_number ?? '#' . $order->id }}"
-                                                data-default-price="{{ $order->total_harga > 0 ? $order->total_harga : ($order->estimasi_harga > 0 ? $order->estimasi_harga : '') }}"
-                                                onchange="handleStatusChange(this)">
-                                            <option value="Menunggu Antrean" {{ $order->status === 'Menunggu Antrean' ? 'selected' : '' }}>Menunggu</option>
-                                            <option value="diproses"         {{ $order->status === 'diproses'         ? 'selected' : '' }}>Diproses</option>
-                                            <option value="selesai"          {{ $order->status === 'selesai'          ? 'selected' : '' }}>Selesai</option>
-                                        </select>
-                                    </form>
-                                @endif
+                            {{-- DP / Bukti --}}
+                            <td class="text-center align-middle" style="min-width: 150px;">
+                                <div class="d-flex flex-column align-items-center gap-1">
+                                    <span class="badge rounded-pill px-2 py-1 fw-semibold" style="background:{{ $dpBadge['bg'] }};color:{{ $dpBadge['text'] }};font-size:0.72rem;">
+                                        {{ $dpBadge['label'] }}
+                                    </span>
+                                    @if($order->bukti_bayar)
+                                        <a href="{{ route('admin.print-orders.download-bukti', $order->id) }}"
+                                           target="_blank"
+                                           class="btn btn-outline-primary btn-sm rounded-pill px-2"
+                                           style="font-size:0.72rem;white-space:nowrap;">
+                                            <i class="bi bi-eye me-1"></i>Lihat Bukti
+                                        </a>
+                                    @else
+                                        <span class="muted-note">Belum ada bukti</span>
+                                    @endif
+                                </div>
                             </td>
 
-                            {{-- Batalkan --}}
-                            <td class="text-center">
-                                @if(in_array($order->status, ['Menunggu Antrean', 'diproses']))
-                                    <button type="button"
-                                            class="btn btn-sm btn-outline-warning rounded-pill px-2"
-                                            style="font-size:0.75rem;white-space:nowrap;"
-                                            onclick="bukaModalBatalAdmin({{ $order->id }}, '{{ addslashes($order->order_number ?? '#'.$order->id) }}')"
-                                            title="Batalkan pesanan ini">
-                                        <i class="bi bi-x-lg me-1"></i>Batalkan
-                                    </button>
-                                @elseif($order->status === 'dibatalkan' && $order->alasan_pembatalan)
-                                    <button type="button"
-                                            class="btn btn-sm btn-link text-danger p-0"
-                                            style="font-size:0.75rem;white-space:nowrap;"
-                                            data-bs-toggle="tooltip"
-                                            title="{{ $order->alasan_pembatalan }}">
-                                        <i class="bi bi-chat-left-text me-1"></i>Lihat alasan
-                                    </button>
+                            {{-- Ubah Status --}}
+                            <td class="text-center align-middle" style="min-width: 160px;">
+                                @if($order->status === 'selesai' && $order->payment_status === 'lunas')
+                                    <div class="d-flex flex-column align-items-center gap-1">
+                                        <span class="status-pill status-success">
+                                            <i class="bi bi-check-circle-fill"></i>Selesai
+                                        </span>
+                                        <span class="muted-note">Tidak ada aksi lagi</span>
+                                    </div>
+                                @elseif($order->status === 'dibatalkan')
+                                    <div class="d-flex flex-column align-items-center gap-1">
+                                        <span class="status-pill status-danger">
+                                            <i class="bi bi-x-circle-fill"></i>Dibatalkan
+                                        </span>
+                                        <span class="muted-note">oleh {{ ucfirst($order->dibatalkan_oleh ?? '—') }}</span>
+                                    </div>
                                 @else
-                                    <span class="text-muted">—</span>
+                                    <div class="d-flex flex-column align-items-center gap-2">
+                                        <span class="status-pill {{ $order->status === 'diproses' ? 'status-warning' : 'status-info' }}">
+                                            <i class="bi {{ $order->status === 'diproses' ? 'bi-gear-fill' : 'bi-clock-fill' }}"></i>
+                                            {{ $order->status === 'diproses' ? 'Diproses' : 'Menunggu' }}
+                                        </span>
+                                        <div class="dropdown">
+                                            <button class="btn btn-outline-secondary btn-sm rounded-pill px-2 py-1 d-inline-flex align-items-center gap-1"
+                                                    type="button"
+                                                    data-bs-toggle="dropdown"
+                                                    aria-expanded="false"
+                                                    style="font-size:0.75rem;">
+                                                <i class="bi bi-three-dots"></i>
+                                                <span class="d-none d-md-inline">Aksi</span>
+                                            </button>
+                                            <ul class="dropdown-menu shadow-lg border-0 rounded-3 py-2 z-50" style="min-width:220px; background-color:#ffffff !important;">
+                                                <li class="px-3 pb-2 small fw-semibold text-muted">Aksi pesanan</li>
+                                                @if($order->bukti_bayar && !in_array($order->payment_status, ['lunas', 'dp_diterima', 'sisa_dibayar'], true))
+                                                    <li>
+                                                        <form action="{{ route('admin.print-orders.konfirmasi-bayar', $order->id) }}" method="POST" class="m-0">
+                                                            @csrf
+                                                            <input type="hidden" name="payment_mode" value="dp">
+                                                            <button type="submit" class="dropdown-item d-flex align-items-center gap-2 px-3 py-2">
+                                                                <i class="bi bi-check2-circle text-success"></i>Konfirmasi DP
+                                                            </button>
+                                                        </form>
+                                                    </li>
+                                                @endif
+                                                @if(in_array($order->payment_status, ['dp_diterima', 'sisa_dibayar'], true) && $order->bukti_bayar)
+                                                    <li>
+                                                        <form action="{{ route('admin.print-orders.konfirmasi-bayar', $order->id) }}" method="POST" class="m-0">
+                                                            @csrf
+                                                            <input type="hidden" name="payment_mode" value="sisa">
+                                                            <button type="submit" class="dropdown-item d-flex align-items-center gap-2 px-3 py-2">
+                                                                <i class="bi bi-wallet2 text-primary"></i>Konfirmasi Sisa
+                                                            </button>
+                                                        </form>
+                                                    </li>
+                                                @endif
+                                                @if($order->bukti_bayar && !in_array($order->payment_status, ['lunas', 'dp_diterima'], true))
+                                                    <li>
+                                                        <button type="button" class="dropdown-item d-flex align-items-center gap-2 px-3 py-2" onclick="tolakPembayaran({{ $order->id }})">
+                                                            <i class="bi bi-x-circle text-danger"></i>Tolak Bukti
+                                                        </button>
+                                                    </li>
+                                                @endif
+                                                <li><hr class="dropdown-divider my-1"></li>
+                                                <li>
+                                                    <form action="{{ route('admin.print-orders.status', $order->id) }}" method="POST" class="m-0">
+                                                        @csrf
+                                                        <input type="hidden" name="status" value="Menunggu Antrean">
+                                                        <button type="submit" class="dropdown-item d-flex align-items-center gap-2 px-3 py-2">
+                                                            <i class="bi bi-clock-history"></i>Set Menunggu
+                                                        </button>
+                                                    </form>
+                                                </li>
+                                                <li>
+                                                    <form action="{{ route('admin.print-orders.status', $order->id) }}" method="POST" class="m-0">
+                                                        @csrf
+                                                        <input type="hidden" name="status" value="diproses">
+                                                        <button type="submit" class="dropdown-item d-flex align-items-center gap-2 px-3 py-2">
+                                                            <i class="bi bi-gear"></i>Set Diproses
+                                                        </button>
+                                                    </form>
+                                                </li>
+                                                <li>
+                                                    <button type="button"
+                                                            class="dropdown-item d-flex align-items-center gap-2 px-3 py-2"
+                                                            onclick="bukaModalSelesaikan({{ $order->id }}, '{{ addslashes($order->order_number ?? '#'.$order->id) }}', '{{ $order->total_harga > 0 ? $order->total_harga : ($order->estimasi_harga > 0 ? $order->estimasi_harga : '') }}')">
+                                                        <i class="bi bi-check2-circle text-success"></i>Set Selesai
+                                                    </button>
+                                                </li>
+                                                <li>
+                                                    <button type="button" class="dropdown-item d-flex align-items-center gap-2 px-3 py-2 text-warning" onclick="bukaModalBatalAdmin({{ $order->id }}, '{{ addslashes($order->order_number ?? '#'.$order->id) }}')">
+                                                        <i class="bi bi-x-lg"></i>Batalkan Pesanan
+                                                    </button>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
                                 @endif
                             </td>
 
                             {{-- Hapus Satu --}}
                             <td class="text-center pe-3">
-                                <button type="button"
-                                        class="btn btn-sm btn-outline-danger rounded-circle d-flex align-items-center justify-content-center mx-auto"
-                                        style="width:32px;height:32px;"
-                                        title="Hapus pesanan ini"
-                                        onclick="hapusSatuPesanan({{ $order->id }}, '{{ addslashes($order->order_number ?? '#'.$order->id) }}')">
-                                    <i class="bi bi-trash3" style="font-size:0.8rem;"></i>
-                                </button>
+                                @if($order->status === 'selesai' && $order->payment_status === 'lunas')
+                                    <span class="muted-note">—</span>
+                                @else
+                                    <button type="button"
+                                            class="btn btn-sm btn-outline-danger rounded-circle d-flex align-items-center justify-content-center mx-auto"
+                                            style="width:34px;height:34px;"
+                                            title="Hapus pesanan ini"
+                                            onclick="hapusSatuPesanan({{ $order->id }}, '{{ addslashes($order->order_number ?? '#'.$order->id) }}')">
+                                        <i class="bi bi-trash3" style="font-size:0.8rem;"></i>
+                                    </button>
+                                @endif
                             </td>
                         </tr>
                         @empty
@@ -404,14 +664,49 @@
         @endif
     </div>
 
-    </form>{{-- Akhir formHapusMassal --}}
-
     {{-- Form hapus satu pesanan (di luar formHapusMassal agar tidak nested) --}}
     <form id="formHapusSatu" method="POST" style="display:none;">
         @csrf
         @method('DELETE')
     </form>
 
+    {{-- =============================================
+         MODAL: Tolak Bukti Pembayaran
+         ============================================= --}}
+    <div class="modal fade" id="modalTolakPembayaran" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0" style="border-radius: 16px; overflow: hidden;">
+                <div class="modal-header border-0 px-4 pt-4 pb-2" style="background: #fef2f2;">
+                    <div>
+                        <h5 class="fw-bold mb-1 text-danger">
+                            <i class="bi bi-x-circle-fill me-2"></i>Tolak Bukti Pembayaran
+                        </h5>
+                        <p class="text-muted mb-0" style="font-size: 0.85rem;">Masukkan alasan penolakan bukti pembayaran agar pelanggan memahami ketidakvalidan bukti tersebut.</p>
+                    </div>
+                    <button type="button" class="btn-close ms-auto" data-bs-dismiss="modal"></button>
+                </div>
+                <form id="formTolakPembayaran" method="POST">
+                    @csrf
+                    <div class="modal-body px-4 py-3">
+                        <label class="form-label fw-semibold mb-1">Alasan Penolakan <span class="text-danger">*</span></label>
+                        <textarea name="alasan_pembatalan"
+                                  class="form-control"
+                                  rows="4"
+                                  maxlength="500"
+                                  placeholder="Contoh: bukti pembayaran tidak jelas, nominal tidak sesuai, atau bukti bukan milik pesanan ini."
+                                  required></textarea>
+                        <div class="form-text">Alasan ini akan dicatat pada catatan pembayaran pesanan.</div>
+                    </div>
+                    <div class="modal-footer border-0 px-4 pb-4 pt-0 gap-2">
+                        <button type="button" class="btn btn-outline-secondary rounded-pill flex-fill" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-danger rounded-pill flex-fill fw-semibold">
+                            <i class="bi bi-x-circle me-1"></i>Tolak Bukti
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 
     {{-- =============================================
          MODAL: Batalkan Pesanan (Admin)
@@ -584,9 +879,10 @@
             selectEl.value = previousValue;
             selectEl.dataset.previousValue = previousValue;
 
-            const orderId = selectEl.dataset.orderId;
-            const orderNumber = selectEl.dataset.orderNumber;
-            const defaultPrice = selectEl.dataset.defaultPrice || '';
+            bukaModalSelesaikan(selectEl.dataset.orderId, selectEl.dataset.orderNumber, selectEl.dataset.defaultPrice || '');
+        }
+
+        function bukaModalSelesaikan(orderId, orderNumber, defaultPrice) {
             const modal = document.getElementById('modalHargaFinal');
             const form = document.getElementById('formHargaFinal');
             const label = document.getElementById('labelNomorPesananFinal');
@@ -613,6 +909,18 @@
             const checked = document.querySelectorAll('.order-checkbox:checked');
             const toolbar = document.getElementById('toolbarHapusMassal');
             const label   = document.getElementById('labelJumlahDipilih');
+            const container = document.getElementById('bulkOrderIdsContainer');
+
+            if (container) {
+                container.innerHTML = '';
+                checked.forEach(cb => {
+                    const input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = 'order_ids[]';
+                    input.value = cb.getAttribute('data-order-id');
+                    container.appendChild(input);
+                });
+            }
 
             if (checked.length > 0) {
                 toolbar.classList.remove('d-none');
@@ -642,6 +950,18 @@
             if (confirm(jumlah + ' pesanan akan dihapus permanen beserta file dokumennya. Lanjutkan?')) {
                 document.getElementById('formHapusMassal').submit();
             }
+        }
+
+        function tolakPembayaran(orderId) {
+            const modal = document.getElementById('modalTolakPembayaran');
+            const form = document.getElementById('formTolakPembayaran');
+            const textarea = form.querySelector('textarea[name="alasan_pembatalan"]');
+
+            form.action = '/admin/pesanan-cetak/' + orderId + '/tolak-bayar';
+            textarea.value = '';
+            textarea.focus();
+
+            new bootstrap.Modal(modal).show();
         }
 
         // ── Batal pilihan ─────────────────────────────────────

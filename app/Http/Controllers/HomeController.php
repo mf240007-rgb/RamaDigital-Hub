@@ -12,16 +12,8 @@ use Illuminate\Support\Facades\Storage;
 
 class HomeController extends Controller
 {
-    /**
-     * Halaman Utama (Home)
-     * Menampilkan produk terbaru secara terbatas (untuk Slider) dan data Keranjang
-     */
-    public function index()
+    private function buildCartData(): array
     {
-        // PERBAIKAN: Mengambil produk terbaru terbatas (8 produk) agar hemat ruang di Home
-        $products = Product::with('category')->latest()->take(8)->get();
-
-        // LOGIKA ASLI KERANJANG KAMU (Tetap dipertahankan agar tidak rusak)
         $cartKey   = Auth::check() ? 'cart_user_' . Auth::id() : 'cart_guest';
         $cart      = session($cartKey, []);
         $cartCount = count($cart);
@@ -43,8 +35,18 @@ class HomeController extends Controller
             }
         }
 
-        // Mengirim data produk terbatas dan keranjang ke halaman depan
-        return view('home', compact('products', 'cartItems', 'cartTotal', 'cartCount'));
+        return compact('cartItems', 'cartTotal', 'cartCount');
+    }
+
+    /**
+     * Halaman utama.
+     */
+    public function index()
+    {
+        $products = Product::with('category')->latest()->take(10)->get();
+        $cartData = $this->buildCartData();
+
+        return view('home', compact('products'))->with($cartData);
     }
 
     /**
@@ -79,29 +81,10 @@ class HomeController extends Controller
             ->latest()
             ->paginate(12);
 
-        // LOGIKA KERANJANG (Diperlukan juga di halaman katalog agar tombol beli berfungsi)
-        $cartKey   = Auth::check() ? 'cart_user_' . Auth::id() : 'cart_guest';
-        $cart      = session($cartKey, []);
-        $cartCount = count($cart); // Jumlah jenis produk, bukan total qty
-        $cartItems = [];
-        $cartTotal = 0;
+        $cartData = $this->buildCartData();
 
-        if (!empty($cart)) {
-            $cartProducts = Product::whereIn('id', array_keys($cart))->get();
-
-            foreach ($cartProducts as $product) {
-                $quantity = $cart[$product->id] ?? 0;
-                $subtotal = $product->harga * $quantity;
-                $cartItems[] = [
-                    'product' => $product,
-                    'quantity' => $quantity,
-                    'subtotal' => $subtotal,
-                ];
-                $cartTotal += $subtotal;
-            }
-        }
-
-        return view('katalog', compact('products', 'categories', 'selectedCategory', 'search', 'cartItems', 'cartTotal', 'cartCount'));
+        return view('katalog', compact('products', 'categories', 'selectedCategory', 'search'))
+            ->with($cartData);
     }
 
     /**
@@ -254,7 +237,7 @@ class HomeController extends Controller
             'mode_cetak'       => 'required|in:hitam_putih,full_color',
             'intensitas_warna' => 'required_if:mode_cetak,full_color|nullable|in:sedikit_warna,banyak_warna',
             'file_dokumen'     => 'required|array|min:1|max:5',
-            'file_dokumen.*'   => 'file|mimes:pdf,doc,docx,jpg,jpeg,png|max:10240',
+            'file_dokumen.*'   => 'file|mimes:pdf,doc,docx,xls,xlsx,jpg,jpeg,png|max:10240',
             'catatan'          => 'nullable|string|max:500',
         ], [
             'jenis_kertas.required'          => 'Pilih jenis kertas terlebih dahulu.',
@@ -267,7 +250,7 @@ class HomeController extends Controller
             'file_dokumen.required'           => 'Upload minimal satu file dokumen.',
             'file_dokumen.min'                => 'Upload minimal satu file dokumen.',
             'file_dokumen.max'                => 'Maksimal 5 file dapat diunggah sekaligus.',
-            'file_dokumen.*.mimes'            => 'Format file harus PDF, Word, JPG, atau PNG.',
+            'file_dokumen.*.mimes'            => 'Format file harus PDF, Word, Excel, JPG, atau PNG.',
             'file_dokumen.*.max'              => 'Ukuran setiap file maksimal 10 MB.',
         ]);
 
@@ -307,6 +290,7 @@ class HomeController extends Controller
         }
 
         $estimasiHarga = $hargaPerHalaman * $jumlahHalaman * $jumlahCetak;
+        $dpAmount = (int) ceil($estimasiHarga * 0.5);
 
         // Buat detail pesanan yang mudah dibaca
         $labelKertas = [
@@ -332,6 +316,8 @@ class HomeController extends Controller
             'detail_pesanan'   => $detailPesanan,
             'total_harga'      => $estimasiHarga, // Simpan estimasi sebagai total_harga awal, admin bisa edit
             'estimasi_harga'   => $estimasiHarga, // Simpan juga di kolom estimasi untuk tracking
+            'dp_amount'        => $dpAmount,
+            'payment_status'   => 'menunggu_konfirmasi',
             'status'           => 'Menunggu Antrean',
             'jenis_kertas'     => $validated['jenis_kertas'],
             'jumlah_lembar'    => null, // Field lama, tidak terpakai lagi
@@ -343,6 +329,8 @@ class HomeController extends Controller
         ]);
 
         return redirect()->route('home')
-            ->with('new_order_number', $orderNumber);
+            ->with('new_order_number', $orderNumber)
+            ->with('new_order_message', 'Pesanan sudah diterima. Silakan bayar DP sebesar Rp ' . number_format($dpAmount, 0, ',', '.') . ' sebelum pesanan diproses admin.')
+            ->with('new_order_dp_amount', $dpAmount);
     }
 }

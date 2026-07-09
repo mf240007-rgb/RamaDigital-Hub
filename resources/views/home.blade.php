@@ -437,6 +437,13 @@
                         </button>
                     </div>
 
+                    @if(session('new_order_message'))
+                        <div class="alert alert-warning text-start mb-3" role="alert" style="border-radius: 12px;">
+                            <div class="fw-semibold mb-1"><i class="bi bi-credit-card-2-front me-1"></i>Bayar DP sebelum pesanan diproses</div>
+                            <div class="small">{{ session('new_order_message') }}</div>
+                        </div>
+                    @endif
+
                     <p class="text-muted mb-0" style="font-size: 0.82rem;">
                         <i class="bi bi-telephone me-1"></i>
                         Butuh bantuan? Hubungi kami di <strong>0852-7330-0045</strong>

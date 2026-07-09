@@ -116,9 +116,17 @@ class AdminController extends Controller
             ->where('payment_status', 'lunas')
             ->sum('total_harga');
 
-        // Badge pesanan cetak baru (Menunggu Antrean) untuk notifikasi sidebar
+        // Badge pesanan cetak yang sudah layak muncul di admin (setelah DP diterima)
         $newPesananCetak = \App\Models\Order::where('item_type', 'jasa')
-            ->where('status', 'Menunggu Antrean')
+            ->where('status', '!=', 'dibatalkan')
+            ->where(function ($query) {
+                $query->whereIn('payment_status', ['dp_diterima', 'lunas', 'sisa_dibayar'])
+                    ->orWhere(function ($sub) {
+                        $sub->where('payment_status', 'menunggu_konfirmasi')
+                            ->whereNotNull('bukti_bayar')
+                            ->where('bukti_bayar', '!=', '');
+                    });
+            })
             ->count();
 
         // Pesanan cetak terbaru (5 terakhir)

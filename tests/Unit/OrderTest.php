@@ -7,6 +7,16 @@ use Tests\TestCase;
 
 class OrderTest extends TestCase
 {
+    public function test_it_calculates_the_initial_deposit_from_the_estimate(): void
+    {
+        $order = new Order([
+            'estimasi_harga' => 100000,
+            'total_harga' => 100000,
+        ]);
+
+        $this->assertSame(50000, $order->getDpAmount());
+    }
+
     public function test_it_formats_uploaded_document_names_for_display(): void
     {
         $order = new Order([
@@ -20,5 +30,73 @@ class OrderTest extends TestCase
             'Contoh File.pdf',
             'Another File.docx',
         ], $order->getDokumenDisplayNames());
+    }
+
+    public function test_it_marks_confirmed_dp_as_deposit_confirmed(): void
+    {
+        $order = new Order(['payment_status' => 'dp_diterima']);
+
+        $this->assertTrue($order->isDepositConfirmed());
+    }
+
+    public function test_it_does_not_mark_deposit_as_confirmed_for_pending_payment(): void
+    {
+        $order = new Order(['payment_status' => 'menunggu_konfirmasi']);
+
+        $this->assertFalse($order->isDepositConfirmed());
+    }
+
+    public function test_it_calculates_remaining_balance_after_initial_deposit(): void
+    {
+        $order = new Order([
+            'total_harga' => 150000,
+            'dp_amount' => 50000,
+        ]);
+
+        $this->assertSame(100000, $order->getRemainingBalance());
+    }
+
+    public function test_it_returns_a_customer_display_state_for_rejected_payment(): void
+    {
+        $order = new Order([
+            'status' => 'Menunggu Antrean',
+            'payment_status' => 'ditolak',
+        ]);
+
+        $this->assertSame('ditolak', $order->getCustomerDisplayState());
+    }
+
+    public function test_it_marks_orders_with_confirmed_dp_as_visible_to_admin(): void
+    {
+        $order = new Order(['payment_status' => 'dp_diterima']);
+
+        $this->assertTrue($order->isVisibleInAdminQueue());
+    }
+
+    public function test_it_keeps_pending_dp_orders_out_of_admin_queue(): void
+    {
+        $order = new Order(['payment_status' => 'menunggu_konfirmasi']);
+
+        $this->assertFalse($order->isVisibleInAdminQueue());
+    }
+
+    public function test_it_shows_orders_with_uploaded_dp_proof_in_admin_queue(): void
+    {
+        $order = new Order([
+            'payment_status' => 'menunggu_konfirmasi',
+            'bukti_bayar' => 'bukti.jpg',
+        ]);
+
+        $this->assertTrue($order->isVisibleInAdminQueue());
+    }
+
+    public function test_it_uses_the_latest_final_price_for_customer_display(): void
+    {
+        $order = new Order([
+            'total_harga' => 120000,
+            'harga_final' => 150000,
+        ]);
+
+        $this->assertSame(150000, $order->getDisplayTotalHarga());
     }
 }
