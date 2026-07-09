@@ -194,7 +194,7 @@
             <div class="d-flex align-items-center gap-2 px-4 py-2 rounded-3 shadow-sm"
                  style="background: var(--warna-gelap); color: white; min-height: 44px;">
                 <i class="bi bi-printer-fill text-warning"></i>
-                <span class="fw-semibold">{{ $orders->total() }} Pesanan Aktif</span>
+                <span class="fw-semibold">{{ $counts['menunggu'] }} Menunggu</span>
             </div>
             {{-- Tombol Hapus Filter (buka modal) --}}
             <button type="button"
@@ -225,43 +225,56 @@
         </div>
     @endif
 
-    {{-- Filter & Search --}}
-    <div class="card border-0 shadow-sm mb-4" style="border-radius: 12px;">
-        <div class="card-body px-4 py-3">
-            <form method="GET" action="{{ route('admin.print-orders.index') }}" class="row g-2 align-items-end">
-                <div class="col-md-5">
-                    <label class="form-label fw-semibold mb-1" style="font-size: 0.85rem;">Cari Pelanggan / Detail</label>
-                    <div class="input-group">
-                        <span class="input-group-text bg-white"><i class="bi bi-search text-muted"></i></span>
-                        <input type="text" name="search" class="form-control"
-                               placeholder="Nama pelanggan atau detail pesanan..."
-                               value="{{ $keyword }}">
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label fw-semibold mb-1" style="font-size: 0.85rem;">Filter Status</label>
-                    <select name="status" class="form-select">
-                        <option value="">-- Semua Status --</option>
-                        <option value="Menunggu Antrean" {{ $status === 'Menunggu Antrean' ? 'selected' : '' }}>Menunggu Antrean</option>
-                        <option value="diproses"        {{ $status === 'diproses'         ? 'selected' : '' }}>Diproses</option>
-                        <option value="selesai"         {{ $status === 'selesai'          ? 'selected' : '' }}>Selesai</option>
-                        <option value="dibatalkan"      {{ $status === 'dibatalkan'       ? 'selected' : '' }}>Dibatalkan</option>
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <button type="submit" class="btn btn-primary w-100">
-                        <i class="bi bi-funnel me-1"></i>Filter
-                    </button>
-                </div>
-                @if($keyword || $status)
-                <div class="col-md-2">
-                    <a href="{{ route('admin.print-orders.index') }}" class="btn btn-outline-secondary w-100">
-                        <i class="bi bi-x-circle me-1"></i>Reset
-                    </a>
-                </div>
-                @endif
-            </form>
-        </div>
+    {{-- Tab Filter + Search (sama pola dengan Verifikasi ATK) --}}
+    <div class="d-flex gap-2 mb-4 flex-wrap">
+        <a href="{{ route('admin.print-orders.index', ['filter' => 'Menunggu Antrean']) }}"
+           class="btn rounded-pill px-4 {{ $filter === 'Menunggu Antrean' ? 'btn-warning fw-bold' : 'btn-outline-secondary' }}">
+            <i class="bi bi-hourglass-split me-1"></i>Menunggu
+            @if($counts['menunggu'] > 0)
+                <span class="badge bg-danger rounded-pill ms-1">{{ $counts['menunggu'] }}</span>
+            @endif
+        </a>
+        <a href="{{ route('admin.print-orders.index', ['filter' => 'diproses']) }}"
+           class="btn rounded-pill px-4 {{ $filter === 'diproses' ? 'btn-primary fw-bold' : 'btn-outline-secondary' }}">
+            <i class="bi bi-gear-fill me-1"></i>Diproses
+            <span class="badge bg-secondary rounded-pill ms-1">{{ $counts['diproses'] }}</span>
+        </a>
+        <a href="{{ route('admin.print-orders.index', ['filter' => 'menunggu_persetujuan_batal']) }}"
+           class="btn rounded-pill px-4 {{ $filter === 'menunggu_persetujuan_batal' ? 'btn-pink fw-bold' : 'btn-outline-secondary' }}"
+           style="{{ $filter === 'menunggu_persetujuan_batal' ? 'background:#9d174d;color:white;border-color:#9d174d;' : '' }}">
+            <i class="bi bi-clock-history me-1"></i>Permintaan Batal
+            @if($counts['minta_batal'] > 0)
+                <span class="badge bg-danger rounded-pill ms-1">{{ $counts['minta_batal'] }}</span>
+            @endif
+        </a>
+        <a href="{{ route('admin.print-orders.index', ['filter' => 'selesai']) }}"
+           class="btn rounded-pill px-4 {{ $filter === 'selesai' ? 'btn-success fw-bold' : 'btn-outline-secondary' }}">
+            <i class="bi bi-check-circle me-1"></i>Selesai
+            <span class="badge bg-secondary rounded-pill ms-1">{{ $counts['selesai'] }}</span>
+        </a>
+        <a href="{{ route('admin.print-orders.index', ['filter' => 'ditolak']) }}"
+           class="btn rounded-pill px-4 {{ $filter === 'ditolak' ? 'btn-danger fw-bold' : 'btn-outline-secondary' }}">
+            <i class="bi bi-x-circle me-1"></i>Ditolak
+            <span class="badge bg-secondary rounded-pill ms-1">{{ $counts['ditolak'] }}</span>
+        </a>
+        <a href="{{ route('admin.print-orders.index', ['filter' => 'semua']) }}"
+           class="btn rounded-pill px-4 {{ $filter === 'semua' ? 'btn-dark fw-bold' : 'btn-outline-secondary' }}">
+            <i class="bi bi-list-ul me-1"></i>Semua
+            <span class="badge bg-secondary rounded-pill ms-1">{{ $counts['semua'] }}</span>
+        </a>
+
+        <form method="GET" action="{{ route('admin.print-orders.index') }}"
+              class="ms-auto d-flex gap-2">
+            <input type="hidden" name="filter" value="{{ $filter }}">
+                        <label for="searchPrintOrders" class="visually-hidden">Cari pelanggan atau detail pesanan</label>
+                        <input type="text" id="searchPrintOrders" name="search" class="form-control rounded-pill"
+                   style="width:240px;font-size:0.88rem;"
+                   placeholder="Cari pelanggan atau detail..."
+                   value="{{ $keyword }}">
+            <button type="submit" class="btn btn-primary rounded-pill px-3">
+                <i class="bi bi-search"></i>
+            </button>
+        </form>
     </div>
 
     {{-- Toolbar Hapus Massal (muncul saat ada yang dicentang) --}}
@@ -294,6 +307,15 @@
              style="border-radius: 16px 16px 0 0; border-bottom: 1px solid #f0f0f0;">
             <h6 class="fw-bold mb-0" style="color: var(--warna-gelap);">
                 <i class="bi bi-printer me-2 text-primary"></i>Daftar Pesanan Jasa Cetak
+                <span class="text-muted fw-normal">
+                    @if($filter === 'Menunggu Antrean') — Menunggu Konfirmasi
+                    @elseif($filter === 'diproses') — Sedang Diproses
+                    @elseif($filter === 'menunggu_persetujuan_batal') — Permintaan Batal
+                    @elseif($filter === 'selesai') — Pesanan Selesai
+                    @elseif($filter === 'ditolak') — Bukti Pembayaran Ditolak
+                    @else — Semua Status
+                    @endif
+                </span>
             </h6>
             <span class="badge rounded-pill px-3 py-2"
                   style="background: linear-gradient(135deg, #1a73e8, #4a9eff); font-size: 0.75rem;">
@@ -642,7 +664,7 @@
                         <tr>
                             <td colspan="10" class="text-center py-5 text-muted">
                                 <i class="bi bi-printer fs-1 d-block mb-2 opacity-25"></i>
-                                @if($keyword || $status)
+                                @if($keyword || $filter !== 'Menunggu Antrean')
                                     Tidak ada pesanan yang cocok dengan filter.
                                     <br><a href="{{ route('admin.print-orders.index') }}" class="btn btn-sm btn-outline-secondary mt-2">Reset Filter</a>
                                 @else

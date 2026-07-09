@@ -9,6 +9,10 @@ use Illuminate\Support\Facades\Schema;
 
 class PrintOrderController extends Controller
 {
+    private const STATUS_MENUNGGU = 'Menunggu Antrean';
+    private const PAYMENT_MINTA_BATAL = 'menunggu_persetujuan_batal';
+    private const PAYMENT_DITOLAK = 'ditolak';
+
     private function guardAdmin()
     {
         if (!session('is_admin_logged_in')) {
@@ -27,32 +31,61 @@ class PrintOrderController extends Controller
             return $redirect;
         }
 
+        $allowedFilters = [
+            self::STATUS_MENUNGGU,
+            'diproses',
+            'selesai',
+            self::PAYMENT_MINTA_BATAL,
+            self::PAYMENT_DITOLAK,
+            'semua',
+        ];
         $keyword = $request->get('search');
-        $status  = $request->get('status');
+        $filter  = $request->get('filter', self::STATUS_MENUNGGU);
+        if (!in_array($filter, $allowedFilters, true)) {
+            $filter = self::STATUS_MENUNGGU;
+        }
 
-        $orders = Order::with('user')
+        $baseQuery = Order::query()
             ->where('item_type', 'jasa')
-            ->where('status', '!=', 'dibatalkan')
-            ->where(function ($query) {
-                $query->whereIn('payment_status', ['dp_diterima', 'lunas', 'sisa_dibayar'])
-                    ->orWhere(function ($sub) {
-                        $sub->where('payment_status', 'menunggu_konfirmasi')
-                            ->whereNotNull('bukti_bayar')
-                            ->where('bukti_bayar', '!=', '');
-                    });
-            })
+            ->where('status', '!=', 'dibatalkan');
+
+        $orders = (clone $baseQuery)
+            ->with('user')
             ->when($keyword, function ($q) use ($keyword) {
                 $q->whereHas('user', function ($uq) use ($keyword) {
                     $uq->where('full_name', 'LIKE', '%' . $keyword . '%');
                 })->orWhere('detail_pesanan', 'LIKE', '%' . $keyword . '%');
             })
-            ->when($status, function ($q) use ($status) {
-                $q->where('status', $status);
+            ->when($filter !== 'semua', function ($q) use ($filter) {
+                if (in_array($filter, [self::PAYMENT_MINTA_BATAL, self::PAYMENT_DITOLAK], true)) {
+                    $q->where('payment_status', $filter);
+                    return;
+                }
+
+                if ($filter === self::STATUS_MENUNGGU) {
+                    $q->where('status', self::STATUS_MENUNGGU)
+                        ->whereNotIn('payment_status', [self::PAYMENT_MINTA_BATAL, self::PAYMENT_DITOLAK]);
+                    return;
+                }
+
+                $q->where('status', $filter);
             })
             ->orderByDesc('created_at')
             ->paginate(15);
 
-        return view('admin.print-orders.index', compact('orders', 'keyword', 'status'));
+        $counts = [
+            'menunggu' => (clone $baseQuery)
+                ->where('status', self::STATUS_MENUNGGU)
+                ->whereNotIn('payment_status', [self::PAYMENT_MINTA_BATAL, self::PAYMENT_DITOLAK])
+                ->count(),
+            'diproses' => (clone $baseQuery)->where('status', 'diproses')->count(),
+            'selesai'  => (clone $baseQuery)->where('status', 'selesai')->count(),
+            'minta_batal' => (clone $baseQuery)->where('payment_status', self::PAYMENT_MINTA_BATAL)->count(),
+            'ditolak'  => (clone $baseQuery)->where('payment_status', self::PAYMENT_DITOLAK)->count(),
+            'semua'    => (clone $baseQuery)->count(),
+        ];
+
+        return view('admin.print-orders.index', compact('orders', 'keyword', 'filter', 'counts'));
     }
 
     /**
@@ -65,7 +98,7 @@ class PrintOrderController extends Controller
         }
 
         $request->validate([
-            'status' => 'required|in:Menunggu Antrean,diproses,selesai',
+            'status' => 'required|in:' . self::STATUS_MENUNGGU . ',diproses,selesai',
             'harga_final' => 'nullable|required_if:status,selesai|integer|min:1',
             'catatan_admin' => 'nullable|string|max:500',
         ], [
@@ -189,7 +222,7 @@ class PrintOrderController extends Controller
         } else {
             // Hapus berdasarkan filter status + umur pesanan
             $request->validate([
-                'filter_status' => 'required|in:Menunggu Antrean,diproses,selesai,dibatalkan,semua',
+                'filter_status' => 'required|in:' . self::STATUS_MENUNGGU . ',diproses,selesai,dibatalkan,semua',
                 'filter_older'  => 'required|in:7,14,30,60,90',
             ]);
 
