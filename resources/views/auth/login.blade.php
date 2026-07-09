@@ -225,7 +225,7 @@
                        value="{{ old('whatsapp') }}"
                       inputmode="numeric"
                       maxlength="13"
-                      pattern="[0-9]{12,13}"
+                        pattern="[0-9]{10,13}"
                        placeholder="08xx-xxxx-xxxx"
                        required>
                 @error('whatsapp')

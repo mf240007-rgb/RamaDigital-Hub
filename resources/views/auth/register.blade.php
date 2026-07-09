@@ -222,8 +222,8 @@
                        name="whatsapp"
                        value="{{ old('whatsapp') }}"
                        inputmode="numeric"
-                       maxlength="15"
-                       pattern="[0-9]{10,15}"
+                      maxlength="13"
+                      pattern="[0-9]{10,13}"
                        placeholder="Contoh: 08123456789"
                        required>
                 @error('whatsapp')

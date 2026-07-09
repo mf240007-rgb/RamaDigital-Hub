@@ -55,7 +55,7 @@ class UserController extends Controller
 
         $credentials = $request->validate([
             'full_name' => 'required|string|max:255',
-            'whatsapp'  => 'required|digits_between:12,13',
+            'whatsapp'  => 'required|digits_between:10,13',
             'password' => 'required',
         ]);
 
@@ -108,11 +108,11 @@ class UserController extends Controller
         // 1. Validasi input
         $validated = $request->validate([
             'full_name' => 'required|string|max:255',
-            'whatsapp'  => 'required|digits_between:12,13|unique:users,whatsapp',
+            'whatsapp'  => 'required|digits_between:10,13|unique:users,whatsapp',
             'password'  => 'required|string|min:8|confirmed',
         ], [
             'whatsapp.unique'   => 'Nomor WhatsApp ini sudah terdaftar. Tidak boleh mendaftar ganda.',
-            'whatsapp.digits_between' => 'Nomor WhatsApp harus terdiri dari 12 sampai 13 angka.',
+            'whatsapp.digits_between' => 'Nomor WhatsApp harus terdiri dari 10 sampai 13 angka.',
             'password.confirmed'=> 'Konfirmasi password tidak cocok.',
             'password.min'      => 'Password minimal harus 8 karakter.',
         ]);

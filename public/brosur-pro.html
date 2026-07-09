@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Brosur RamaDigital Hub</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;color-adjust:exact!important;}
+body{font-family:'Segoe UI',Arial,sans-serif;background:#0d1520;display:flex;flex-direction:column;align-items:center;padding:28px 10px;gap:18px;}
+.ctrl{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;}
+.btn-print{background:linear-gradient(135deg,#1a73e8,#4a9eff);color:#fff;border:none;padding:11px 28px;border-radius:30px;font-size:.9rem;font-weight:700;cursor:pointer;box-shadow:0 4px 18px rgba(26,115,232,.45);letter-spacing:.5px;}
+.btn-print:hover{background:linear-gradient(135deg,#1558c0,#1a73e8);}
+.hint{color:#6b7280;font-size:.75rem;text-align:center;max-width:520px;line-height:1.5;}
+.hint strong{color:#fff;}
+.brosur{width:297mm;height:210mm;display:grid;grid-template-columns:99mm 99mm 99mm;overflow:hidden;border-radius:8px;box-shadow:0 24px 64px rgba(0,0,0,.7);}
+
+/* PANEL 1 */
+.p1{background:linear-gradient(170deg,#1c2b4a 0%,#162240 60%,#0f1b35 100%);color:#fff;padding:20px 18px 16px;display:flex;flex-direction:column;gap:10px;position:relative;overflow:hidden;}
+.p1:before{content:'';position:absolute;top:-70px;right:-70px;width:200px;height:200px;border-radius:50%;background:radial-gradient(circle,rgba(26,115,232,.18),transparent 70%);}
+.p1:after{content:'';position:absolute;bottom:-50px;left:-50px;width:160px;height:160px;border-radius:50%;background:radial-gradient(circle,rgba(255,109,0,.12),transparent 70%);}
+.logo-row{display:flex;align-items:center;gap:8px;position:relative;z-index:2;}
+.logo-box{width:38px;height:38px;background:linear-gradient(135deg,#ff6d00,#ff9500);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;box-shadow:0 4px 12px rgba(255,109,0,.45);}
+.logo-name{font-size:.9rem;font-weight:800;line-height:1.1;}
+.logo-name em{font-style:normal;color:#ff6d00;}
+.logo-sub{font-size:.52rem;opacity:.55;letter-spacing:1.5px;text-transform:uppercase;}
+.divider{height:1px;background:linear-gradient(90deg,rgba(255,255,255,.15),transparent);position:relative;z-index:2;}
+.tentang-box{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:10px 11px;position:relative;z-index:2;}
+.box-title{font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:#ff6d00;margin-bottom:5px;}
+.ttxt{font-size:.67rem;line-height:1.5;opacity:.82;}
+.fitur-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px;position:relative;z-index:2;}
+.fc{background:rgba(26,115,232,.15);border:1px solid rgba(26,115,232,.25);border-radius:9px;padding:7px 6px;text-align:center;}
+.fc-icon{font-size:1.05rem;margin-bottom:3px;}
+.fc-name{font-size:.59rem;font-weight:600;line-height:1.2;opacity:.9;}
+.kontak-box{margin-top:auto;background:rgba(255,109,0,.12);border:1px solid rgba(255,109,0,.25);border-radius:9px;padding:8px 10px;position:relative;z-index:2;}
+.kr{display:flex;align-items:center;gap:6px;margin-bottom:4px;}
+.kr:last-child{margin-bottom:0;}
+.kd{width:17px;height:17px;background:linear-gradient(135deg,#ff6d00,#ff9500);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.5rem;flex-shrink:0;}
+.kt{font-size:.62rem;opacity:.88;}
+
+/* PANEL 2 */
+.p2{background:linear-gradient(170deg,#162036 0%,#1a2848 50%,#1c2b4a 100%);color:#fff;padding:20px 18px 16px;display:flex;flex-direction:column;gap:10px;border-left:1px solid rgba(255,255,255,.07);border-right:1px solid rgba(255,255,255,.07);position:relative;overflow:hidden;}
+.p2:before{content:'';position:absolute;top:30px;left:50%;transform:translateX(-50%);width:180px;height:180px;border-radius:50%;background:radial-gradient(circle,rgba(26,115,232,.1),transparent 70%);}
+.sec-title{font-size:.63rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:#4a9eff;margin-bottom:5px;display:flex;align-items:center;gap:5px;}
+.sec-title:before{content:'';width:3px;height:12px;background:linear-gradient(#ff6d00,#ffa040);border-radius:2px;flex-shrink:0;}
+.harga-list{display:flex;flex-direction:column;gap:4px;position:relative;z-index:2;}
+.hr{display:flex;align-items:center;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:5px 8px;gap:7px;}
+.hi{width:24px;height:24px;background:linear-gradient(135deg,#1a73e8,#4a9eff);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:.72rem;flex-shrink:0;}
+.hinfo{flex:1;}
+.hn{font-size:.63rem;font-weight:600;opacity:.9;}
+.hnote{font-size:.53rem;opacity:.5;}
+.hp{font-size:.7rem;font-weight:700;color:#fbbf24;white-space:nowrap;}
+.steps{display:flex;flex-direction:column;gap:4px;position:relative;z-index:2;}
+.sr{display:flex;align-items:flex-start;gap:7px;}
+.sn{width:19px;height:19px;min-width:19px;background:linear-gradient(135deg,#ff6d00,#ffa040);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.58rem;font-weight:800;color:#fff;flex-shrink:0;margin-top:1px;}
+.sttl{font-size:.63rem;font-weight:700;opacity:.95;}
+.ssub{font-size:.57rem;opacity:.55;line-height:1.3;}
+.ung{display:grid;grid-template-columns:1fr 1fr;gap:4px;position:relative;z-index:2;}
+.ui{display:flex;align-items:center;gap:4px;font-size:.59rem;opacity:.82;}
+.ud{width:14px;height:14px;min-width:14px;background:linear-gradient(135deg,#00c49a,#1a73e8);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.45rem;color:#fff;flex-shrink:0;}
+
+/* PANEL 3 COVER */
+.p3{background:linear-gradient(150deg,#1c2b4a 0%,#1a3060 40%,#0f1f40 100%);color:#fff;padding:22px 18px 18px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:9px;position:relative;overflow:hidden;}
+.p3:before{content:'';position:absolute;top:-80px;left:50%;transform:translateX(-50%);width:260px;height:260px;border-radius:50%;background:radial-gradient(circle,rgba(26,115,232,.2),transparent 65%);}
+.p3:after{content:'';position:absolute;bottom:-60px;right:-60px;width:180px;height:180px;border-radius:50%;background:radial-gradient(circle,rgba(255,109,0,.18),transparent 65%);}
+.cover-badge{background:rgba(255,109,0,.15);border:1px solid rgba(255,109,0,.35);border-radius:20px;padding:3px 12px;font-size:.59rem;font-weight:700;color:#ffa040;letter-spacing:.5px;text-transform:uppercase;position:relative;z-index:2;}
+.clb{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;gap:4px;}
+.cib{width:56px;height:56px;background:linear-gradient(135deg,#ff6d00,#ffa040);border-radius:15px;display:flex;align-items:center;justify-content:center;font-size:1.8rem;box-shadow:0 8px 24px rgba(255,109,0,.5);}
+.cbrand{font-size:1.25rem;font-weight:900;letter-spacing:-.3px;}
+.cbrand em{font-style:normal;color:#ff6d00;}
+.cbsub{font-size:.57rem;opacity:.55;letter-spacing:2px;text-transform:uppercase;}
+.ch1{position:relative;z-index:2;}
+.ch1 h1{font-size:.92rem;font-weight:900;line-height:1.2;}
+.ch1 h1 em{font-style:normal;background:linear-gradient(90deg,#ff6d00,#fbbf24);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.ch1 p{font-size:.61rem;opacity:.7;margin-top:3px;line-height:1.4;}
+.pills{display:flex;flex-wrap:wrap;gap:4px;justify-content:center;position:relative;z-index:2;}
+.pill{background:rgba(26,115,232,.2);border:1px solid rgba(26,115,232,.35);border-radius:20px;padding:3px 8px;font-size:.57rem;font-weight:600;color:#7dd3fc;}
+.vis{position:relative;z-index:2;display:flex;gap:8px;align-items:center;justify-content:center;}
+.vc{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:7px 9px;text-align:center;}
+.vi{font-size:1.35rem;margin-bottom:3px;}
+.vl{font-size:.54rem;opacity:.7;font-weight:600;}
+.cta{margin-top:auto;width:100%;background:linear-gradient(135deg,rgba(26,115,232,.25),rgba(255,109,0,.15));border:1px solid rgba(26,115,232,.3);border-radius:10px;padding:8px 12px;display:flex;align-items:center;gap:9px;position:relative;z-index:2;}
+.cta-qr{width:44px;height:44px;min-width:44px;background:#fff;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:1.55rem;flex-shrink:0;}
+.cta-t{text-align:left;}
+.cta-lbl{font-size:.57rem;opacity:.6;text-transform:uppercase;letter-spacing:1px;}
+.cta-url{font-size:.73rem;font-weight:800;color:#ff6d00;}
+.cta-wa{font-size:.59rem;opacity:.75;margin-top:1px;}
+
+@media print{
+  *{
+    -webkit-print-color-adjust:exact!important;
+    print-color-adjust:exact!important;
+    color-adjust:exact!important;
+  }
+  body{background:#0d1520!important;padding:0!important;}
+  .ctrl,.hint{display:none!important;}
+  .brosur{
+    box-shadow:none!important;
+    border-radius:0!important;
+    width:297mm!important;
+    height:210mm!important;
+    -webkit-print-color-adjust:exact!important;
+    print-color-adjust:exact!important;
+  }
+  .p1{background:linear-gradient(170deg,#1c2b4a 0%,#162240 60%,#0f1b35 100%)!important;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;}
+  .p2{background:linear-gradient(170deg,#162036 0%,#1a2848 50%,#1c2b4a 100%)!important;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;}
+  .p3{background:linear-gradient(150deg,#1c2b4a 0%,#1a3060 40%,#0f1f40 100%)!important;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;}
+}
+@page{size:A4 landscape;margin:0;}
+</style>
+</head>
+<body>
+
+<div class="ctrl">
+  <button class="btn-print" onclick="window.print()">&#128424; &nbsp;Print / Simpan PDF</button>
+</div>
+<p class="hint">Pilih kertas <strong>A4 Landscape</strong> &middot; Centang <strong>Background graphics</strong> agar warna &amp; gradien muncul &middot; Scale: <strong>100%</strong></p>
+
+<div class="brosur">
+
+<!-- PANEL 1 -->
+<div class="p1">
+  <div class="logo-row">
+    <div class="logo-box">&#128424;</div>
+    <div>
+      <div class="logo-name">Rama<em>Digital</em> Hub</div>
+      <div class="logo-sub">Toko ATK &amp; Jasa Cetak</div>
+    </div>
+  </div>
+  <div class="divider"></div>
+  <div class="tentang-box">
+    <div class="box-title">&#128205; Tentang Kami</div>
+    <p class="ttxt">Selamat datang di <strong>RamaDigital Hub</strong>, toko ATK &amp; jasa cetak terpercaya di Baturaja. Kami hadir untuk memenuhi kebutuhan cetak dokumen, foto, stiker, serta penjualan alat tulis kantor dengan harga terjangkau dan pelayanan cepat. Pesan langsung dari website, bayar via QRIS!</p>
+  </div>
+  <div>
+    <div class="box-title" style="color:#4a9eff;">&#9881; Layanan Tersedia</div>
+    <div class="fitur-grid">
+      <div class="fc"><div class="fc-icon">&#128196;</div><div class="fc-name">Cetak Dokumen</div></div>
+      <div class="fc"><div class="fc-icon">&#128247;</div><div class="fc-name">Cetak Foto</div></div>
+      <div class="fc"><div class="fc-icon">&#127991;</div><div class="fc-name">Cetak Stiker</div></div>
+      <div class="fc"><div class="fc-icon">&#128394;</div><div class="fc-name">Jual ATK</div></div>
+      <div class="fc"><div class="fc-icon">&#128209;</div><div class="fc-name">Jilid Spiral</div></div>
+      <div class="fc"><div class="fc-icon">&#127760;</div><div class="fc-name">Pesan Online</div></div>
+    </div>
+  </div>
+  <div class="kontak-box">
+    <div class="box-title" style="margin-bottom:6px;">&#128222; Hubungi Kami</div>
+    <div class="kr"><div class="kd">&#128241;</div><span class="kt">0852-7330-0045 (WhatsApp)</span></div>
+    <div class="kr"><div class="kd">&#128205;</div><span class="kt">Jl. Mayor Iskandar No.771, Baturaja Timur</span></div>
+    <div class="kr"><div class="kd">&#128336;</div><span class="kt">Buka: Senin&ndash;Sabtu, 08.00&ndash;20.00 WIB</span></div>
+  </div>
+</div>
+
+<!-- PANEL 2 -->
+<div class="p2">
+  <div>
+    <div class="sec-title">&#128176; Daftar Harga Cetak</div>
+    <div class="harga-list">
+      <div class="hr"><div class="hi">&#128196;</div><div class="hinfo"><div class="hn">HVS A4 &mdash; Hitam &amp; Putih</div><div class="hnote">Min. 10 lembar</div></div><div class="hp">Rp 500/lbr</div></div>
+      <div class="hr"><div class="hi">&#127912;</div><div class="hinfo"><div class="hn">HVS A4 &mdash; Full Color</div><div class="hnote">Semua warna</div></div><div class="hp">Rp 1.500/lbr</div></div>
+      <div class="hr"><div class="hi">&#128203;</div><div class="hinfo"><div class="hn">HVS F4 / Folio</div><div class="hnote">Hitam &amp; putih</div></div><div class="hp">Rp 700/lbr</div></div>
+      <div class="hr"><div class="hi">&#128247;</div><div class="hinfo"><div class="hn">Foto Glossy</div><div class="hnote">Ukuran 4R &ndash; A4</div></div><div class="hp">Rp 3.000/lbr</div></div>
+      <div class="hr"><div class="hi">&#127991;</div><div class="hinfo"><div class="hn">Stiker Matte / Vinyl</div><div class="hnote">A4, custom</div></div><div class="hp">Rp 4.000/lbr</div></div>
+      <div class="hr"><div class="hi">&#128209;</div><div class="hinfo"><div class="hn">Jilid Spiral</div><div class="hnote">Plastik / karton</div></div><div class="hp">Rp 5.000/bh</div></div>
+    </div>
+  </div>
+  <div class="divider" style="background:linear-gradient(90deg,rgba(255,255,255,.1),transparent);position:relative;z-index:2;"></div>
+  <div>
+    <div class="sec-title">&#128203; Cara Pesan Online</div>
+    <div class="steps">
+      <div class="sr"><div class="sn">1</div><div><div class="sttl">Buka Website</div><div class="ssub">Kunjungi ramadigitalhub.com</div></div></div>
+      <div class="sr"><div class="sn">2</div><div><div class="sttl">Daftar &amp; Login</div><div class="ssub">Buat akun gratis dengan nomor WhatsApp</div></div></div>
+      <div class="sr"><div class="sn">3</div><div><div class="sttl">Pilih Layanan &amp; Upload File</div><div class="ssub">Isi formulir cetak atau tambah ATK ke keranjang</div></div></div>
+      <div class="sr"><div class="sn">4</div><div><div class="sttl">Bayar via QRIS</div><div class="ssub">Upload bukti, pesanan langsung diproses</div></div></div>
+    </div>
+  </div>
+  <div>
+    <div class="sec-title">&#10003; Keunggulan Kami</div>
+    <div class="ung">
+      <div class="ui"><div class="ud">&#10003;</div><span>Harga Terjangkau</span></div>
+      <div class="ui"><div class="ud">&#10003;</div><span>Proses Cepat</span></div>
+      <div class="ui"><div class="ud">&#10003;</div><span>Bayar QRIS</span></div>
+      <div class="ui"><div class="ud">&#10003;</div><span>Pesan 24 Jam</span></div>
+      <div class="ui"><div class="ud">&#10003;</div><span>Hasil Berkualitas</span></div>
+      <div class="ui"><div class="ud">&#10003;</div><span>Ramah Pelanggan</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- PANEL 3 COVER -->
+<div class="p3">
+  <div class="cover-badge">&#127942; Terpercaya di Baturaja</div>
+  <div class="clb">
+    <div class="cib">&#128424;</div>
+    <div class="cbrand">Rama<em>Digital</em> Hub</div>
+    <div class="cbsub">Toko ATK &amp; Jasa Cetak</div>
+  </div>
+  <div class="ch1">
+    <h1>Cetak &amp; Belanja ATK<br><em>Mudah, Cepat &amp; Terpercaya!</em></h1>
+    <p>Solusi lengkap kebutuhan cetak dokumen &amp; alat tulis kantor.<br>Pesan online, bayar QRIS, pesanan langsung diproses.</p>
+  </div>
+  <div class="pills">
+    <div class="pill">&#128196; Cetak Dokumen</div>
+    <div class="pill">&#128247; Cetak Foto</div>
+    <div class="pill">&#127991; Stiker</div>
+    <div class="pill">&#128394; ATK Lengkap</div>
+    <div class="pill">&#128179; Bayar QRIS</div>
+  </div>
+  <div class="vis">
+    <div class="vc"><div class="vi">&#128230;</div><div class="vl">Produk ATK<br>Lengkap</div></div>
+    <div class="vc" style="border-color:rgba(255,109,0,.3);background:rgba(255,109,0,.1);"><div class="vi">&#128424;</div><div class="vl">Jasa Cetak<br>Berkualitas</div></div>
+    <div class="vc"><div class="vi">&#127760;</div><div class="vl">Pesan<br>Online</div></div>
+  </div>
+  <div class="cta">
+    <div class="cta-qr">&#9632;</div>
+    <div class="cta-t">
+      <div class="cta-lbl">Scan atau kunjungi</div>
+      <div class="cta-url">ramadigitalhub.com</div>
+      <div class="cta-wa">&#128241; WA: 0852-7330-0045</div>
+      <div class="cta-wa" style="opacity:.5;font-size:.52rem;">&#128205; Jl. Mayor Iskandar No.771, Baturaja Timur</div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /brosur -->
+</body>
+</html>

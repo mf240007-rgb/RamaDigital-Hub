@@ -108,7 +108,6 @@ class AdminController extends Controller
         if ($redirect = $this->guardAdmin()) return $redirect;
 
         $totalProduk    = \App\Models\Product::count();
-        $pesananMasuk   = \App\Models\Order::whereIn('status', ['Menunggu Antrean', 'diproses'])->count();
         $pesananSelesai = \App\Models\Order::where('status', 'selesai')->count();
 
         // Total penghasilan: jumlah total_harga dari pesanan ATK yang payment_status = 'lunas'
@@ -116,8 +115,8 @@ class AdminController extends Controller
             ->where('payment_status', 'lunas')
             ->sum('total_harga');
 
-        // Badge pesanan cetak yang sudah layak muncul di admin (setelah DP diterima)
-        $newPesananCetak = \App\Models\Order::where('item_type', 'jasa')
+        // Pesanan aktif dan terbaru untuk jasa cetak hanya dihitung setelah pembayaran awal masuk
+        $pesananAktifCetakQuery = \App\Models\Order::where('item_type', 'jasa')
             ->where('status', '!=', 'dibatalkan')
             ->where(function ($query) {
                 $query->whereIn('payment_status', ['dp_diterima', 'lunas', 'sisa_dibayar'])
@@ -126,26 +125,27 @@ class AdminController extends Controller
                             ->whereNotNull('bukti_bayar')
                             ->where('bukti_bayar', '!=', '');
                     });
-            })
-            ->count();
+            });
+
+        $pesananMasuk = (clone $pesananAktifCetakQuery)->count();
 
         // Pesanan cetak terbaru (5 terakhir)
-        $recentOrders = \App\Models\Order::with('user')
-            ->where('item_type', 'jasa')
+        $recentOrders = $pesananAktifCetakQuery->with('user')
             ->orderByDesc('created_at')
             ->limit(5)
             ->get();
 
-        // Pesanan ATK terbaru (5 terakhir) — semua status
+        // Pesanan ATK terbaru (5 terakhir) hanya yang sudah masuk verifikasi pembayaran
         $recentAtk = \App\Models\Order::with('user')
             ->where('item_type', 'produk')
+            ->whereIn('payment_status', ['menunggu_konfirmasi', 'menunggu_persetujuan_batal', 'lunas', 'ditolak'])
             ->orderByDesc('created_at')
             ->limit(5)
             ->get();
 
         return view('admin.dashboard', compact(
             'totalProduk', 'pesananMasuk', 'pesananSelesai',
-            'totalPenghasilan', 'newPesananCetak', 'recentOrders', 'recentAtk'
+            'totalPenghasilan', 'recentOrders', 'recentAtk'
         ));
     }
 
