@@ -1,9 +1,20 @@
 @php
     $isJasa           = $order->item_type === 'jasa';
     $ps               = $order->getCustomerDisplayState();
-    $canCancelJasa    = $isJasa && $order->status === 'Menunggu Antrean' && $order->payment_status !== 'lunas' && $order->status !== 'dibatalkan';
+    $isCancelPending  = $ps === 'menunggu_persetujuan_batal';
+    $isCancelled      = $ps === 'dibatalkan';
+    $isAdminCancelled = $isCancelled && $order->dibatalkan_oleh === 'admin' && empty($order->cancellation_requested_at);
+    $canCancelJasa    = $isJasa && $order->status === 'Menunggu Antrean' && !in_array($order->payment_status, ['lunas', 'menunggu_persetujuan_batal'], true) && $order->status !== 'dibatalkan';
     $remainingBalance = $isJasa ? $order->getRemainingBalance() : 0;
+    $isAwaitingRemainingPayment = $isJasa && $ps === 'menunggu_pelunasan_sisa';
+    $isWaitingRemainingConfirmation = $isJasa && $ps === 'sisa_menunggu_konfirmasi';
     $hasPriceUpdate   = $isJasa && !empty($order->harga_final) && (int)$order->harga_final > 0 && (int)$order->harga_final !== (int)$order->total_harga;
+    $paymentNote      = (string) ($order->catatan_pembayaran ?? '');
+    $isCancellationRejected = $paymentNote !== ''
+        && str_contains(strtolower($paymentNote), 'permintaan pembatalan ditolak');
+    $cancellationRejectedNote = $isCancellationRejected
+        ? trim((string) preg_replace('/^Permintaan pembatalan ditolak oleh admin:?\s*/i', '', $paymentNote))
+        : '';
     $showSisaPaymentForm = $isJasa
         && $order->status === 'selesai'
         && $remainingBalance > 0
@@ -11,8 +22,12 @@
 
     if ($isJasa) {
         $payStyle = match(true) {
-            $order->status === 'selesai'                           => ['bg'=>'#d1fae5','text'=>'#065f46','icon'=>'bi-check-circle-fill','label'=>'Selesai'],
+            $isCancelled                                            => ['bg'=>'#fee2e2','text'=>'#991b1b','icon'=>'bi-x-circle-fill','label'=>'Dibatalkan'],
+            $order->payment_status === 'menunggu_persetujuan_batal' => ['bg'=>'#fce7f3','text'=>'#9d174d','icon'=>'bi-clock-history','label'=>'Menunggu Persetujuan Batal'],
             $order->payment_status === 'lunas'                     => ['bg'=>'#d1fae5','text'=>'#065f46','icon'=>'bi-check-circle-fill','label'=>'Lunas'],
+            $isAwaitingRemainingPayment                            => ['bg'=>'#fff3cd','text'=>'#856404','icon'=>'bi-wallet2','label'=>'Menunggu Pelunasan Sisa'],
+            $isWaitingRemainingConfirmation                        => ['bg'=>'#fff3cd','text'=>'#856404','icon'=>'bi-hourglass-split','label'=>'Sisa Menunggu Konfirmasi'],
+            $order->status === 'selesai'                           => ['bg'=>'#d1fae5','text'=>'#065f46','icon'=>'bi-check-circle-fill','label'=>'Selesai'],
             $order->payment_status === 'dp_diterima'               => ['bg'=>'#d1fae5','text'=>'#065f46','icon'=>'bi-check-circle-fill','label'=>'DP Dikonfirmasi'],
             $order->payment_status === 'sisa_dibayar'              => ['bg'=>'#fff3cd','text'=>'#856404','icon'=>'bi-hourglass-split','label'=>'Menunggu Pelunasan Sisa'],
             $order->payment_status === 'menunggu_konfirmasi'       => ['bg'=>'#fff3cd','text'=>'#856404','icon'=>'bi-hourglass-split','label'=>'DP Menunggu Konfirmasi'],
@@ -27,12 +42,14 @@
     $accentColor = match($ps) {
         'lunas','selesai'           => '#10b981',
         'menunggu_konfirmasi',
+        'menunggu_pelunasan_sisa',
+        'sisa_menunggu_konfirmasi',
         'Menunggu Antrean'          => '#f59e0b',
         'diproses'                  => '#3b82f6',
         default                     => '#ef4444',
     };
     $headerClass = $isJasa
-        ? 'order-header-' . ($order->status === 'Menunggu Antrean' ? 'menunggu' : $order->status)
+        ? 'order-header-' . ($isCancelled ? 'dibatalkan' : ($isCancelPending ? 'menunggu_persetujuan_batal' : (($isAwaitingRemainingPayment || $isWaitingRemainingConfirmation) ? 'menunggu_pelunasan_sisa' : ($order->status === 'Menunggu Antrean' ? 'menunggu' : $order->status))))
         : 'order-header-' . $ps;
 
     $tampilNota = (!$isJasa && $ps === 'lunas') || ($isJasa && $order->status === 'selesai' && $order->payment_status === 'lunas');
@@ -147,16 +164,17 @@
 
                 @if($order->catatan_pembayaran)
                     @php
-                        $cBg   = $ps === 'ditolak' ? '#fff5f5' : ($ps === 'menunggu_persetujuan_batal' ? '#fce7f3' : '#f0f9ff');
-                        $cBdr  = $ps === 'ditolak' ? '#fecaca' : ($ps === 'menunggu_persetujuan_batal' ? '#fbcfe8' : '#bae6fd');
-                        $cIcon = $ps === 'ditolak' ? 'bi-exclamation-triangle-fill text-danger' : ($ps === 'menunggu_persetujuan_batal' ? 'bi-clock-history text-danger' : 'bi-chat-left-text-fill text-info');
-                        $cTxt  = $ps === 'ditolak' ? '#991b1b' : ($ps === 'menunggu_persetujuan_batal' ? '#9d174d' : '#0369a1');
+                        $cBg   = $isCancellationRejected ? '#fffbeb' : ($ps === 'ditolak' ? '#fff5f5' : ($ps === 'menunggu_persetujuan_batal' ? '#fce7f3' : '#f0f9ff'));
+                        $cBdr  = $isCancellationRejected ? '#fde68a' : ($ps === 'ditolak' ? '#fecaca' : ($ps === 'menunggu_persetujuan_batal' ? '#fbcfe8' : '#bae6fd'));
+                        $cIcon = $isCancellationRejected ? 'bi-arrow-counterclockwise text-warning' : ($ps === 'ditolak' ? 'bi-exclamation-triangle-fill text-danger' : ($ps === 'menunggu_persetujuan_batal' ? 'bi-clock-history text-danger' : 'bi-chat-left-text-fill text-info'));
+                        $cTxt  = $isCancellationRejected ? '#92400e' : ($ps === 'ditolak' ? '#991b1b' : ($ps === 'menunggu_persetujuan_batal' ? '#9d174d' : '#0369a1'));
                     @endphp
                     <div class="mt-3 p-3 rounded-3 d-flex align-items-start gap-2" style="background:{{ $cBg }};border:1px solid {{ $cBdr }};">
                         <i class="bi {{ $cIcon }} flex-shrink-0 mt-1" style="font-size:.9rem;"></i>
                         <div style="font-size:.88rem;color:{{ $cTxt }};">
+                            @if($isCancellationRejected)<strong>Permintaan Pembatalan Ditolak Admin:</strong><br>@endif
                             @if($ps === 'ditolak')<strong>Alasan Penolakan:</strong><br>@endif
-                            {{ $order->catatan_pembayaran }}
+                            {{ $isCancellationRejected ? ($cancellationRejectedNote ?: 'Silakan lanjutkan pembayaran atau ajukan pembatalan ulang jika diperlukan.') : $order->catatan_pembayaran }}
                         </div>
                     </div>
                 @endif
@@ -173,6 +191,16 @@
                         </div>
                     </div>
                 @endif
+
+                @if($isCancelled && $order->alasan_pembatalan)
+                    <div class="mt-3 p-3 rounded-3 d-flex align-items-start gap-2" style="background:#fff5f5;border:1px solid #fecaca;">
+                        <i class="bi bi-x-circle-fill text-danger flex-shrink-0 mt-1" style="font-size:.9rem;"></i>
+                        <div style="font-size:.88rem;color:#991b1b;">
+                            <strong>Pesanan Dibatalkan {{ $order->dibatalkan_oleh === 'admin' ? 'Admin' : 'Pelanggan' }}:</strong><br>
+                            {{ $order->alasan_pembatalan }}
+                        </div>
+                    </div>
+                @endif
             </div>
         </div>
     </div>
@@ -183,14 +211,19 @@
     <div class="px-4 py-3 card-actions">
         <div class="d-flex justify-content-between align-items-center gap-3 flex-wrap">
             <div class="status-note">
-                @if($isJasa && $order->payment_status === 'lunas') Pesanan telah lunas dan selesai.
+                @if($isAdminCancelled) Pesanan dibatalkan oleh admin. Hubungi admin jika membutuhkan bantuan.
+                @elseif($isCancelled) Pesanan telah dibatalkan.
+                @elseif($isCancelPending)
+                @elseif($isJasa && $order->payment_status === 'lunas') Pesanan telah lunas dan selesai.
+                @elseif($isAwaitingRemainingPayment) Pesanan selesai dikerjakan. Silakan bayar sisa pembayaran agar nota tersedia.
+                @elseif($isWaitingRemainingConfirmation) Bukti pelunasan sisa sudah dikirim, menunggu verifikasi admin.
                 @elseif($isJasa && $order->payment_status === 'dp_diterima') DP sudah dikonfirmasi. Pesanan sedang diproses.
                 @elseif($isJasa && $order->payment_status === 'sisa_dibayar') Bukti pelunasan sisa sudah dikirim, menunggu verifikasi admin.
                 @elseif($isJasa && $order->status === 'Menunggu Antrean') Menunggu pembayaran awal (DP) sebelum diproses admin.
                 @elseif($isJasa && $order->payment_status === 'menunggu_konfirmasi') Bukti DP sudah dikirim, menunggu verifikasi admin.
                 @elseif($ps === 'ditolak') Bukti pembayaran ditolak. Silakan upload ulang.
                 @elseif($ps === 'menunggu_konfirmasi') Menunggu verifikasi admin.
-                @elseif($ps === 'menunggu_persetujuan_batal') Permintaan pembatalan sedang diproses admin.
+                @elseif($ps === 'menunggu_persetujuan_batal')
                 @elseif($ps === 'lunas') Pembayaran telah dikonfirmasi.
                 @elseif($isJasa && $order->status === 'selesai') Pesanan selesai dikerjakan.
                 @else Pesanan sedang diproses.
@@ -198,7 +231,28 @@
             </div>
 
             <div class="d-flex align-items-center gap-2 flex-wrap justify-content-end">
-                @if($ps === 'ditolak' || ($isJasa && $order->status === 'Menunggu Antrean' && !$order->bukti_bayar))
+                @if($isAdminCancelled)
+                    @php $waMsg = urlencode('Halo Admin, saya ingin menanyakan pesanan ' . ($order->order_number ?? '#'.$order->id) . ' yang dibatalkan. Terima kasih.'); @endphp
+                    <a href="https://api.whatsapp.com/send?phone=6285273300045&text={{ $waMsg }}" target="_blank"
+                       class="btn btn-sm btn-outline-success rounded-pill px-3 fw-semibold"
+                       style="font-size:.8rem;">
+                        <i class="bi bi-whatsapp me-1"></i>Hubungi Admin
+                    </a>
+                @elseif($isCancelPending)
+                    @php $waMsg = urlencode('Halo Admin, saya ingin menindaklanjuti permintaan pembatalan pesanan ' . ($order->order_number ?? '#'.$order->id) . '. Terima kasih.'); @endphp
+                    <div class="d-flex flex-column align-items-end gap-2">
+                        <div class="d-flex align-items-center gap-2 px-3 py-2 rounded-3"
+                             style="background:#fce7f3;border:1px solid #fbcfe8;font-size:.82rem;color:#9d174d;">
+                            <i class="bi bi-clock-history flex-shrink-0"></i>
+                            Permintaan pembatalan menunggu persetujuan admin
+                        </div>
+                        <a href="https://api.whatsapp.com/send?phone=6285273300045&text={{ $waMsg }}" target="_blank"
+                           class="btn btn-sm btn-outline-success rounded-pill px-3 fw-semibold align-self-end"
+                           style="font-size:.8rem;">
+                            <i class="bi bi-whatsapp me-1"></i>Hubungi Admin
+                        </a>
+                    </div>
+                @elseif($ps === 'ditolak' || ($isJasa && $order->status === 'Menunggu Antrean' && !$order->bukti_bayar) || (!$isJasa && $ps === 'menunggu_konfirmasi' && !$order->bukti_bayar))
                     <form action="{{ route('customer.orders.upload-bukti', $order->id) }}" method="POST" enctype="multipart/form-data"
                           class="d-inline-flex align-items-center gap-2 flex-wrap">
                         @csrf
@@ -223,12 +277,6 @@
                             <i class="bi bi-send me-1"></i>Kirim Bukti Sisa
                         </button>
                     </form>
-                @elseif($ps === 'menunggu_persetujuan_batal')
-                    @php $waMsg = urlencode('Halo Admin, saya ingin menindaklanjuti permintaan pembatalan pesanan ' . ($order->order_number ?? '#'.$order->id) . '. Terima kasih.'); @endphp
-                    <a href="https://api.whatsapp.com/send?phone=6285273300045&text={{ $waMsg }}" target="_blank"
-                       class="btn btn-sm btn-outline-success rounded-pill px-3 fw-semibold">
-                        <i class="bi bi-whatsapp me-1"></i>Hubungi Admin
-                    </a>
                 @endif
 
                 @if($tampilNota)

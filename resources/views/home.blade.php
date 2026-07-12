@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>RamaDigital Hub — Toko ATK & Jasa Cetak</title>
+    <link rel="icon" type="image/svg+xml" href="{{ asset('images/brand/rd-logo.svg') }}">
 
     {{-- Bootstrap CSS via CDN --}}
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
@@ -33,13 +34,21 @@
 
         /* --- Navbar --- */
         .navbar-brand-custom {
-            font-size: 1.4rem;
+            font-size: 1.35rem;
             font-weight: 700;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.3px;
         }
 
         .navbar-brand-custom span {
             color: var(--warna-aksen); /* Warna oranye untuk "Digital" */
+        }
+
+        .brand-logo-icon {
+            display: inline-block;
+            height: 38px;
+            width: auto;
+            margin-right: 10px;
+            vertical-align: middle;
         }
 
         /* --- Hero Section --- */
@@ -297,8 +306,8 @@
         <div class="container">
 
             {{-- Logo / Brand --}}
-            <a class="navbar-brand navbar-brand-custom" href="/">
-                <i class="bi bi-printer-fill me-2" style="color: var(--warna-aksen);"></i>
+            <a class="navbar-brand navbar-brand-custom d-flex align-items-center" href="/">
+                <img src="{{ asset('images/brand/rd-logo.svg') }}" alt="RD Logo" class="brand-logo-icon">
                 Rama<span>Digital</span> Hub
             </a>
 
@@ -328,8 +337,11 @@
                         <a class="nav-link" href="#cek-status">Cek Status</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ route('customer.orders') }}">
+                        <a class="nav-link position-relative" href="{{ route('customer.orders') }}">
                             <i class="bi bi-receipt me-1"></i> Pesanan Saya
+                            @if(!empty($orderPaymentActionCount) && $orderPaymentActionCount > 0)
+                                <span class="badge bg-danger rounded-pill position-absolute top-0 start-100 translate-middle">{{ $orderPaymentActionCount }}</span>
+                            @endif
                         </a>
                     </li>
                     <li class="nav-item">
@@ -1116,7 +1128,7 @@
         document.addEventListener('keydown', function(e) {
             if (e.ctrlKey && e.altKey && e.key === 'a') {
                 e.preventDefault();
-                window.location.href = '/admin/login';
+                window.location.href = '{{ route('admin.login') }}';
             }
         });
 

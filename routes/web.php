@@ -34,40 +34,40 @@ Route::post('/reset-password', [AuthController::class, 'updatePassword'])->name(
 Route::match(['get', 'post'], '/logout', [UserController::class, 'logout'])->name('user.logout');
 
 // ROUTE GRUP ADMIN
-// Semua route admin diawali dengan prefix '/admin'
+// Semua route admin memakai prefix rahasia dari ADMIN_PATH di file .env.
 // Halaman Login Admin (GET = tampilkan form)
-// Akses: http://localhost:8000/admin/login
-Route::get('/admin/login', [AdminController::class, 'showLoginForm'])
+// Akses: http://localhost:8000/{ADMIN_PATH}/login
+Route::get('/' . config('admin.path') . '/login', [AdminController::class, 'showLoginForm'])
     ->name('admin.login');
 
 // Proses Login Admin (POST = kirim data form)
 // URL sama, tapi method POST untuk menerima data dari form
-Route::post('/admin/login', [AdminController::class, 'login'])
+Route::post('/' . config('admin.path') . '/login', [AdminController::class, 'login'])
     ->name('admin.login.submit');
 
 // Halaman Dashboard Admin (setelah login berhasil)
-// Akses: http://localhost:8000/admin/dashboard
-Route::get('/admin/dashboard', [AdminController::class, 'dashboard'])
+// Akses: http://localhost:8000/{ADMIN_PATH}/dashboard
+Route::get('/' . config('admin.path') . '/dashboard', [AdminController::class, 'dashboard'])
     ->name('admin.dashboard');
 
 // Proses Logout Admin
-Route::get('/admin/logout', [AdminController::class, 'logout'])
+Route::get('/' . config('admin.path') . '/logout', [AdminController::class, 'logout'])
     ->name('admin.logout');
 
 // Halaman Pengaturan Admin
-Route::get('/admin/settings', [AdminController::class, 'showSettings'])->name('admin.settings');
-Route::post('/admin/settings', [AdminController::class, 'updateSettings'])->name('admin.settings.update');
-Route::post('/admin/settings/qris', [AdminController::class, 'updateSettings'])->name('admin.settings.qris');
+Route::get('/' . config('admin.path') . '/settings', [AdminController::class, 'showSettings'])->name('admin.settings');
+Route::post('/' . config('admin.path') . '/settings', [AdminController::class, 'updateSettings'])->name('admin.settings.update');
+Route::post('/' . config('admin.path') . '/settings/qris', [AdminController::class, 'updateSettings'])->name('admin.settings.qris');
 
 // Rute untuk mengelola ATK di sisi Admin
-Route::get('/admin/produk', [ProductController::class, 'index'])->name('admin.produk.index');
-Route::get('/admin/produk/create', [ProductController::class, 'create'])->name('admin.produk.create');
-Route::post('/admin/produk/store', [ProductController::class, 'store'])->name('admin.produk.store');
-Route::post('/admin/kategori/store', [ProductController::class, 'storeCategory'])->name('admin.kategori.store');
-Route::delete('/admin/kategori/{id}', [ProductController::class, 'destroyCategory'])->name('admin.kategori.destroy');
-Route::delete('/admin/produk/{id}', [App\Http\Controllers\Admin\ProductController::class, 'destroy'])->name('admin.produk.destroy');
-Route::get('/admin/produk/{id}/edit', [App\Http\Controllers\Admin\ProductController::class, 'edit'])->name('admin.produk.edit');
-Route::put('/admin/produk/{id}', [App\Http\Controllers\Admin\ProductController::class, 'update'])->name('admin.produk.update');
+Route::get('/' . config('admin.path') . '/produk', [ProductController::class, 'index'])->name('admin.produk.index');
+Route::get('/' . config('admin.path') . '/produk/create', [ProductController::class, 'create'])->name('admin.produk.create');
+Route::post('/' . config('admin.path') . '/produk/store', [ProductController::class, 'store'])->name('admin.produk.store');
+Route::post('/' . config('admin.path') . '/kategori/store', [ProductController::class, 'storeCategory'])->name('admin.kategori.store');
+Route::delete('/' . config('admin.path') . '/kategori/{id}', [ProductController::class, 'destroyCategory'])->name('admin.kategori.destroy');
+Route::delete('/' . config('admin.path') . '/produk/{id}', [App\Http\Controllers\Admin\ProductController::class, 'destroy'])->name('admin.produk.destroy');
+Route::get('/' . config('admin.path') . '/produk/{id}/edit', [App\Http\Controllers\Admin\ProductController::class, 'edit'])->name('admin.produk.edit');
+Route::put('/' . config('admin.path') . '/produk/{id}', [App\Http\Controllers\Admin\ProductController::class, 'update'])->name('admin.produk.update');
 
 // Rute Keranjang Belanja
 Route::get('/cart', [CartController::class, 'view'])->name('cart.view');
@@ -76,12 +76,12 @@ Route::post('/cart/update', [CartController::class, 'update'])->name('cart.updat
 Route::post('/cart/remove', [CartController::class, 'remove'])->name('cart.remove');
 
 // Admin panel - Data Pelanggan
-Route::get('/admin/customers', [CustomerController::class, 'index'])->name('admin.customers.index');
-Route::get('/admin/customers/{id}/history', [CustomerController::class, 'history'])->name('admin.customers.history');
-Route::post('/admin/customers/{id}/reset-password', [CustomerController::class, 'resetPassword'])->name('admin.customers.reset');
+Route::get('/' . config('admin.path') . '/customers', [CustomerController::class, 'index'])->name('admin.customers.index');
+Route::get('/' . config('admin.path') . '/customers/{id}/history', [CustomerController::class, 'history'])->name('admin.customers.history');
+Route::post('/' . config('admin.path') . '/customers/{id}/reset-password', [CustomerController::class, 'resetPassword'])->name('admin.customers.reset');
 
 // Route untuk menghapus pelanggan
-Route::delete('/admin/customers/{id}', [AdminController::class, 'destroyCustomer'])->name('admin.customers.destroy');
+Route::delete('/' . config('admin.path') . '/customers/{id}', [AdminController::class, 'destroyCustomer'])->name('admin.customers.destroy');
 
 // Route submit jasa cetak (user)
 Route::post('/jasa-cetak', [HomeController::class, 'submitCetak'])->name('cetak.submit');
@@ -93,7 +93,7 @@ Route::post('/cek-status', [HomeController::class, 'cekStatus'])->name('cetak.ce
 Route::post('/batalkan-pesanan', [HomeController::class, 'cancelOrder'])->name('cetak.cancel');
 
 // Route download dokumen (admin) — dari halaman riwayat pelanggan
-Route::get('/admin/orders/{orderId}/download', [CustomerController::class, 'downloadDokumen'])->name('admin.orders.download');
+Route::get('/' . config('admin.path') . '/orders/{orderId}/download', [CustomerController::class, 'downloadDokumen'])->name('admin.orders.download');
 
 // Checkout ATK (user)
 Route::get('/checkout', [\App\Http\Controllers\CheckoutController::class, 'index'])->name('checkout.index');
@@ -107,20 +107,22 @@ Route::get('/pesanan-saya/{id}/bukti', [CustomerController::class, 'lihatBuktiPe
 Route::post('/pesanan-saya/{id}/ajukan-batal', [CustomerController::class, 'ajukanPembatalan'])->name('customer.orders.ajukan-batal');
 
 // Halaman Pesanan Cetak (admin)
-Route::get('/admin/pesanan-cetak', [\App\Http\Controllers\Admin\PrintOrderController::class, 'index'])->name('admin.print-orders.index');
-Route::post('/admin/pesanan-cetak/bulk-delete', [\App\Http\Controllers\Admin\PrintOrderController::class, 'destroyBulk'])->name('admin.print-orders.bulk-delete');
-Route::post('/admin/pesanan-cetak/{id}/status', [\App\Http\Controllers\Admin\PrintOrderController::class, 'updateStatus'])->name('admin.print-orders.status');
-Route::post('/admin/pesanan-cetak/{id}/cancel', [\App\Http\Controllers\Admin\PrintOrderController::class, 'cancel'])->name('admin.print-orders.cancel');
-Route::get('/admin/pesanan-cetak/{id}/download', [\App\Http\Controllers\Admin\PrintOrderController::class, 'download'])->name('admin.print-orders.download');
-Route::get('/admin/pesanan-cetak/{id}/download-bukti', [\App\Http\Controllers\Admin\PrintOrderController::class, 'downloadBukti'])->name('admin.print-orders.download-bukti');
-Route::post('/admin/pesanan-cetak/{id}/konfirmasi-bayar', [\App\Http\Controllers\Admin\PrintOrderController::class, 'konfirmasiPembayaran'])->name('admin.print-orders.konfirmasi-bayar');
-Route::post('/admin/pesanan-cetak/{id}/tolak-bayar', [\App\Http\Controllers\Admin\PrintOrderController::class, 'tolakPembayaran'])->name('admin.print-orders.tolak-bayar');
-Route::delete('/admin/pesanan-cetak/{id}', [\App\Http\Controllers\Admin\PrintOrderController::class, 'destroy'])->name('admin.print-orders.destroy');
+Route::get('/' . config('admin.path') . '/pesanan-cetak', [\App\Http\Controllers\Admin\PrintOrderController::class, 'index'])->name('admin.print-orders.index');
+Route::post('/' . config('admin.path') . '/pesanan-cetak/bulk-delete', [\App\Http\Controllers\Admin\PrintOrderController::class, 'destroyBulk'])->name('admin.print-orders.bulk-delete');
+Route::post('/' . config('admin.path') . '/pesanan-cetak/{id}/status', [\App\Http\Controllers\Admin\PrintOrderController::class, 'updateStatus'])->name('admin.print-orders.status');
+Route::post('/' . config('admin.path') . '/pesanan-cetak/{id}/cancel', [\App\Http\Controllers\Admin\PrintOrderController::class, 'cancel'])->name('admin.print-orders.cancel');
+Route::post('/' . config('admin.path') . '/pesanan-cetak/{id}/setujui-batal', [\App\Http\Controllers\Admin\PrintOrderController::class, 'setujuiPembatalan'])->name('admin.print-orders.setujui-batal');
+Route::post('/' . config('admin.path') . '/pesanan-cetak/{id}/tolak-batal', [\App\Http\Controllers\Admin\PrintOrderController::class, 'tolakPembatalan'])->name('admin.print-orders.tolak-batal');
+Route::get('/' . config('admin.path') . '/pesanan-cetak/{id}/download', [\App\Http\Controllers\Admin\PrintOrderController::class, 'download'])->name('admin.print-orders.download');
+Route::get('/' . config('admin.path') . '/pesanan-cetak/{id}/download-bukti', [\App\Http\Controllers\Admin\PrintOrderController::class, 'downloadBukti'])->name('admin.print-orders.download-bukti');
+Route::post('/' . config('admin.path') . '/pesanan-cetak/{id}/konfirmasi-bayar', [\App\Http\Controllers\Admin\PrintOrderController::class, 'konfirmasiPembayaran'])->name('admin.print-orders.konfirmasi-bayar');
+Route::post('/' . config('admin.path') . '/pesanan-cetak/{id}/tolak-bayar', [\App\Http\Controllers\Admin\PrintOrderController::class, 'tolakPembayaran'])->name('admin.print-orders.tolak-bayar');
+Route::delete('/' . config('admin.path') . '/pesanan-cetak/{id}', [\App\Http\Controllers\Admin\PrintOrderController::class, 'destroy'])->name('admin.print-orders.destroy');
 
 // Halaman Verifikasi Bayar ATK (admin)
-Route::get('/admin/verifikasi-atk', [\App\Http\Controllers\Admin\VerifikasiAtkController::class, 'index'])->name('admin.verifikasi-atk.index');
-Route::get('/admin/verifikasi-atk/{id}/bukti', [\App\Http\Controllers\Admin\VerifikasiAtkController::class, 'lihatBukti'])->name('admin.verifikasi-atk.bukti');
-Route::get('/admin/verifikasi-atk/{id}/download', [\App\Http\Controllers\Admin\VerifikasiAtkController::class, 'downloadBukti'])->name('admin.verifikasi-atk.download');
-Route::post('/admin/verifikasi-atk/{id}/konfirmasi', [\App\Http\Controllers\Admin\VerifikasiAtkController::class, 'konfirmasi'])->name('admin.verifikasi-atk.konfirmasi');
-Route::post('/admin/verifikasi-atk/{id}/setujui-batal', [\App\Http\Controllers\Admin\VerifikasiAtkController::class, 'setujuiPembatalan'])->name('admin.verifikasi-atk.setujui-batal');
-Route::post('/admin/verifikasi-atk/{id}/tolak-batal', [\App\Http\Controllers\Admin\VerifikasiAtkController::class, 'tolakPembatalan'])->name('admin.verifikasi-atk.tolak-batal');
+Route::get('/' . config('admin.path') . '/verifikasi-atk', [\App\Http\Controllers\Admin\VerifikasiAtkController::class, 'index'])->name('admin.verifikasi-atk.index');
+Route::get('/' . config('admin.path') . '/verifikasi-atk/{id}/bukti', [\App\Http\Controllers\Admin\VerifikasiAtkController::class, 'lihatBukti'])->name('admin.verifikasi-atk.bukti');
+Route::get('/' . config('admin.path') . '/verifikasi-atk/{id}/download', [\App\Http\Controllers\Admin\VerifikasiAtkController::class, 'downloadBukti'])->name('admin.verifikasi-atk.download');
+Route::post('/' . config('admin.path') . '/verifikasi-atk/{id}/konfirmasi', [\App\Http\Controllers\Admin\VerifikasiAtkController::class, 'konfirmasi'])->name('admin.verifikasi-atk.konfirmasi');
+Route::post('/' . config('admin.path') . '/verifikasi-atk/{id}/setujui-batal', [\App\Http\Controllers\Admin\VerifikasiAtkController::class, 'setujuiPembatalan'])->name('admin.verifikasi-atk.setujui-batal');
+Route::post('/' . config('admin.path') . '/verifikasi-atk/{id}/tolak-batal', [\App\Http\Controllers\Admin\VerifikasiAtkController::class, 'tolakPembatalan'])->name('admin.verifikasi-atk.tolak-batal');

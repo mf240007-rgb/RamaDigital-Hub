@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login Admin — RamaDigital Hub</title>
+    <link rel="icon" type="image/svg+xml" href="{{ asset('images/brand/rd-logo.svg') }}">
 
     {{-- Bootstrap CSS via CDN --}}
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
@@ -67,6 +68,12 @@
             justify-content: center;
             margin: 0 auto 15px auto;
             border: 2px solid rgba(255,255,255,0.2);
+        }
+
+        .login-card-header .icon-lock img {
+            width: 52px;
+            height: 52px;
+            object-fit: contain;
         }
 
         .login-card-header h4 {
@@ -152,7 +159,7 @@
             {{-- Header Card --}}
             <div class="login-card-header">
                 <div class="icon-lock">
-                    <i class="bi bi-shield-lock-fill"></i>
+                    <img src="{{ asset('images/brand/rd-logo.svg') }}" alt="RamaDigital Hub">
                 </div>
                 <h4>Portal Admin</h4>
                 <p>RamaDigital Hub — Akses Terbatas</p>

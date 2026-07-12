@@ -68,6 +68,23 @@ class PrintOrderController extends Controller
                     return;
                 }
 
+                if ($filter === 'diproses') {
+                    $q->where(function ($query) {
+                        $query->where('status', 'diproses')
+                            ->orWhere(function ($sub) {
+                                $sub->where('status', 'selesai')
+                                    ->where('payment_status', '!=', 'lunas');
+                            });
+                    });
+                    return;
+                }
+
+                if ($filter === 'selesai') {
+                    $q->where('status', 'selesai')
+                        ->where('payment_status', 'lunas');
+                    return;
+                }
+
                 $q->where('status', $filter);
             })
             ->orderByDesc('created_at')
@@ -78,8 +95,19 @@ class PrintOrderController extends Controller
                 ->where('status', self::STATUS_MENUNGGU)
                 ->whereNotIn('payment_status', [self::PAYMENT_MINTA_BATAL, self::PAYMENT_DITOLAK])
                 ->count(),
-            'diproses' => (clone $baseQuery)->where('status', 'diproses')->count(),
-            'selesai'  => (clone $baseQuery)->where('status', 'selesai')->count(),
+            'diproses' => (clone $baseQuery)
+                ->where(function ($query) {
+                    $query->where('status', 'diproses')
+                        ->orWhere(function ($sub) {
+                            $sub->where('status', 'selesai')
+                                ->where('payment_status', '!=', 'lunas');
+                        });
+                })
+                ->count(),
+            'selesai'  => (clone $baseQuery)
+                ->where('status', 'selesai')
+                ->where('payment_status', 'lunas')
+                ->count(),
             'minta_batal' => (clone $baseQuery)->where('payment_status', self::PAYMENT_MINTA_BATAL)->count(),
             'ditolak'  => (clone $baseQuery)->where('payment_status', self::PAYMENT_DITOLAK)->count(),
             'semua'    => (clone $baseQuery)->count(),
@@ -125,9 +153,19 @@ class PrintOrderController extends Controller
             $order->catatan = $order->catatan;
         }
 
+        if ($request->status === 'selesai'
+            && $order->payment_status === 'dp_diterima'
+            && $order->getRemainingBalance() <= 0) {
+            $order->payment_status = 'lunas';
+        }
+
         $order->save();
 
-        return redirect()->back()->with('success', 'Status pesanan berhasil diperbarui.');
+        $message = $request->status === 'selesai'
+            ? 'Pesanan ditandai selesai dikerjakan. Pelanggan dapat melunasi sisa pembayaran.'
+            : 'Status pesanan berhasil diperbarui.';
+
+        return redirect()->back()->with('success', $message);
     }
 
     /**
@@ -355,6 +393,56 @@ class PrintOrderController extends Controller
             : 'Pembayaran awal (DP) pesanan ' . ($order->order_number ?? '#'.$id) . ' berhasil dikonfirmasi.';
 
         return redirect()->back()->with('success', $message);
+    }
+
+    /**
+     * Setujui permintaan pembatalan dari pelanggan — batalkan pesanan cetak
+     */
+    public function setujuiPembatalan(Request $request, $id)
+    {
+        if ($redirect = $this->guardAdmin()) return $redirect;
+
+        $order = Order::where('item_type', 'jasa')
+            ->where('payment_status', self::PAYMENT_MINTA_BATAL)
+            ->findOrFail($id);
+
+        $order->update([
+            'status'             => 'dibatalkan',
+            'payment_status'     => 'dibatalkan',
+            'alasan_pembatalan'  => $request->catatan ?: 'Pembatalan disetujui admin. Refund DP sedang diproses.',
+            'dibatalkan_oleh'    => 'admin',
+            'cancelled_at'       => now(),
+            'catatan_pembayaran' => $request->catatan ?: 'Pembatalan disetujui. Refund DP sedang diproses via transfer.',
+        ]);
+
+        return redirect()->back()
+            ->with('success', 'Pembatalan pesanan ' . ($order->order_number ?? '#'.$id) . ' disetujui.');
+    }
+
+    /**
+     * Tolak permintaan pembatalan dari pelanggan — kembalikan ke status semula
+     */
+    public function tolakPembatalan(Request $request, $id)
+    {
+        if ($redirect = $this->guardAdmin()) return $redirect;
+
+        $order = Order::where('item_type', 'jasa')
+            ->where('payment_status', self::PAYMENT_MINTA_BATAL)
+            ->findOrFail($id);
+
+        $catatan = trim((string) ($request->catatan ?: ''));
+
+        $order->update([
+            'payment_status'             => 'menunggu_konfirmasi',
+            'cancellation_reason'        => null,
+            'cancellation_requested_at'  => null,
+            'catatan_pembayaran'         => $catatan !== ''
+                ? 'Permintaan pembatalan ditolak oleh admin: ' . $catatan
+                : 'Permintaan pembatalan ditolak oleh admin.',
+        ]);
+
+        return redirect()->back()
+            ->with('success', 'Permintaan pembatalan pesanan ' . ($order->order_number ?? '#'.$id) . ' ditolak. Status dikembalikan.');
     }
 
     /**

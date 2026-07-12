@@ -172,11 +172,15 @@ class VerifikasiAtkController extends Controller
             ->where('payment_status', 'menunggu_persetujuan_batal')
             ->findOrFail($id);
 
+        $catatan = trim((string) ($request->catatan ?: ''));
+
         $order->update([
             'payment_status'             => 'menunggu_konfirmasi',
             'cancellation_reason'        => null,
             'cancellation_requested_at'  => null,
-            'catatan_pembayaran'         => $request->catatan ?: 'Permintaan pembatalan ditolak oleh admin.',
+            'catatan_pembayaran'         => $catatan !== ''
+                ? 'Permintaan pembatalan ditolak oleh admin: ' . $catatan
+                : 'Permintaan pembatalan ditolak oleh admin.',
         ]);
 
         return redirect()->back()
@@ -191,10 +195,10 @@ class VerifikasiAtkController extends Controller
     {
         if (!$order->detail_pesanan) return;
 
+        // Format: "Nama Produk x3, Produk Lain x1" — spasi sebelum x bersifat opsional
         $items = explode(', ', $order->detail_pesanan);
         foreach ($items as $item) {
-            // Match "Nama Produk xN"
-            if (preg_match('/^(.+)\s+x(\d+)$/i', trim($item), $matches)) {
+            if (preg_match('/^(.+?)\s*[x×]\s*(\d+)$/ui', trim($item), $matches)) {
                 $namaProduk = trim($matches[1]);
                 $qty        = (int) $matches[2];
 

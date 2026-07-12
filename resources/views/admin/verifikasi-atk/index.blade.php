@@ -457,7 +457,7 @@
     <script>
         function bukaModalKonfirm(orderId, orderNumber, total) {
             document.getElementById('formKonfirm').action =
-                '/admin/verifikasi-atk/' + orderId + '/konfirmasi';
+                '/{{ config('admin.path') }}/verifikasi-atk/' + orderId + '/konfirmasi';
             document.getElementById('labelNoKonfirm').textContent = 'Pesanan: ' + orderNumber;
             document.getElementById('labelTotalKonfirm').textContent =
                 'Rp ' + total.toLocaleString('id-ID');
@@ -467,7 +467,7 @@
 
         function bukaModalTolak(orderId, orderNumber) {
             document.getElementById('formTolak').action =
-                '/admin/verifikasi-atk/' + orderId + '/konfirmasi';
+                '/{{ config('admin.path') }}/verifikasi-atk/' + orderId + '/konfirmasi';
             document.getElementById('labelNoTolak').textContent = 'Pesanan: ' + orderNumber;
             document.querySelector('#formTolak textarea').value = '';
             new bootstrap.Modal(document.getElementById('modalTolak')).show();
@@ -475,14 +475,14 @@
 
         function bukaModalSetujuiBatal(orderId, orderNumber) {
             document.getElementById('formSetujuiBatal').action =
-                '/admin/verifikasi-atk/' + orderId + '/setujui-batal';
+                '/{{ config('admin.path') }}/verifikasi-atk/' + orderId + '/setujui-batal';
             document.getElementById('labelNoSetujuiBatal').textContent = 'Pesanan: ' + orderNumber;
             new bootstrap.Modal(document.getElementById('modalSetujuiBatal')).show();
         }
 
         function bukaModalTolakBatal(orderId, orderNumber) {
             document.getElementById('formTolakBatal').action =
-                '/admin/verifikasi-atk/' + orderId + '/tolak-batal';
+                '/{{ config('admin.path') }}/verifikasi-atk/' + orderId + '/tolak-batal';
             document.getElementById('labelNoTolakBatal').textContent = 'Pesanan: ' + orderNumber;
             new bootstrap.Modal(document.getElementById('modalTolakBatal')).show();
         }

@@ -66,6 +66,16 @@ class OrderTest extends TestCase
         $this->assertSame('ditolak', $order->getCustomerDisplayState());
     }
 
+    public function test_it_prioritizes_cancelled_status_for_customer_display(): void
+    {
+        $order = new Order([
+            'status' => 'dibatalkan',
+            'payment_status' => 'menunggu_konfirmasi',
+        ]);
+
+        $this->assertSame('dibatalkan', $order->getCustomerDisplayState());
+    }
+
     public function test_it_marks_orders_with_confirmed_dp_as_visible_to_admin(): void
     {
         $order = new Order(['payment_status' => 'dp_diterima']);
@@ -98,5 +108,80 @@ class OrderTest extends TestCase
         ]);
 
         $this->assertSame(150000, $order->getDisplayTotalHarga());
+    }
+
+    public function test_it_marks_print_orders_without_dp_proof_as_needing_customer_payment_action(): void
+    {
+        $order = new Order([
+            'item_type' => 'jasa',
+            'status' => 'Menunggu Antrean',
+            'payment_status' => 'menunggu_konfirmasi',
+            'bukti_bayar' => null,
+        ]);
+
+        $this->assertTrue($order->needsCustomerPaymentAction());
+    }
+
+    public function test_it_marks_finished_print_orders_with_remaining_balance_as_needing_customer_payment_action(): void
+    {
+        $order = new Order([
+            'item_type' => 'jasa',
+            'status' => 'selesai',
+            'payment_status' => 'dp_diterima',
+            'harga_final' => 100000,
+            'dp_amount' => 50000,
+        ]);
+
+        $this->assertTrue($order->needsCustomerPaymentAction());
+    }
+
+    public function test_it_shows_finished_print_orders_with_remaining_balance_as_waiting_for_remaining_payment(): void
+    {
+        $order = new Order([
+            'item_type' => 'jasa',
+            'status' => 'selesai',
+            'payment_status' => 'dp_diterima',
+            'harga_final' => 100000,
+            'dp_amount' => 50000,
+        ]);
+
+        $this->assertSame('menunggu_pelunasan_sisa', $order->getCustomerDisplayState());
+    }
+
+    public function test_it_labels_finished_print_orders_waiting_for_remaining_payment_verification(): void
+    {
+        $order = new Order([
+            'item_type' => 'jasa',
+            'status' => 'selesai',
+            'payment_status' => 'menunggu_konfirmasi',
+            'harga_final' => 100000,
+            'dp_amount' => 50000,
+            'bukti_bayar' => 'bukti-sisa.jpg',
+        ]);
+
+        $this->assertSame('sisa_menunggu_konfirmasi', $order->getCustomerDisplayState());
+    }
+
+    public function test_it_does_not_mark_cancel_pending_orders_as_needing_customer_payment_action(): void
+    {
+        $order = new Order([
+            'item_type' => 'jasa',
+            'status' => 'Menunggu Antrean',
+            'payment_status' => 'menunggu_persetujuan_batal',
+            'bukti_bayar' => null,
+        ]);
+
+        $this->assertFalse($order->needsCustomerPaymentAction());
+    }
+
+    public function test_it_marks_atk_orders_without_payment_proof_as_needing_customer_payment_action(): void
+    {
+        $order = new Order([
+            'item_type' => 'produk',
+            'payment_status' => 'menunggu_konfirmasi',
+            'bukti_bayar' => null,
+        ]);
+
+        $this->assertTrue($order->needsCustomerPaymentAction());
     }
 }

@@ -46,7 +46,10 @@ class HomeController extends Controller
         $products = Product::with('category')->latest()->take(10)->get();
         $cartData = $this->buildCartData();
 
-        return view('home', compact('products'))->with($cartData);
+        return response()
+            ->view('home', array_merge(compact('products'), $cartData))
+            ->header('Cache-Control', 'no-store, no-cache, must-revalidate')
+            ->header('Pragma', 'no-cache');
     }
 
     /**

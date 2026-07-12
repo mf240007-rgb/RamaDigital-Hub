@@ -350,6 +350,11 @@
                             $inisial = collect(explode(' ', $nama))->map(fn($w) => strtoupper(substr($w,0,1)))->take(2)->implode('');
                             $colors  = ['#1a73e8','#10b981','#8b5cf6','#f59e0b','#ef4444','#06b6d4','#ec4899'];
                             $bgColor = $colors[$index % count($colors)];
+                            $isAwaitingRemainingPayment = $order->status === 'selesai'
+                                && $order->payment_status === 'dp_diterima'
+                                && $order->getRemainingBalance() > 0;
+                            $isWaitingRemainingVerification = $order->status === 'selesai'
+                                && $order->payment_status === 'sisa_dibayar';
 
                             $statusStyle = match($order->status) {
                                 'Menunggu Antrean' => ['bg' => '#dbeafe', 'text' => '#1e40af', 'icon' => 'bi-clock', 'label' => 'Menunggu Konfirmasi'],
@@ -564,9 +569,15 @@
                                     </div>
                                 @else
                                     <div class="d-flex flex-column align-items-center gap-2">
-                                        <span class="status-pill {{ $order->status === 'diproses' ? 'status-warning' : 'status-info' }}">
-                                            <i class="bi {{ $order->status === 'diproses' ? 'bi-gear-fill' : 'bi-clock-fill' }}"></i>
-                                            {{ $order->status === 'diproses' ? 'Diproses' : 'Menunggu' }}
+                                        <span class="status-pill {{ ($order->status === 'diproses' || $isAwaitingRemainingPayment || $isWaitingRemainingVerification) ? 'status-warning' : 'status-info' }}">
+                                            <i class="bi {{ ($order->status === 'diproses' || $isAwaitingRemainingPayment || $isWaitingRemainingVerification) ? 'bi-gear-fill' : 'bi-clock-fill' }}"></i>
+                                            @if($isWaitingRemainingVerification)
+                                                Verifikasi Sisa
+                                            @elseif($isAwaitingRemainingPayment)
+                                                Menunggu Sisa
+                                            @else
+                                                {{ $order->status === 'diproses' ? 'Diproses' : 'Menunggu' }}
+                                            @endif
                                         </span>
                                         <div class="dropdown">
                                             <button class="btn btn-outline-secondary btn-sm rounded-pill px-2 py-1 d-inline-flex align-items-center gap-1"
@@ -579,6 +590,30 @@
                                             </button>
                                             <ul class="dropdown-menu shadow-lg border-0 rounded-3 py-2 z-50" style="min-width:220px; background-color:#ffffff !important;">
                                                 <li class="px-3 pb-2 small fw-semibold text-muted">Aksi pesanan</li>
+                                                {{-- Aksi khusus permintaan batal dari pelanggan --}}
+                                                @if($order->payment_status === 'menunggu_persetujuan_batal')
+                                                    @if($order->cancellation_reason)
+                                                        <li>
+                                                            <div class="px-3 py-2" style="font-size:0.78rem;background:#fce7f3;border-radius:6px;margin:0 6px 4px;">
+                                                                <i class="bi bi-chat-left-text me-1 text-danger"></i>
+                                                                <strong>Alasan:</strong> {{ Str::limit($order->cancellation_reason, 60) }}
+                                                            </div>
+                                                        </li>
+                                                    @endif
+                                                    <li>
+                                                        <button type="button" class="dropdown-item d-flex align-items-center gap-2 px-3 py-2 text-success"
+                                                                onclick="bukaModalSetujuiBatalCetak({{ $order->id }}, '{{ addslashes($order->order_number ?? '#'.$order->id) }}')">
+                                                            <i class="bi bi-check2-circle text-success"></i>Setujui Pembatalan
+                                                        </button>
+                                                    </li>
+                                                    <li>
+                                                        <button type="button" class="dropdown-item d-flex align-items-center gap-2 px-3 py-2"
+                                                                onclick="bukaModalTolakBatalCetak({{ $order->id }}, '{{ addslashes($order->order_number ?? '#'.$order->id) }}')">
+                                                            <i class="bi bi-arrow-counterclockwise text-warning"></i>Tolak Permintaan Batal
+                                                        </button>
+                                                    </li>
+                                                    <li><hr class="dropdown-divider my-1"></li>
+                                                @endif
                                                 @if($order->bukti_bayar && !in_array($order->payment_status, ['lunas', 'dp_diterima', 'sisa_dibayar'], true))
                                                     <li>
                                                         <form action="{{ route('admin.print-orders.konfirmasi-bayar', $order->id) }}" method="POST" class="m-0">
@@ -590,7 +625,7 @@
                                                         </form>
                                                     </li>
                                                 @endif
-                                                @if(in_array($order->payment_status, ['dp_diterima', 'sisa_dibayar'], true) && $order->bukti_bayar)
+                                                @if($order->payment_status === 'sisa_dibayar' && $order->bukti_bayar)
                                                     <li>
                                                         <form action="{{ route('admin.print-orders.konfirmasi-bayar', $order->id) }}" method="POST" class="m-0">
                                                             @csrf
@@ -840,14 +875,14 @@
     </div>
 
 
-    {{-- Modal: Harga Final saat Selesai --}}
+    {{-- Modal: Harga Final saat pekerjaan selesai dikerjakan --}}
     <div class="modal fade" id="modalHargaFinal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content border-0" style="border-radius: 16px; overflow: hidden;">
                 <div class="modal-header border-0 px-4 pt-4 pb-2" style="background: #ecfdf5;">
                     <div>
                         <h5 class="fw-bold mb-1 text-success">
-                            <i class="bi bi-check2-circle me-2"></i>Finalisasi Pesanan
+                            <i class="bi bi-check2-circle me-2"></i>Selesai Dikerjakan
                         </h5>
                         <p class="text-muted mb-0" id="labelNomorPesananFinal" style="font-size: 0.85rem;"></p>
                     </div>
@@ -864,7 +899,7 @@
                                class="form-control"
                                min="1"
                                required>
-                        <div class="form-text">Masukkan harga akhir jasa cetak yang akan dipakai untuk nota dan total pesanan.</div>
+                        <div class="form-text">Masukkan harga akhir jasa cetak. Pelanggan akan diminta melunasi sisa pembayaran sebelum nota tersedia.</div>
 
                         <label class="form-label fw-semibold mt-3 mb-1">Catatan Admin (Opsional)</label>
                         <textarea name="catatan_admin"
@@ -878,7 +913,7 @@
                     <div class="modal-footer border-0 px-4 pb-4 pt-0 gap-2">
                         <button type="button" class="btn btn-outline-secondary rounded-pill flex-fill" data-bs-dismiss="modal">Batal</button>
                         <button type="submit" class="btn btn-success rounded-pill flex-fill fw-semibold">
-                            <i class="bi bi-check2-circle me-1"></i>Simpan & Selesaikan
+                            <i class="bi bi-check2-circle me-1"></i>Simpan & Tagih Sisa
                         </button>
                     </div>
                 </form>
@@ -910,7 +945,7 @@
             const label = document.getElementById('labelNomorPesananFinal');
             const input = document.getElementById('inputHargaFinal');
 
-            form.action = '/admin/pesanan-cetak/' + orderId + '/status';
+            form.action = '/{{ config('admin.path') }}/pesanan-cetak/' + orderId + '/status';
             label.textContent = 'Pesanan: ' + orderNumber;
             input.value = defaultPrice;
             input.focus();
@@ -979,7 +1014,7 @@
             const form = document.getElementById('formTolakPembayaran');
             const textarea = form.querySelector('textarea[name="alasan_pembatalan"]');
 
-            form.action = '/admin/pesanan-cetak/' + orderId + '/tolak-bayar';
+            form.action = '/{{ config('admin.path') }}/pesanan-cetak/' + orderId + '/tolak-bayar';
             textarea.value = '';
             textarea.focus();
 
@@ -1005,7 +1040,7 @@
         function hapusSatuPesanan(orderId, orderNumber) {
             if (!confirm('Hapus pesanan ' + orderNumber + '? Tindakan ini tidak dapat dibatalkan.')) return;
             const form = document.getElementById('formHapusSatu');
-            form.action = '/admin/pesanan-cetak/' + orderId;
+            form.action = '/{{ config('admin.path') }}/pesanan-cetak/' + orderId;
             form.submit();
         }
 
@@ -1014,16 +1049,93 @@
             const modal = document.getElementById('modalBatalAdmin');
             const form  = document.getElementById('formBatalAdmin');
             const label = document.getElementById('labelNomorPesananBatal');
-
-            form.action = '/admin/pesanan-cetak/' + orderId + '/cancel';
+            form.action = '/{{ config('admin.path') }}/pesanan-cetak/' + orderId + '/cancel';
             label.textContent = 'Pesanan: ' + orderNumber;
-
-            // Reset textarea
             modal.querySelector('textarea[name="alasan_pembatalan"]').value = '';
-
             new bootstrap.Modal(modal).show();
         }
 
+        // ── Modal Setujui Batal (dari pelanggan) ──────────────
+        function bukaModalSetujuiBatalCetak(orderId, orderNumber) {
+            document.getElementById('formSetujuiBatalCetak').action =
+                '/{{ config('admin.path') }}/pesanan-cetak/' + orderId + '/setujui-batal';
+            document.getElementById('labelSetujuiBatalCetak').textContent = 'Pesanan: ' + orderNumber;
+            new bootstrap.Modal(document.getElementById('modalSetujuiBatalCetak')).show();
+        }
+
+        // ── Modal Tolak Permintaan Batal (dari pelanggan) ─────
+        function bukaModalTolakBatalCetak(orderId, orderNumber) {
+            document.getElementById('formTolakBatalCetak').action =
+                '/{{ config('admin.path') }}/pesanan-cetak/' + orderId + '/tolak-batal';
+            document.getElementById('labelTolakBatalCetak').textContent = 'Pesanan: ' + orderNumber;
+            new bootstrap.Modal(document.getElementById('modalTolakBatalCetak')).show();
+        }
+    </script>
+
+    {{-- Modal Setujui Batal Cetak --}}
+    <div class="modal fade" id="modalSetujuiBatalCetak" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" style="max-width:420px;">
+            <div class="modal-content border-0" style="border-radius:16px;overflow:hidden;">
+                <div class="modal-header border-0 px-4 pt-4 pb-2" style="background:#fce7f3;">
+                    <div>
+                        <h5 class="fw-bold mb-1" style="color:#9d174d;"><i class="bi bi-check-circle-fill me-2"></i>Setujui Pembatalan</h5>
+                        <p class="text-muted mb-0" id="labelSetujuiBatalCetak" style="font-size:0.85rem;"></p>
+                    </div>
+                    <button type="button" class="btn-close ms-auto" data-bs-dismiss="modal"></button>
+                </div>
+                <form id="formSetujuiBatalCetak" method="POST">
+                    @csrf
+                    <div class="modal-body px-4 py-3">
+                        <div class="alert alert-warning py-2 px-3 mb-3" style="border-radius:10px;font-size:0.85rem;">
+                            <i class="bi bi-exclamation-triangle me-2"></i>
+                            Pesanan akan dibatalkan. Pastikan refund DP sudah dilakukan secara manual via transfer sebelum menyetujui.
+                        </div>
+                        <label class="form-label fw-semibold mb-1" style="font-size:0.88rem;">Catatan (Opsional)</label>
+                        <input type="text" name="catatan" class="form-control form-control-sm"
+                               placeholder="Misal: Refund DP sudah ditransfer ke pelanggan">
+                    </div>
+                    <div class="modal-footer border-0 px-4 pb-4 pt-0 gap-2">
+                        <button type="button" class="btn btn-outline-secondary rounded-pill flex-fill" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn rounded-pill flex-fill fw-semibold text-white" style="background:#9d174d;">
+                            <i class="bi bi-check2 me-1"></i>Setujui & Batalkan
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    {{-- Modal Tolak Permintaan Batal Cetak --}}
+    <div class="modal fade" id="modalTolakBatalCetak" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" style="max-width:420px;">
+            <div class="modal-content border-0" style="border-radius:16px;overflow:hidden;">
+                <div class="modal-header border-0 px-4 pt-4 pb-2" style="background:#fffbeb;">
+                    <div>
+                        <h5 class="fw-bold mb-1 text-warning"><i class="bi bi-arrow-counterclockwise me-2"></i>Tolak Permintaan Batal</h5>
+                        <p class="text-muted mb-0" id="labelTolakBatalCetak" style="font-size:0.85rem;"></p>
+                    </div>
+                    <button type="button" class="btn-close ms-auto" data-bs-dismiss="modal"></button>
+                </div>
+                <form id="formTolakBatalCetak" method="POST">
+                    @csrf
+                    <div class="modal-body px-4 py-3">
+                        <p class="text-muted" style="font-size:0.85rem;">Status pembayaran pesanan akan dikembalikan ke <strong>Menunggu Konfirmasi</strong>.</p>
+                        <label class="form-label fw-semibold mb-1" style="font-size:0.88rem;">Alasan (Opsional)</label>
+                        <input type="text" name="catatan" class="form-control form-control-sm"
+                               placeholder="Misal: Pembayaran sudah dikonfirmasi, tidak bisa dibatalkan">
+                    </div>
+                    <div class="modal-footer border-0 px-4 pb-4 pt-0 gap-2">
+                        <button type="button" class="btn btn-outline-secondary rounded-pill flex-fill" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-warning rounded-pill flex-fill fw-semibold text-dark">
+                            <i class="bi bi-arrow-counterclockwise me-1"></i>Tolak Permintaan Batal
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
         // ── Init tooltips & popovers ──────────────────────────
         document.addEventListener('DOMContentLoaded', function () {
             // Tooltips

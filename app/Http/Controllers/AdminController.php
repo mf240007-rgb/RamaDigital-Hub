@@ -108,44 +108,53 @@ class AdminController extends Controller
         if ($redirect = $this->guardAdmin()) return $redirect;
 
         $totalProduk    = \App\Models\Product::count();
-        $pesananSelesai = \App\Models\Order::where('status', 'selesai')->count();
+        $pesananSelesai = \App\Models\Order::where('item_type', 'jasa')
+            ->where('status', 'selesai')
+            ->count();
 
         // Total penghasilan: jumlah total_harga dari pesanan ATK yang payment_status = 'lunas'
         $totalPenghasilan = \App\Models\Order::where('item_type', 'produk')
             ->where('payment_status', 'lunas')
             ->sum('total_harga');
 
-        // Pesanan aktif dan terbaru untuk jasa cetak hanya dihitung setelah pembayaran awal masuk
-        $pesananAktifCetakQuery = \App\Models\Order::where('item_type', 'jasa')
-            ->where('status', '!=', 'dibatalkan')
-            ->where(function ($query) {
-                $query->whereIn('payment_status', ['dp_diterima', 'lunas', 'sisa_dibayar'])
-                    ->orWhere(function ($sub) {
-                        $sub->where('payment_status', 'menunggu_konfirmasi')
-                            ->whereNotNull('bukti_bayar')
-                            ->where('bukti_bayar', '!=', '');
-                    });
-            });
+        // Jasa Cetak: yang sudah bayar DP (menunggu konfirmasi & bukti bayar ada)
+        $pendingCetak = \App\Models\Order::where('item_type', 'jasa')
+            ->where('payment_status', 'menunggu_konfirmasi')
+            ->whereNotNull('bukti_bayar')
+            ->where('bukti_bayar', '!=', '')
+            ->count();
 
-        $pesananMasuk = (clone $pesananAktifCetakQuery)->count();
+        // ATK: yang sudah bayar (menunggu konfirmasi & bukti bayar ada)
+        $pendingAtk = \App\Models\Order::where('item_type', 'produk')
+            ->where('payment_status', 'menunggu_konfirmasi')
+            ->whereNotNull('bukti_bayar')
+            ->where('bukti_bayar', '!=', '')
+            ->count();
 
-        // Pesanan cetak terbaru (5 terakhir)
-        $recentOrders = $pesananAktifCetakQuery->with('user')
+        $pesananMasuk = $pendingCetak + $pendingAtk;
+
+        // Pesanan cetak terbaru (5 terakhir) yang sudah melampirkan bukti pembayaran
+        $recentOrders = \App\Models\Order::with('user')
+            ->where('item_type', 'jasa')
+            ->whereNotNull('bukti_bayar')
+            ->where('bukti_bayar', '!=', '')
             ->orderByDesc('created_at')
             ->limit(5)
             ->get();
 
-        // Pesanan ATK terbaru (5 terakhir) hanya yang sudah masuk verifikasi pembayaran
+        // Pesanan ATK terbaru (5 terakhir) yang sudah melampirkan bukti pembayaran
         $recentAtk = \App\Models\Order::with('user')
             ->where('item_type', 'produk')
-            ->whereIn('payment_status', ['menunggu_konfirmasi', 'menunggu_persetujuan_batal', 'lunas', 'ditolak'])
+            ->whereNotNull('bukti_bayar')
+            ->where('bukti_bayar', '!=', '')
             ->orderByDesc('created_at')
             ->limit(5)
             ->get();
 
         return view('admin.dashboard', compact(
             'totalProduk', 'pesananMasuk', 'pesananSelesai',
-            'totalPenghasilan', 'recentOrders', 'recentAtk'
+            'totalPenghasilan', 'recentOrders', 'recentAtk',
+            'pendingCetak', 'pendingAtk'
         ));
     }
 

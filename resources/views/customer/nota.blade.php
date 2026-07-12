@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/svg+xml" href="{{ asset('images/brand/rd-logo.svg') }}">
     <title>Nota Pesanan {{ $order->order_number }}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
@@ -60,6 +61,7 @@
         }
 
         .nota-brand span { color: var(--warna-aksen); }
+        .nota-logo { display: block; width: 190px; height: auto; }
 
         .nota-title {
             font-size: 1.1rem;
@@ -155,7 +157,7 @@
         <div class="nota-header d-flex justify-content-between align-items-start flex-wrap gap-3">
             <div>
                 <div class="nota-brand mb-1">
-                    🖨 Rama<span>Digital</span> Hub
+                    <img src="{{ asset('images/brand/ramadigital-logo.svg') }}" alt="RamaDigital Hub" class="nota-logo">
                 </div>
                 <div style="font-size:0.82rem;color:#64748b;">
                     Jl. Mayor Iskandar No.771, Baturaja Timur<br>
@@ -199,6 +201,15 @@
                 @if($order->item_type === 'produk')
                     @php
                         $items = preg_split('/\s*,\s*/', $order->detail_pesanan ?? '', -1, PREG_SPLIT_NO_EMPTY);
+                        // Preload semua produk sekaligus untuk menghindari N+1 query
+                        $namaLabels = collect($items)->map(function($item) {
+                            if (preg_match('/^(.*?)\s*[x×]\s*(\d+)$/u', trim($item), $m)) {
+                                return trim($m[1]);
+                            }
+                            return trim($item);
+                        })->unique()->values()->all();
+                        $produkMap = \App\Models\Product::whereIn('name_produk', $namaLabels)
+                            ->pluck('harga', 'name_produk');
                     @endphp
                     @foreach($items as $item)
                         @php
@@ -208,8 +219,7 @@
                                 $label = trim($m[1]);
                                 $qty   = $m[2];
                             }
-                            // Cari harga produk berdasarkan nama
-                            $produkHarga = \App\Models\Product::where('name_produk', $label)->value('harga');
+                            $produkHarga  = $produkMap[$label] ?? null;
                             $subtotalItem = $produkHarga ? $produkHarga * (int)$qty : null;
                         @endphp
                         <tr>

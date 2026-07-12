@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>RamaDigital Hub</title>
+    <link rel="icon" type="image/svg+xml" href="{{ asset('images/brand/rd-logo.svg') }}">
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
           rel="stylesheet"
@@ -15,8 +16,9 @@
         :root { --warna-utama: #1a73e8; --warna-aksen: #ff6d00; --warna-gelap: #1c2b4a; }
         body { background-color: #f0f4f8; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; overflow-x: hidden; }
         .page-shell { padding-top: 70px; }
-        .navbar-brand-custom { font-size: 1.4rem; font-weight: 700; letter-spacing: 0.5px; }
+        .navbar-brand-custom { font-size: 1.35rem; font-weight: 700; letter-spacing: 0.3px; }
         .navbar-brand-custom span { color: var(--warna-aksen); }
+        .brand-logo-icon { display: inline-block; height: 38px; width: auto; margin-right: 10px; vertical-align: middle; }
         .product-card { border: none; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); transition: transform 0.2s ease, box-shadow 0.2s ease; overflow: hidden; }
         .product-card:hover { transform: translateY(-5px); box-shadow: 0 8px 25px rgba(0,0,0,0.15); }
         .product-card .harga { color: var(--warna-aksen); font-weight: 700; font-size: 1.1rem; }
@@ -144,8 +146,8 @@
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark" style="background-color: var(--warna-gelap); position: fixed; top: 0; width: 100%; z-index: 1030;">
         <div class="container">
-            <a class="navbar-brand navbar-brand-custom" href="{{ route('home') }}">
-                <i class="bi bi-printer-fill me-2" style="color: var(--warna-aksen);"></i>
+            <a class="navbar-brand navbar-brand-custom d-flex align-items-center" href="{{ route('home') }}">
+                <img src="{{ asset('images/brand/rd-logo.svg') }}" alt="RD Logo" class="brand-logo-icon">
                 Rama<span>Digital</span> Hub
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMenu"
@@ -163,8 +165,12 @@
                     <li class="nav-item"><a class="nav-link" href="{{ route('home') }}#jasa-cetak">Jasa Cetak</a></li>
                     <li class="nav-item"><a class="nav-link" href="{{ route('home') }}#cek-status">Cek Status</a></li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ route('customer.orders') }}">
+                        <a class="nav-link position-relative" href="{{ route('customer.orders') }}">
                             <i class="bi bi-receipt me-1"></i> Pesanan Saya
+                            @php $paymentActions = $orderPaymentActionCount ?? 0; @endphp
+                            @if($paymentActions > 0)
+                                <span class="badge bg-danger rounded-pill position-absolute top-0 start-100 translate-middle">{{ $paymentActions }}</span>
+                            @endif
                         </a>
                     </li>
                     <li class="nav-item">

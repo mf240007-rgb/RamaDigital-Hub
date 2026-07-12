@@ -49,21 +49,28 @@
             </a>
         </div>
         <div class="col-sm-6 col-xl-3">
-            <a href="{{ route('admin.print-orders.index') }}" class="text-decoration-none">
-                <div class="card stat-card border-0 h-100"
-                     style="border-radius:16px; background:linear-gradient(135deg,#f59e0b,#fbbf24); color:white;">
-                    <div class="card-body d-flex align-items-center gap-3 p-4">
-                        <div class="stat-icon rounded-3 d-flex align-items-center justify-content-center"
-                             style="width:52px;height:52px;background:rgba(255,255,255,0.2);font-size:1.5rem;flex-shrink:0;">
-                            <i class="bi bi-printer-fill"></i>
-                        </div>
-                        <div>
-                            <div class="small opacity-75">Pesanan Aktif</div>
-                            <div class="fw-bold fs-3 lh-1 mt-1">{{ $pesananMasuk }}</div>
+            <div class="card stat-card border-0 h-100"
+                 style="border-radius:16px; background:linear-gradient(135deg,#f59e0b,#fbbf24); color:white;">
+                <div class="card-body d-flex align-items-center gap-3 p-4">
+                    <div class="stat-icon rounded-3 d-flex align-items-center justify-content-center"
+                         style="width:52px;height:52px;background:rgba(255,255,255,0.2);font-size:1.5rem;flex-shrink:0;">
+                        <i class="bi bi-hourglass-split"></i>
+                    </div>
+                    <div>
+                        <div class="small opacity-75">Pesanan Menunggu</div>
+                        <div class="fw-bold fs-3 lh-1 mt-1">{{ $pesananMasuk }}</div>
+                        <div class="small mt-2" style="font-size: 0.82rem; background: rgba(255,255,255,0.18); padding: 3px 8px; border-radius: 6px;">
+                            <a href="{{ route('admin.print-orders.index') }}" class="text-white text-decoration-none fw-semibold">
+                                {{ $pendingCetak }} Cetak
+                            </a>
+                            <span class="mx-1 opacity-75">•</span>
+                            <a href="{{ route('admin.verifikasi-atk.index') }}" class="text-white text-decoration-none fw-semibold">
+                                {{ $pendingAtk }} ATK
+                            </a>
                         </div>
                     </div>
                 </div>
-            </a>
+            </div>
         </div>
         <div class="col-sm-6 col-xl-3">
             <div class="card stat-card border-0 h-100"
@@ -76,6 +83,7 @@
                     <div>
                         <div class="small opacity-75">Pesanan Selesai</div>
                         <div class="fw-bold fs-3 lh-1 mt-1">{{ $pesananSelesai }}</div>
+                        <div class="small opacity-75 mt-1">Jasa cetak selesai</div>
                     </div>
                 </div>
             </div>

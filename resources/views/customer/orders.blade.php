@@ -18,18 +18,26 @@
 /* Header accent strip kiri berdasarkan status */
 .order-card[data-status="lunas"]               { border-left: 5px solid #10b981 !important; }
 .order-card[data-status="menunggu_konfirmasi"]  { border-left: 5px solid #f59e0b !important; }
+.order-card[data-status="sisa_menunggu_konfirmasi"] { border-left: 5px solid #f59e0b !important; }
 .order-card[data-status="ditolak"]             { border-left: 5px solid #ef4444 !important; }
+.order-card[data-status="dibatalkan"]          { border-left: 5px solid #ef4444 !important; }
 .order-card[data-status="selesai"]             { border-left: 5px solid #10b981 !important; }
 .order-card[data-status="diproses"]            { border-left: 5px solid #3b82f6 !important; }
 .order-card[data-status="Menunggu Antrean"]    { border-left: 5px solid #f59e0b !important; }
+.order-card[data-status="menunggu_persetujuan_batal"] { border-left: 5px solid #db2777 !important; }
+.order-card[data-status="menunggu_pelunasan_sisa"] { border-left: 5px solid #f59e0b !important; }
 
 /* Header gradient sesuai status */
 .order-header-lunas              { background: linear-gradient(135deg, #ecfdf5, #f0fdf4); }
 .order-header-menunggu_konfirmasi { background: linear-gradient(135deg, #fffbeb, #fef9c3); }
+.order-header-sisa_menunggu_konfirmasi { background: linear-gradient(135deg, #fffbeb, #fef9c3); }
 .order-header-ditolak            { background: linear-gradient(135deg, #fff5f5, #fee2e2); }
+.order-header-dibatalkan         { background: linear-gradient(135deg, #fff5f5, #fee2e2); }
 .order-header-selesai            { background: linear-gradient(135deg, #ecfdf5, #f0fdf4); }
 .order-header-diproses           { background: linear-gradient(135deg, #eff6ff, #dbeafe); }
 .order-header-menunggu           { background: linear-gradient(135deg, #fffbeb, #fef9c3); }
+.order-header-menunggu_persetujuan_batal { background: linear-gradient(135deg, #fff7fb, #fce7f3); }
+.order-header-menunggu_pelunasan_sisa { background: linear-gradient(135deg, #fffbeb, #fef9c3); }
 
 /* Badge chip kecil */
 .info-chip {
@@ -220,18 +228,50 @@
 
     @else
         @php
-            $jasaOrders = $orders->where('item_type', 'jasa')->values();
-            $atkOrders  = $orders->where('item_type', 'produk')->values();
+            $jasaOrders    = $orders->where('item_type', 'jasa')->values();
+            $atkOrders     = $orders->where('item_type', 'produk')->values();
+            $filterAktif   = $tipe ?? 'semua';
+            // Hitung badge dari semua pesanan (tidak terpengaruh filter aktif)
+            $allJasaCount  = isset($allOrders) ? $allOrders->where('item_type','jasa')->count() : $jasaOrders->count();
+            $allAtkCount   = isset($allOrders) ? $allOrders->where('item_type','produk')->count() : $atkOrders->count();
+            $allTotalCount = isset($allOrders) ? $allOrders->count() : $orders->count();
         @endphp
 
+        {{-- ── Tab Filter ──────────────────────────────────── --}}
+        <div class="d-flex gap-2 mb-4 flex-wrap">
+            <a href="{{ route('customer.orders') }}"
+               class="btn rounded-pill px-4 fw-semibold {{ $filterAktif === 'semua' ? 'btn-primary' : 'btn-outline-secondary' }}">
+                Semua
+                <span class="badge rounded-pill ms-1 {{ $filterAktif === 'semua' ? 'bg-white text-primary' : 'bg-secondary' }}">
+                    {{ $allTotalCount }}
+                </span>
+            </a>
+            <a href="{{ route('customer.orders', ['tipe' => 'cetak']) }}"
+               class="btn rounded-pill px-4 fw-semibold {{ $filterAktif === 'cetak' ? 'btn-primary' : 'btn-outline-secondary' }}">
+                <i class="bi bi-printer me-1"></i>Jasa Cetak
+                <span class="badge rounded-pill ms-1 {{ $filterAktif === 'cetak' ? 'bg-white text-primary' : 'bg-secondary' }}">
+                    {{ $allJasaCount }}
+                </span>
+            </a>
+            <a href="{{ route('customer.orders', ['tipe' => 'atk']) }}"
+               class="btn rounded-pill px-4 fw-semibold {{ $filterAktif === 'atk' ? 'btn-warning text-dark' : 'btn-outline-secondary' }}">
+                <i class="bi bi-bag me-1"></i>Produk ATK
+                <span class="badge rounded-pill ms-1 {{ $filterAktif === 'atk' ? 'bg-white text-warning' : 'bg-secondary' }}">
+                    {{ $allAtkCount }}
+                </span>
+            </a>
+        </div>
+
         {{-- ── Pesanan Jasa Cetak ──────────────────────────── --}}
-        @if($jasaOrders->isNotEmpty())
-            <div class="d-flex align-items-center gap-2 mb-3">
-                <i class="bi bi-printer-fill text-primary fs-5"></i>
-                <h5 class="fw-bold mb-0" style="color:var(--warna-gelap);">Pesanan Jasa Cetak</h5>
-                <span class="badge rounded-pill bg-primary ms-1">{{ $jasaOrders->count() }}</span>
-            </div>
-            <div class="d-flex flex-column gap-4 mb-5">
+        @if($jasaOrders->isNotEmpty() && in_array($filterAktif, ['semua', 'cetak']))
+            @if($filterAktif === 'semua')
+                <div class="d-flex align-items-center gap-2 mb-3">
+                    <i class="bi bi-printer-fill text-primary fs-5"></i>
+                    <h5 class="fw-bold mb-0" style="color:var(--warna-gelap);">Pesanan Jasa Cetak</h5>
+                    <span class="badge rounded-pill bg-primary ms-1">{{ $jasaOrders->count() }}</span>
+                </div>
+            @endif
+            <div class="d-flex flex-column gap-4 {{ $filterAktif === 'semua' ? 'mb-5' : '' }}">
             @foreach($jasaOrders as $order)
                 @php $isJasa = true; @endphp
                 @include('customer._order_card')
@@ -240,12 +280,14 @@
         @endif
 
         {{-- ── Pesanan Produk ATK ──────────────────────────── --}}
-        @if($atkOrders->isNotEmpty())
-            <div class="d-flex align-items-center gap-2 mb-3">
-                <i class="bi bi-bag-fill text-warning fs-5"></i>
-                <h5 class="fw-bold mb-0" style="color:var(--warna-gelap);">Pesanan Produk ATK</h5>
-                <span class="badge rounded-pill bg-warning text-dark ms-1">{{ $atkOrders->count() }}</span>
-            </div>
+        @if($atkOrders->isNotEmpty() && in_array($filterAktif, ['semua', 'atk']))
+            @if($filterAktif === 'semua')
+                <div class="d-flex align-items-center gap-2 mb-3">
+                    <i class="bi bi-bag-fill text-warning fs-5"></i>
+                    <h5 class="fw-bold mb-0" style="color:var(--warna-gelap);">Pesanan Produk ATK</h5>
+                    <span class="badge rounded-pill bg-warning text-dark ms-1">{{ $atkOrders->count() }}</span>
+                </div>
+            @endif
             <div class="d-flex flex-column gap-4">
             @foreach($atkOrders as $order)
                 @php $isJasa = false; @endphp

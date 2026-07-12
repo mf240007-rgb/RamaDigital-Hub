@@ -59,16 +59,27 @@ class CustomerController extends Controller
                 ->with('error', 'Silakan login untuk melihat pesanan Anda.');
         }
 
-        $orders = Order::with('user')
-            ->where('user_id', Auth::id())
-            ->orderByDesc('created_at')
-            ->get();
+        $tipe = request('tipe', 'semua'); // semua | cetak | atk
+
+        $query = Order::with('user')
+            ->where('user_id', Auth::id());
+
+        if ($tipe === 'cetak') {
+            $query->where('item_type', 'jasa');
+        } elseif ($tipe === 'atk') {
+            $query->where('item_type', 'produk');
+        }
+
+        $orders = $query->orderByDesc('created_at')->get();
+
+        // Untuk badge tab — selalu hitung semua tipe
+        $allOrders = Order::where('user_id', Auth::id())->get();
 
         // Kirim cartCount agar badge keranjang di navbar muncul
         $cartKey   = 'cart_user_' . Auth::id();
         $cartCount = count(session($cartKey, []));
 
-        return view('customer.orders', compact('orders', 'cartCount'));
+        return view('customer.orders', compact('orders', 'allOrders', 'cartCount', 'tipe'));
     }
 
     public function nota($id)
@@ -193,22 +204,35 @@ class CustomerController extends Controller
         }
 
         if ($order->item_type === 'jasa') {
+            // Jasa cetak: hanya boleh ajukan batal saat Menunggu Antrean dan DP belum diterima
+            if ($order->status !== 'Menunggu Antrean' || $order->payment_status === 'dp_diterima') {
+                return redirect()->route('customer.orders')
+                    ->with('error', 'Pembatalan pesanan cetak hanya bisa diajukan saat masih menunggu konfirmasi DP.');
+            }
+
+            // Cegah duplikat permintaan
+            if ($order->cancellation_requested_at) {
+                return redirect()->route('customer.orders')
+                    ->with('error', 'Permintaan pembatalan sudah pernah diajukan dan sedang diproses admin.');
+            }
+
+            // Sama seperti ATK — masuk ke menunggu_persetujuan_batal, bukan langsung dibatalkan
             $order->update([
-                'status'             => 'dibatalkan',
-                'payment_status'    => 'dibatalkan',
-                'alasan_pembatalan' => $request->cancellation_reason,
-                'dibatalkan_oleh'   => 'customer',
-                'cancelled_at'      => now(),
+                'payment_status'             => 'menunggu_persetujuan_batal',
+                'cancellation_reason'        => $request->cancellation_reason,
+                'cancellation_requested_at'  => now(),
+                'catatan_pembayaran'         => null,
             ]);
 
             return redirect()->route('customer.orders')
-                ->with('success', 'Pesanan cetak berhasil dibatalkan.');
+                ->with('success', 'Permintaan pembatalan pesanan cetak berhasil diajukan. Admin akan menghubungi kamu via WhatsApp untuk proses refund DP.');
         }
 
         $order->update([
             'payment_status'             => 'menunggu_persetujuan_batal',
             'cancellation_reason'        => $request->cancellation_reason,
             'cancellation_requested_at'  => now(),
+            'catatan_pembayaran'         => null,
         ]);
 
         return redirect()->route('customer.orders')
@@ -228,7 +252,7 @@ class CustomerController extends Controller
                 ->with('error', 'Pelanggan tidak ditemukan.');
         }
 
-        $customer->password = 'password123';
+        $customer->password = bcrypt('password123');
         $customer->save();
 
         return redirect()->route('admin.customers.index')

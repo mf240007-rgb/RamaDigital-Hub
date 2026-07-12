@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - RamaDigital Hub</title>
+    <link rel="icon" type="image/svg+xml" href="{{ asset('images/brand/rd-logo.svg') }}">
 
     {{-- Bootstrap CSS via CDN --}}
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
@@ -38,6 +39,8 @@
             width: 100%;
             max-width: 420px;
         }
+
+        .login-brand-logo { display: block; width: min(100%, 260px); height: auto; margin: 0 auto; }
 
         .login-header {
             text-align: center;
@@ -159,10 +162,12 @@
         </a>
 
         <div class="login-header">
-            <h1>
-                <i class="bi bi-printer-fill" style="color: var(--warna-aksen);"></i>
-                Rama<span>Digital</span> Hub
-            </h1>
+            <div class="d-flex align-items-center justify-content-center mb-3">
+                <img src="{{ asset('images/brand/rd-logo.svg') }}" alt="RD Logo" style="height: 48px; width: auto; margin-right: 12px; vertical-align: middle;">
+                <span style="font-size: 1.8rem; font-weight: 800; color: var(--warna-gelap); letter-spacing: 0.3px;">
+                    Rama<span style="color: var(--warna-aksen);">Digital</span> Hub
+                </span>
+            </div>
             <p>Masuk untuk memesan jasa cetak dokumen</p>
         </div>
 
