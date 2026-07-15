@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Builder;
 
 class Order extends Model
 {
@@ -134,6 +135,35 @@ class Order extends Model
         }
 
         return !empty($this->bukti_bayar) && $this->payment_status === 'menunggu_konfirmasi';
+    }
+
+    /**
+     * Pesanan yang memerlukan keputusan admin: verifikasi bukti bayar atau
+     * persetujuan permintaan pembatalan. Dipakai bersama oleh dashboard,
+     * badge sidebar, dan daftar admin agar jumlahnya selalu konsisten.
+     */
+    public function scopeNeedsAdminAttention(Builder $query): Builder
+    {
+        return $query->where(function (Builder $attention) {
+            $attention->where('payment_status', 'menunggu_persetujuan_batal')
+                ->orWhere(function (Builder $productPayment) {
+                    $productPayment->where('item_type', 'produk')
+                        ->where('payment_status', 'menunggu_konfirmasi')
+                        ->whereNotNull('bukti_bayar')
+                        ->where('bukti_bayar', '!=', '');
+                })
+                ->orWhere(function (Builder $printPayment) {
+                    $printPayment->where('item_type', 'jasa')
+                        ->whereNotNull('bukti_bayar')
+                        ->where('bukti_bayar', '!=', '')
+                        ->where(function (Builder $paymentState) {
+                            $paymentState->where(function (Builder $initialPayment) {
+                                $initialPayment->where('status', 'Menunggu Antrean')
+                                    ->where('payment_status', 'menunggu_konfirmasi');
+                            })->orWhere('payment_status', 'sisa_dibayar');
+                        });
+                });
+        });
     }
 
     public function needsCustomerPaymentAction(): bool

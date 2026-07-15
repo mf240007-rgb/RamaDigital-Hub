@@ -117,18 +117,17 @@ class AdminController extends Controller
             ->where('payment_status', 'lunas')
             ->sum('total_harga');
 
-        // Jasa Cetak: yang sudah bayar DP (menunggu konfirmasi & bukti bayar ada)
+        // Tindakan jasa cetak: bukti bayar baru/kirim ulang, pelunasan sisa,
+        // atau permintaan pembatalan.
         $pendingCetak = \App\Models\Order::where('item_type', 'jasa')
-            ->where('payment_status', 'menunggu_konfirmasi')
-            ->whereNotNull('bukti_bayar')
-            ->where('bukti_bayar', '!=', '')
+            ->where('status', '!=', 'dibatalkan')
+            ->needsAdminAttention()
             ->count();
 
-        // ATK: yang sudah bayar (menunggu konfirmasi & bukti bayar ada)
+        // Tindakan ATK: bukti bayar baru/kirim ulang atau pembatalan.
         $pendingAtk = \App\Models\Order::where('item_type', 'produk')
-            ->where('payment_status', 'menunggu_konfirmasi')
-            ->whereNotNull('bukti_bayar')
-            ->where('bukti_bayar', '!=', '')
+            ->where('status', '!=', 'dibatalkan')
+            ->needsAdminAttention()
             ->count();
 
         $pesananMasuk = $pendingCetak + $pendingAtk;

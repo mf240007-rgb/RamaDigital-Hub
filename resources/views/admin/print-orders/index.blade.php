@@ -237,7 +237,11 @@
         <a href="{{ route('admin.print-orders.index', ['filter' => 'diproses']) }}"
            class="btn rounded-pill px-4 {{ $filter === 'diproses' ? 'btn-primary fw-bold' : 'btn-outline-secondary' }}">
             <i class="bi bi-gear-fill me-1"></i>Diproses
-            <span class="badge bg-secondary rounded-pill ms-1">{{ $counts['diproses'] }}</span>
+            @if($counts['pelunasan_sisa'] > 0)
+                <span class="badge bg-danger rounded-pill ms-1">{{ $counts['pelunasan_sisa'] }}</span>
+            @else
+                <span class="badge bg-secondary rounded-pill ms-1">{{ $counts['diproses'] }}</span>
+            @endif
         </a>
         <a href="{{ route('admin.print-orders.index', ['filter' => 'menunggu_persetujuan_batal']) }}"
            class="btn rounded-pill px-4 {{ $filter === 'menunggu_persetujuan_batal' ? 'btn-pink fw-bold' : 'btn-outline-secondary' }}"

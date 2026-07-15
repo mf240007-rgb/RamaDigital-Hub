@@ -40,9 +40,8 @@
                     <li class="nav-item"><a class="nav-link @if(request()->routeIs('admin.print-orders.*')) active @endif" href="{{ route('admin.print-orders.index') }}"><i class="bi bi-printer me-2"></i> Pesanan Cetak
                         @php
                             $newCetak = \App\Models\Order::where('item_type', 'jasa')
-                                ->where('payment_status', 'menunggu_konfirmasi')
-                                ->whereNotNull('bukti_bayar')
-                                ->where('bukti_bayar', '!=', '')
+                                ->where('status', '!=', 'dibatalkan')
+                                ->needsAdminAttention()
                                 ->count();
                         @endphp
                         @if($newCetak > 0)
@@ -57,9 +56,8 @@
                             <i class="bi bi-patch-check me-2"></i> Verifikasi Bayar ATK
                             @php
                                 $pendingVerif = \App\Models\Order::where('item_type','produk')
-                                    ->where('payment_status','menunggu_konfirmasi')
-                                    ->whereNotNull('bukti_bayar')
-                                    ->where('bukti_bayar', '!=', '')
+                                    ->where('status', '!=', 'dibatalkan')
+                                    ->needsAdminAttention()
                                     ->count();
                             @endphp
                             @if($pendingVerif > 0)

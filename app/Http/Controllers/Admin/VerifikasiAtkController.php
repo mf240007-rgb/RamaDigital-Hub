@@ -24,7 +24,7 @@ class VerifikasiAtkController extends Controller
     {
         if ($redirect = $this->guardAdmin()) return $redirect;
 
-        $filter  = $request->get('filter', 'menunggu_konfirmasi'); // default: menunggu
+        $filter  = $request->get('filter', 'menunggu_konfirmasi');
         if ($filter === 'belum_bayar') {
             $filter = 'ditolak';
         }
@@ -42,7 +42,11 @@ class VerifikasiAtkController extends Controller
 
         // Hitung badge tiap status
         $counts = [
-            'menunggu_konfirmasi'        => Order::where('item_type','produk')->where('payment_status','menunggu_konfirmasi')->count(),
+            'menunggu_konfirmasi'        => Order::where('item_type','produk')
+                ->where('payment_status','menunggu_konfirmasi')
+                ->whereNotNull('bukti_bayar')
+                ->where('bukti_bayar', '!=', '')
+                ->count(),
             'menunggu_persetujuan_batal' => Order::where('item_type','produk')->where('payment_status','menunggu_persetujuan_batal')->count(),
             'lunas'                      => Order::where('item_type','produk')->where('payment_status','lunas')->count(),
             'ditolak'                    => Order::where('item_type','produk')->where('payment_status','ditolak')->count(),

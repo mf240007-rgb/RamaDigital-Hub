@@ -107,7 +107,9 @@ class PrintOrderController extends Controller
         $counts = [
             'menunggu' => (clone $baseQuery)
                 ->where('status', self::STATUS_MENUNGGU)
-                ->whereNotIn('payment_status', [self::PAYMENT_MINTA_BATAL, self::PAYMENT_DITOLAK])
+                ->where('payment_status', 'menunggu_konfirmasi')
+                ->whereNotNull('bukti_bayar')
+                ->where('bukti_bayar', '!=', '')
                 ->count(),
             'diproses' => (clone $baseQuery)
                 ->where(function ($query) {
@@ -117,6 +119,12 @@ class PrintOrderController extends Controller
                                 ->where('payment_status', '!=', 'lunas');
                         });
                 })
+                ->count(),
+            'pelunasan_sisa' => (clone $baseQuery)
+                ->where('status', 'selesai')
+                ->whereIn('payment_status', ['sisa_dibayar', 'menunggu_konfirmasi'])
+                ->whereNotNull('bukti_bayar')
+                ->where('bukti_bayar', '!=', '')
                 ->count(),
             'selesai'  => (clone $baseQuery)
                 ->where('status', 'selesai')
@@ -475,15 +483,32 @@ class PrintOrderController extends Controller
         $order = Order::findOrFail($id);
         $alasan = trim((string) ($request->input('alasan_pembatalan') ?: ''));
 
-        $order->payment_status = 'ditolak';
-        $order->catatan_pembayaran = $alasan !== ''
-            ? 'Pembayaran ditolak oleh admin: ' . $alasan
-            : 'Pembayaran ditolak oleh admin karena bukti tidak sesuai/valid.';
-        $order->paid_at = null;
-        $order->status = 'Menunggu Antrean';
+        // Bukti sisa pelunasan berbeda dari DP awal: DP sudah sah dan
+        // pekerjaan telah selesai, sehingga pesanan tidak boleh kembali ke
+        // antrean atau meminta DP lagi.
+        $isRemainingPayment = $order->item_type === 'jasa'
+            && $order->status === 'selesai'
+            && in_array($order->payment_status, ['sisa_dibayar', 'menunggu_konfirmasi'], true);
+
+        if ($isRemainingPayment) {
+            $order->payment_status = 'dp_diterima';
+            $order->catatan_pembayaran = $alasan !== ''
+                ? 'Bukti sisa pelunasan ditolak oleh admin: ' . $alasan
+                : 'Bukti sisa pelunasan ditolak oleh admin karena tidak sesuai/valid.';
+        } else {
+            $order->payment_status = 'ditolak';
+            $order->catatan_pembayaran = $alasan !== ''
+                ? 'Pembayaran ditolak oleh admin: ' . $alasan
+                : 'Pembayaran ditolak oleh admin karena bukti tidak sesuai/valid.';
+            $order->paid_at = null;
+            $order->status = 'Menunggu Antrean';
+        }
+
         $order->save();
 
-        return redirect()->back()->with('success', 'Pembayaran pesanan ' . ($order->order_number ?? '#'.$id) . ' berhasil ditolak.');
+        return redirect()->back()->with('success', $isRemainingPayment
+            ? 'Bukti sisa pelunasan pesanan ' . ($order->order_number ?? '#'.$id) . ' ditolak. Pelanggan dapat mengirim ulang bukti sisa.'
+            : 'Pembayaran pesanan ' . ($order->order_number ?? '#'.$id) . ' berhasil ditolak.');
     }
 
     /**
