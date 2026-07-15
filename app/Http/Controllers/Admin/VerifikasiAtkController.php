@@ -114,6 +114,7 @@ class VerifikasiAtkController extends Controller
 
         if ($request->aksi === 'lunas') {
             $order->payment_status      = 'lunas';
+            $order->status              = 'selesai';
             $order->catatan_pembayaran  = $request->catatan ?: 'Pembayaran dikonfirmasi oleh admin.';
             $order->save();
 

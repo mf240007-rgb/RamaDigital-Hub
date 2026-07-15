@@ -47,7 +47,21 @@ class PrintOrderController extends Controller
 
         $baseQuery = Order::query()
             ->where('item_type', 'jasa')
-            ->where('status', '!=', 'dibatalkan');
+            ->where('status', '!=', 'dibatalkan')
+            ->where(function ($q) {
+                // Hanya tampilkan pesanan yang sudah ada bukti bayar DP
+                // atau sudah dikonfirmasi (dp_diterima, lunas, sisa_dibayar)
+                $q->whereIn('payment_status', ['dp_diterima', 'lunas', 'sisa_dibayar'])
+                    ->orWhere(function ($sub) {
+                        $sub->where('payment_status', 'menunggu_konfirmasi')
+                            ->whereNotNull('bukti_bayar')
+                            ->where('bukti_bayar', '!=', '');
+                    })
+                    ->orWhereIn('payment_status', [
+                        self::PAYMENT_MINTA_BATAL,
+                        self::PAYMENT_DITOLAK,
+                    ]);
+            });
 
         $orders = (clone $baseQuery)
             ->with('user')
