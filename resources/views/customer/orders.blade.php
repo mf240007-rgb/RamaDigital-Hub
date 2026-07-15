@@ -349,4 +349,110 @@ function bukaModalBatalPelanggan(orderId, orderNumber) {
     document.querySelector('#formBatalPelanggan textarea').value = '';
     new bootstrap.Modal(document.getElementById('modalBatalPelanggan')).show();
 }
+
+function setModalQris(btn) {
+    const dp    = btn.getAttribute('data-dp');
+    const order = btn.getAttribute('data-order');
+    document.getElementById('qrisDpAmount').textContent  = 'Rp ' + dp;
+    document.getElementById('qrisOrderNum').textContent  = order;
+}
 </script>
+
+{{-- ── Modal QRIS & Cara Bayar DP ─────────────────────────── --}}
+<div class="modal fade" id="modalQrisDP" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width:480px;">
+        <div class="modal-content border-0" style="border-radius:20px;overflow:hidden;">
+
+            {{-- Header --}}
+            <div class="modal-header border-0 text-white text-center justify-content-center pb-0"
+                 style="background:linear-gradient(135deg,#1a73e8,#4a9eff);padding:20px 24px 16px;">
+                <div class="w-100">
+                    <i class="bi bi-qr-code fs-1 d-block mb-1"></i>
+                    <h5 class="fw-bold mb-0">Bayar DP via QRIS</h5>
+                    <small style="opacity:.85;">Pesanan: <span id="qrisOrderNum" class="fw-bold"></span></small>
+                </div>
+                <button type="button" class="btn-close btn-close-white position-absolute top-0 end-0 m-3"
+                        data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body px-4 py-3 text-center">
+
+                {{-- Nominal DP --}}
+                <div class="alert border-0 py-2 mb-3"
+                     style="background:#f0f9ff;border-radius:10px;">
+                    <div class="text-muted" style="font-size:.8rem;">Nominal DP yang harus dibayar:</div>
+                    <div class="fw-bold fs-5" id="qrisDpAmount"
+                         style="color:var(--warna-aksen,#ff6d00);"></div>
+                    <div class="text-muted mt-1" style="font-size:.75rem;">50% dari total estimasi pesanan</div>
+                </div>
+
+                {{-- QRIS Image --}}
+                @php
+                    $qrisModal = null;
+                    foreach(['jpg','jpeg','png'] as $ext) {
+                        if(file_exists(public_path('images/qris.'.$ext))) {
+                            $qrisModal = asset('images/qris.'.$ext).'?t='.filemtime(public_path('images/qris.'.$ext));
+                            break;
+                        }
+                    }
+                @endphp
+                @if($qrisModal)
+                    <img src="{{ $qrisModal }}" alt="QRIS"
+                         class="img-fluid rounded-3 shadow-sm mb-2"
+                         style="max-width:220px;border:1px solid #e2e8f0;">
+                    <div class="mb-3">
+                        <a href="{{ $qrisModal }}" download="QRIS-RamaDigital-Hub"
+                           class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                            <i class="bi bi-download me-1"></i>Download QRIS
+                        </a>
+                    </div>
+                @else
+                    <div class="rounded-3 mx-auto mb-3 d-flex flex-column align-items-center justify-content-center"
+                         style="width:180px;height:180px;background:#f8faff;border:2px dashed #bee5eb;">
+                        <i class="bi bi-qr-code" style="font-size:3.5rem;color:#1a73e8;opacity:0.35;"></i>
+                        <small class="text-muted mt-2" style="font-size:.72rem;">QRIS belum tersedia</small>
+                    </div>
+                @endif
+
+                {{-- Info Rekening --}}
+                <div class="rounded-3 py-2 px-3 mb-3 text-start"
+                     style="background:#fff8f0;border:1px solid #fed7aa;font-size:.82rem;">
+                    <div class="fw-semibold text-warning mb-1">
+                        <i class="bi bi-bank me-1"></i>Transfer Rekening BRI
+                    </div>
+                    <div class="fw-bold" style="font-size:1rem;letter-spacing:.5px;">3286-01-053842-53-3</div>
+                    <div class="text-muted">a.n. Apriati</div>
+                </div>
+
+                {{-- Langkah --}}
+                <div class="text-start mb-2" style="font-size:.8rem;color:#6c757d;">
+                    <div class="d-flex align-items-start gap-2 mb-1">
+                        <i class="bi bi-1-circle-fill text-primary flex-shrink-0 mt-1"></i>
+                        <span>Buka aplikasi m-banking / dompet digital</span>
+                    </div>
+                    <div class="d-flex align-items-start gap-2 mb-1">
+                        <i class="bi bi-2-circle-fill text-primary flex-shrink-0 mt-1"></i>
+                        <span>Scan QRIS atau transfer ke rekening BRI di atas</span>
+                    </div>
+                    <div class="d-flex align-items-start gap-2 mb-1">
+                        <i class="bi bi-3-circle-fill text-primary flex-shrink-0 mt-1"></i>
+                        <span>Kembali ke halaman ini, lalu upload screenshot bukti</span>
+                    </div>
+                    <div class="d-flex align-items-start gap-2">
+                        <i class="bi bi-4-circle-fill text-primary flex-shrink-0 mt-1"></i>
+                        <span>Klik <strong>Kirim Bukti DP</strong> untuk mengirim ke admin</span>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="modal-footer border-0 px-4 pb-4 pt-0">
+                <button type="button" class="btn btn-primary rounded-pill w-100 fw-semibold"
+                        data-bs-dismiss="modal">
+                    <i class="bi bi-check me-1"></i>Mengerti, Saya Akan Transfer
+                </button>
+            </div>
+
+        </div>
+    </div>
+</div>

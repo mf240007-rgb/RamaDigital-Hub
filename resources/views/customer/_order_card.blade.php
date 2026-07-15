@@ -253,12 +253,28 @@
                         </a>
                     </div>
                 @elseif($ps === 'ditolak' || ($isJasa && $order->status === 'Menunggu Antrean' && !$order->bukti_bayar) || (!$isJasa && $ps === 'menunggu_konfirmasi' && !$order->bukti_bayar))
-                    <form action="{{ route('customer.orders.upload-bukti', $order->id) }}" method="POST" enctype="multipart/form-data"
-                          class="d-inline-flex align-items-center gap-2 flex-wrap">
+                    <form action="{{ route('customer.orders.upload-bukti', $order->id) }}" method="POST"
+                          enctype="multipart/form-data"
+                          class="d-flex align-items-center gap-2 flex-wrap w-100"
+                          style="min-height:32px;">
                         @csrf
+                        @if($isJasa)
+                            <button type="button"
+                                    class="btn btn-sm btn-primary rounded-pill px-3 fw-semibold"
+                                    style="height:32px;line-height:1;"
+                                    data-bs-toggle="modal" data-bs-target="#modalQrisDP"
+                                    data-dp="{{ number_format($order->getDpAmount(), 0, ',', '.') }}"
+                                    data-order="{{ $order->order_number ?? '#'.$order->id }}"
+                                    onclick="setModalQris(this)">
+                                <i class="bi bi-qr-code me-1"></i>Lihat QRIS & Cara Bayar
+                            </button>
+                        @endif
                         <input type="file" name="bukti_bayar" accept="image/jpeg,image/png,image/jpg"
-                               class="form-control form-control-sm" style="max-width:220px;">
-                        <button type="submit" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-semibold">
+                               class="form-control form-control-sm"
+                               style="max-width:180px;height:32px;">
+                        <button type="submit"
+                                class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-semibold"
+                                style="height:32px;line-height:1;">
                             <i class="bi bi-send me-1"></i>Kirim Bukti {{ $isJasa ? 'DP' : '' }}
                         </button>
                     </form>
